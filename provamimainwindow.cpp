@@ -34,6 +34,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->filter_level->setModel(&model.levels);
     ui->filter_trange->setModel(&model.tranges);
     ui->filter_varcode->setModel(&model.varcodes);
+    ui->filter_ident->setModel(&model.idents);
     ui->filter_latmin->setValidator(&lat_validator);
     ui->filter_latmax->setValidator(&lat_validator);
     ui->filter_lonmin->setValidator(&lon_validator);

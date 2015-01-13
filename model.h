@@ -115,8 +115,12 @@ class FilterModelBase : public FilterModelQObjectBase
 protected:
     std::vector<ITEM> items;
 
+    /// Read this filter item from a filter record
+    virtual ITEM from_record(const dballe::Record& rec) const = 0;
     /// Read the currently selected ITEM from the model
-    virtual ITEM from_model() = 0;
+    virtual ITEM from_model() const;
+    /// Read the currently active ITEM from the model
+    virtual ITEM active_from_model() const;
     /// Select the given item in the model
     virtual void filter_select(const ITEM& val) = 0;
     /// Unselect the filter we control in the model
@@ -141,7 +145,7 @@ public:
 class FilterReportModel : public FilterModelBase<std::string>
 {
 protected:
-    virtual std::string from_model();
+    virtual std::string from_record(const dballe::Record& rec) const;
     virtual void filter_select(const std::string& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const std::string& val) const;
@@ -154,7 +158,7 @@ public:
 class FilterLevelModel : public FilterModelBase<dballe::Level>
 {
 protected:
-    virtual dballe::Level from_model();
+    virtual dballe::Level from_record(const dballe::Record& rec) const;
     virtual void filter_select(const dballe::Level& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const dballe::Level &val) const;
@@ -168,7 +172,7 @@ public:
 class FilterTrangeModel : public FilterModelBase<dballe::Trange>
 {
 protected:
-    virtual dballe::Trange from_model();
+    virtual dballe::Trange from_record(const dballe::Record& rec) const;
     virtual void filter_select(const dballe::Trange& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const dballe::Trange &val) const;
@@ -181,7 +185,7 @@ public:
 class FilterVarcodeModel : public FilterModelBase<wreport::Varcode>
 {
 protected:
-    virtual wreport::Varcode from_model();
+    virtual wreport::Varcode from_record(const dballe::Record& rec) const;
     virtual void filter_select(const wreport::Varcode& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const wreport::Varcode &val) const;
@@ -190,6 +194,20 @@ protected:
 public:
     explicit FilterVarcodeModel(Model &model, QObject *parent = 0);
 };
+
+class FilterIdentModel : public FilterModelBase<std::string>
+{
+protected:
+    virtual std::string from_record(const dballe::Record& rec) const;
+    virtual void filter_select(const std::string& val);
+    virtual void filter_unselect();
+    virtual QVariant item_to_table_cell(const std::string& val) const;
+    virtual const char* debug_tag() { return "report"; }
+
+public:
+    explicit FilterIdentModel(Model& model, QObject* parent=0);
+};
+
 
 class Model : public QObject
 {
@@ -202,11 +220,13 @@ public slots:
     void activate_next_filter();
     void select_station_id(int id);
     void select_station_bounds(double latmin, double latmax, double lonmin, double lonmax);
+    void select_ident(const std::string& val);
     void select_report(const std::string& val);
     void select_level(const dballe::Level& val);
     void select_trange(const dballe::Trange& val);
     void select_varcode(wreport::Varcode val);
     void unselect_station();
+    void unselect_ident();
     void unselect_report();
     void unselect_level();
     void unselect_trange();
@@ -241,6 +261,7 @@ public:
     FilterLevelModel levels;
     FilterTrangeModel tranges;
     FilterVarcodeModel varcodes;
+    FilterIdentModel idents;
 
     Model();
     ~Model();

@@ -21,6 +21,18 @@ FilterModelBase<ITEM>::FilterModelBase(Model& model, QObject *parent)
 }
 
 template<typename ITEM>
+ITEM FilterModelBase<ITEM>::from_model() const
+{
+    return from_record(model.next_filter);
+}
+
+template<typename ITEM>
+ITEM FilterModelBase<ITEM>::active_from_model() const
+{
+    return from_record(model.active_filter);
+}
+
+template<typename ITEM>
 int FilterModelBase<ITEM>::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) return 0;
@@ -30,15 +42,30 @@ int FilterModelBase<ITEM>::rowCount(const QModelIndex &parent) const
 template<typename ITEM>
 QVariant FilterModelBase<ITEM>::data(const QModelIndex &index, int role) const
 {
-    if (role != Qt::DisplayRole)
-        return QVariant();
     if (!index.isValid()) return QVariant();
     int idx = index.row();
-    if (idx == 0) return "(none)";
-    --idx;
-    if (idx >= (signed)items.size()) return QVariant();
 
-    return item_to_table_cell(items[idx]);
+    switch (role)
+    {
+    case Qt::DisplayRole:
+        if (idx == 0) return "(none)";
+        --idx;
+        if (idx >= (signed)items.size()) return QVariant();
+
+        return item_to_table_cell(items[idx]);
+    case Qt::FontRole:
+        if (idx == 0)
+            return QVariant();
+        else if (active_from_model() == items[idx-1])
+        {
+            QFont res;
+            res.setBold(true);
+            return res;
+        } else
+            return QVariant();
+    default:
+        return QVariant();
+    }
 }
 
 template<typename ITEM>
@@ -119,9 +146,9 @@ FilterReportModel::FilterReportModel(Model &model, QObject *parent)
     : FilterModelBase<std::string>(model, parent)
 {
 }
-string FilterReportModel::from_model()
+string FilterReportModel::from_record(const dballe::Record& rec) const
 {
-    return model.next_filter.get(DBA_KEY_REP_MEMO, "");
+    return rec.get(DBA_KEY_REP_MEMO, "");
 }
 void FilterReportModel::filter_select(const string &val) { model.select_report(val); }
 void FilterReportModel::filter_unselect() { model.unselect_report(); }
@@ -132,9 +159,9 @@ FilterLevelModel::FilterLevelModel(Model &model, QObject *parent)
     : FilterModelBase<dballe::Level>(model, parent)
 {
 }
-Level FilterLevelModel::from_model()
+Level FilterLevelModel::from_record(const dballe::Record& rec) const
 {
-    return model.next_filter.get_level();
+    return rec.get_level();
 }
 void FilterLevelModel::filter_select(const Level &val) { model.select_level(val); }
 void FilterLevelModel::filter_unselect() { model.unselect_level(); }
@@ -148,9 +175,9 @@ FilterTrangeModel::FilterTrangeModel(Model &model, QObject *parent)
     : FilterModelBase<dballe::Trange>(model, parent)
 {
 }
-Trange FilterTrangeModel::from_model()
+Trange FilterTrangeModel::from_record(const dballe::Record& rec) const
 {
-    return model.next_filter.get_trange();
+    return rec.get_trange();
 }
 void FilterTrangeModel::filter_select(const Trange &val) { model.select_trange(val); }
 void FilterTrangeModel::filter_unselect() { model.unselect_trange(); }
@@ -163,9 +190,9 @@ FilterVarcodeModel::FilterVarcodeModel(Model &model, QObject *parent)
     : FilterModelBase<wreport::Varcode>(model, parent)
 {
 }
-wreport::Varcode FilterVarcodeModel::from_model()
+wreport::Varcode FilterVarcodeModel::from_record(const dballe::Record& rec) const
 {
-    const char* scode = model.next_filter.get(DBA_KEY_VAR, "");
+    const char* scode = rec.get(DBA_KEY_VAR, "");
     return wreport::descriptor_code(scode);
 }
 void FilterVarcodeModel::filter_select(const wreport::Varcode &val) { model.select_varcode(val); }
@@ -182,9 +209,20 @@ QVariant FilterVarcodeModel::item_to_table_cell(const wreport::Varcode& val) con
     return QVariant(desc.c_str());
 }
 
+FilterIdentModel::FilterIdentModel(Model &model, QObject *parent)
+    : FilterModelBase<std::string>(model, parent)
+{
+}
+string FilterIdentModel::from_record(const dballe::Record& rec) const
+{
+    return rec.get(DBA_KEY_IDENT, "");
+}
+void FilterIdentModel::filter_select(const string &val) { model.select_ident(val); }
+void FilterIdentModel::filter_unselect() { model.unselect_ident(); }
+QVariant FilterIdentModel::item_to_table_cell(const std::string& val) const { return QVariant(val.c_str()); }
 
 Model::Model()
-    : db(0), reports(*this), levels(*this), tranges(*this), varcodes(*this)
+    : db(0), reports(*this), levels(*this), tranges(*this), varcodes(*this), idents(*this)
 {
 }
 
@@ -320,8 +358,12 @@ void Model::process_summary()
     set<dballe::Level> set_levels;
     set<dballe::Trange> set_tranges;
     set<wreport::Varcode> set_varcodes;
+    set<std::string> set_idents;
+
 
     // Scan the filter building a todo list of things to match
+    bool has_flt_ident = next_filter.contains(DBA_KEY_IDENT);
+    string flt_ident = next_filter.get(DBA_KEY_IDENT, "");
     bool has_flt_rep_memo = next_filter.contains(DBA_KEY_REP_MEMO);
     string flt_rep_memo = next_filter.get(DBA_KEY_REP_MEMO, "");
     bool has_flt_level = next_filter.contains_level();
@@ -345,9 +387,10 @@ void Model::process_summary()
         if (has_flt_station_id && i->first.ana_id != flt_station_id)
             continue;
 
+        const Station& s = cache_stations.find(i->first.ana_id)->second;
+
         if (has_flt_area)
         {
-            const Station& s = cache_stations.find(i->first.ana_id)->second;
             if (s.lat < flt_area_latmin || s.lat > flt_area_latmax
              || s.lon < flt_area_lonmin || s.lon > flt_area_lonmax)
                 continue;
@@ -357,14 +400,18 @@ void Model::process_summary()
         bool match_level    = !has_flt_level || flt_level == i->first.level;
         bool match_trange   = !has_flt_trange || flt_trange == i->first.trange;
         bool match_varcode  = !has_flt_varcode || flt_varcode == i->first.varcode;
+        bool match_ident    = !has_flt_ident || flt_ident == s.ident;
 
-        if (match_level && match_trange && match_varcode)
+        if (match_rep_memo && match_level && match_trange && match_varcode)
+            if (!s.ident.empty())
+                set_idents.insert(s.ident);
+        if (match_ident && match_level && match_trange && match_varcode)
             set_reports.insert(i->first.rep_memo);
-        if (match_rep_memo && match_trange && match_varcode)
+        if (match_ident && match_rep_memo && match_trange && match_varcode)
             set_levels.insert(i->first.level);
-        if(match_rep_memo && match_level && match_varcode)
+        if (match_ident && match_rep_memo && match_level && match_varcode)
             set_tranges.insert(i->first.trange);
-        if (match_rep_memo && match_level && match_trange)
+        if (match_ident && match_rep_memo && match_level && match_trange)
             set_varcodes.insert(i->first.varcode);
     }
 
@@ -372,6 +419,7 @@ void Model::process_summary()
     levels.set_items(set_levels);
     tranges.set_items(set_tranges);
     varcodes.set_items(set_varcodes);
+    idents.set_items(set_idents);
 
     emit next_filter_changed();
 }
@@ -427,6 +475,12 @@ void Model::select_station_bounds(double latmin, double latmax, double lonmin, d
     process_summary();
 }
 
+void Model::select_ident(const string &val)
+{
+    next_filter.set(DBA_KEY_IDENT, val.c_str());
+    process_summary();
+}
+
 void Model::unselect_report()
 {
     next_filter.unset(DBA_KEY_REP_MEMO);
@@ -463,6 +517,12 @@ void Model::unselect_station()
     next_filter.unset(DBA_KEY_LONMIN);
     next_filter.unset(DBA_KEY_LONMAX);
     next_filter.unset(DBA_KEY_ANA_ID);
+    process_summary();
+}
+
+void Model::unselect_ident()
+{
+    next_filter.unset(DBA_KEY_IDENT);
     process_summary();
 }
 

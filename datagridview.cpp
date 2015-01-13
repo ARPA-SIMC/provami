@@ -29,6 +29,25 @@ struct SelectStationIDAction : public ModelAction
     }
 };
 
+struct SelectIdentAction : public ModelAction
+{
+    const Value& val;
+
+    SelectIdentAction(Model& model, const Value& val, QObject* parent=0)
+        : ModelAction(model, parent), val(val)
+    {
+        const Station* sta = model.station(val.ana_id);
+        setIconText(QString("Select mobile station %1").arg(sta->ident.c_str()));
+        setEnabled(model.idents.has_item(sta->ident));
+    }
+
+    void on_trigger()
+    {
+        const Station* sta = model.station(val.ana_id);
+        model.idents.select(sta->ident);
+    }
+};
+
 struct SelectNetworkAction : public ModelAction
 {
     const Value& val;
@@ -127,8 +146,15 @@ static void build_menu(QMenu& menu, Model& model, DataGridModel::ColumnType ctyp
     switch(ctype)
     {
     case DataGridModel::CT_STATION:
+    {
+        const Station* sta = model.station(val.ana_id);
         menu.addAction(new SelectStationIDAction(model, val, &menu));
+        if (!sta->ident.empty())
+        {
+            menu.addAction(new SelectIdentAction(model, val, &menu));
+        }
         break;
+    }
     case DataGridModel::CT_NETWORK:
         menu.addAction(new SelectNetworkAction(model, val, &menu));
         break;
