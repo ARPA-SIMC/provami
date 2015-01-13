@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "model.h"
+#include "datagridmodel.h"
 
 namespace Ui {
 class ProvamiMainWindow;
@@ -14,6 +15,7 @@ class ProvamiMainWindow : public QMainWindow
 
 protected:
     Model& model;
+    DataGridModel datagrid_model;
 
 public:
     explicit ProvamiMainWindow(Model& model, QWidget *parent = 0);

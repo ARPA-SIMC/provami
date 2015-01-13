@@ -14,9 +14,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         provamimainwindow.cpp \
-    model.cpp
+    model.cpp \
+    datagridmodel.cpp
 
 HEADERS  += provamimainwindow.h \
-    model.h
+    model.h \
+    datagridmodel.h
 
 FORMS    += provamimainwindow.ui

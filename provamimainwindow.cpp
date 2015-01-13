@@ -19,6 +19,8 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
 
     QObject::connect(&model, SIGNAL(refreshed()),
                      this, SLOT(on_model_refreshed()));
+
+    ui->results->setModel(&datagrid_model);
 }
 
 ProvamiMainWindow::~ProvamiMainWindow()

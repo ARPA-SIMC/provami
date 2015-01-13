@@ -26,6 +26,11 @@ const std::map<SummaryKey, SummaryValue> &Model::summary() const
     return cache_summary;
 }
 
+const std::vector<Value> &Model::values() const
+{
+    return cache_values;
+}
+
 void Model::dballe_connect(const std::string &dballe_url)
 {
     using namespace dballe;
@@ -45,21 +50,30 @@ void Model::refresh()
 {
     using namespace dballe;
 
-    fprintf(stderr, "Refresh started\n");
+    fprintf(stderr, "Refresh summary started\n");
     cache_stations.clear();
     cache_summary.clear();
+    cache_values.clear();
 
-    Record query, result;
+    Record query;
     auto_ptr<db::Cursor> cur = this->db->query_summary(query);
     while (cur->next())
     {
-        cur->to_record(result);
-        int ana_id = result.get(DBA_KEY_ANA_ID).enqi();
+        int ana_id = cur->get_station_id();
         if (cache_stations.find(ana_id) == cache_stations.end())
-            cache_stations.insert(make_pair(ana_id, Station(result)));
+            cache_stations.insert(make_pair(ana_id, Station(*cur)));
 
-        cache_summary.insert(make_pair(SummaryKey(result), SummaryValue(result)));
+        cache_summary.insert(make_pair(SummaryKey(*cur), SummaryValue(*cur)));
     }
+
+    fprintf(stderr, "Refresh data started\n");
+    query.set("limit", 100);
+    cur = this->db->query_data(query);
+    while (cur->next())
+    {
+        cache_values.push_back(Value(*cur));
+    }
+
     fprintf(stderr, "Notifying refresh done\n");
 
     emit refreshed();
@@ -67,13 +81,13 @@ void Model::refresh()
     fprintf(stderr, "Refresh done\n");
 }
 
-Station::Station(const dballe::Record &rec)
+Station::Station(const dballe::db::Cursor &cur)
 {
     using namespace dballe;
 
-    lat = rec.get(DBA_KEY_LAT).enqd();
-    lon = rec.get(DBA_KEY_LON).enqd();
-    ident = rec.get(DBA_KEY_IDENT, "");
+    lat = cur.get_lat();
+    lon = cur.get_lon();
+    ident = cur.get_ident("");
 }
 
 
@@ -88,19 +102,32 @@ bool SummaryKey::operator <(const SummaryKey &sk) const
     return var < sk.var;
 }
 
-SummaryKey::SummaryKey(const dballe::Record &rec)
+SummaryKey::SummaryKey(const dballe::db::Cursor &cur)
 {
     using namespace dballe;
 
-    ana_id = rec.get(DBA_KEY_ANA_ID).enqi();
-    rep_memo = rec.get(DBA_KEY_REP_MEMO, "");
-    level = rec.get_level();
-    trange = rec.get_trange();
-    fprintf(stderr, "VAVA %s", rec.get(DBA_KEY_VAR).enqc());
-    var = resolve_varcode(rec.get(DBA_KEY_VAR).enqc());
+    ana_id = cur.get_station_id();
+    rep_memo = cur.get_rep_memo("");
+    level = cur.get_level();
+    trange = cur.get_trange();
+    var = cur.get_varcode();
 }
 
 
-SummaryValue::SummaryValue(const dballe::Record &rec)
+SummaryValue::SummaryValue(const dballe::db::Cursor &cur)
 {
+
+}
+
+
+Value::Value(const dballe::db::Cursor &cur)
+    : var(cur.get_var())
+{
+    using namespace dballe;
+
+    ana_id = cur.get_station_id();
+    rep_memo = cur.get_rep_memo("");
+    level = cur.get_level();
+    trange = cur.get_trange();
+    cur.get_datetime(date);
 }
