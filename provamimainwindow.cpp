@@ -58,11 +58,6 @@ ProvamiMainWindow::~ProvamiMainWindow()
     delete ui;
 }
 
-void ProvamiMainWindow::on_refresh_clicked()
-{
-    model.activate_next_filter();
-}
-
 void ProvamiMainWindow::next_filter_changed()
 {
     ui->filter_latmin->reset();
@@ -139,4 +134,14 @@ QValidator::State QOptionalDoubleValidator::validate(QString &input, int &pos) c
 {
     if (input.isEmpty()) return Acceptable;
     return QDoubleValidator::validate(input, pos);
+}
+
+void ProvamiMainWindow::on_actionExit_triggered()
+{
+    close();
+}
+
+void ProvamiMainWindow::on_actionRefresh_triggered()
+{
+    model.activate_next_filter();
 }
