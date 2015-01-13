@@ -12,7 +12,7 @@ using namespace std;
 
 ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     QMainWindow(parent),
-    model(model),
+    model(model), datagrid_model(model),
     ui(new Ui::ProvamiMainWindow)
 {
     ui->setupUi(this);
