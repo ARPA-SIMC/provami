@@ -471,6 +471,37 @@ void Model::select_varcode(wreport::Varcode val)
     process_summary();
 }
 
+static void optimize_datetime(dballe::Record& rec)
+{
+    int dtmin[6];
+    int dtmax[6];
+    rec.parse_date_extremes(dtmin, dtmax);
+    if (dtmin == dtmax)
+    {
+        rec.unset_datetimemin();
+        rec.unset_datetimemax();
+        rec.set_datetime(dtmin);
+    } else {
+        rec.unset_datetime();
+        rec.set_datetimemin(dtmin);
+        rec.set_datetimemax(dtmax);
+    }
+}
+
+void Model::select_datemin(const dballe::Datetime& val)
+{
+    next_filter.setmin(val);
+    optimize_datetime(next_filter);
+    emit next_filter_changed();
+}
+
+void Model::select_datemax(const dballe::Datetime& val)
+{
+    next_filter.setmax(val);
+    optimize_datetime(next_filter);
+    emit next_filter_changed();
+}
+
 void Model::select_station_id(int id)
 {
     next_filter.unset(DBA_KEY_LATMIN);
@@ -530,6 +561,20 @@ void Model::unselect_varcode()
 {
     next_filter.unset(DBA_KEY_VAR);
     process_summary();
+}
+
+void Model::unselect_datemin()
+{
+    next_filter.unset_datetimemin();
+    optimize_datetime(next_filter);
+    emit next_filter_changed();
+}
+
+void Model::unselect_datemax()
+{
+    next_filter.unset_datetimemax();
+    optimize_datetime(next_filter);
+    emit next_filter_changed();
 }
 
 void Model::unselect_station()

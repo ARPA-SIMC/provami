@@ -160,12 +160,16 @@ public slots:
     void select_level(const dballe::Level& val);
     void select_trange(const dballe::Trange& val);
     void select_varcode(wreport::Varcode val);
+    void select_datemin(const dballe::Datetime& val);
+    void select_datemax(const dballe::Datetime& val);
     void unselect_station();
     void unselect_ident();
     void unselect_report();
     void unselect_level();
     void unselect_trange();
     void unselect_varcode();
+    void unselect_datemin();
+    void unselect_datemax();
 
 signals:
     void next_filter_changed();
