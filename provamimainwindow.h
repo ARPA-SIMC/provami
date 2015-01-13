@@ -30,6 +30,7 @@ private slots:
     void on_filter_level_activated(int index);
     void on_filter_trange_activated(int index);
     void on_filter_varcode_activated(int index);
+    void on_next_filter_changed();
 
 private:
     Ui::ProvamiMainWindow *ui;

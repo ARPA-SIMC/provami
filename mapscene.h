@@ -26,7 +26,9 @@ public:
     void load_coastlines(const QString& fname);
 
     void to_proj(QPointF& point);
+    void to_proj(QRectF& rect);
     void to_latlon(QPointF& point);
+    void to_latlon(QRectF& rect);
 
 signals:
     

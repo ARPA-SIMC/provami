@@ -125,6 +125,18 @@ void MapScene::to_latlon(QPointF &point)
     point.setY(-point.y());
 }
 
+void MapScene::to_proj(QRectF &rect)
+{
+    rect.setTop(-rect.top());
+    rect.setBottom(-rect.bottom());
+}
+
+void MapScene::to_latlon(QRectF &rect)
+{
+    rect.setTop(-rect.top());
+    rect.setBottom(-rect.bottom());
+}
+
 void MapScene::update_stations()
 {
     const std::map<int, Station>& stations = model.stations();
@@ -146,9 +158,14 @@ void MapScene::on_selection_changed()
     {
         StationItem* si = dynamic_cast<StationItem*>(items[0]);
         qDebug() << "Selected" << si->station_id;
+        model.select_station_id(si->station_id);
     } else if (items.length() > 1) {
         QRectF area = scene.selectionArea().boundingRect();
         qDebug() << "Selected" << area;
+        to_latlon(area);
+        model.select_station_bounds(area.bottom(), area.top(), area.left(), area.right());
+    } else if (items.length() == 0) {
+        model.unselect_station();
     }
 }
 

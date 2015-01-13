@@ -164,10 +164,13 @@ public slots:
     void refresh();
 
     void activate_next_filter();
+    void select_station_id(int id);
+    void select_station_bounds(double latmin, double latmax, double lonmin, double lonmax);
     void select_report(const std::string& val);
     void select_level(const dballe::Level& val);
     void select_trange(const dballe::Trange& val);
     void select_varcode(wreport::Varcode val);
+    void unselect_station();
     void unselect_report();
     void unselect_level();
     void unselect_trange();
@@ -181,11 +184,6 @@ signals:
 protected:
     dballe::DB* db;
 
-    // Filter corresponding to the data currently shown
-    dballe::Record active_filter;
-    // Filter that is being edited
-    dballe::Record next_filter;
-
     // Filtering elements
     std::map<int, Station> cache_stations;
 
@@ -198,6 +196,11 @@ protected:
     void process_summary();
 
 public:
+    // Filter corresponding to the data currently shown
+    dballe::Record active_filter;
+    // Filter that is being edited
+    dballe::Record next_filter;
+
     FilterReportModel reports;
     FilterLevelModel levels;
     FilterTrangeModel tranges;

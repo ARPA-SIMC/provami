@@ -245,10 +245,29 @@ void Model::process_summary()
     Trange flt_trange = next_filter.get_trange();
     bool has_flt_varcode = next_filter.contains(DBA_KEY_VAR);
     wreport::Varcode flt_varcode = wreport::descriptor_code(next_filter.get(DBA_KEY_VAR, "B00000"));
+    bool has_flt_area = next_filter.contains(DBA_KEY_LATMIN) && next_filter.contains(DBA_KEY_LATMAX)
+            && next_filter.contains(DBA_KEY_LONMIN) && next_filter.contains(DBA_KEY_LONMAX);
+    double flt_area_latmin = next_filter.get(DBA_KEY_LATMIN, 0.0);
+    double flt_area_latmax = next_filter.get(DBA_KEY_LATMAX, 0.0);
+    double flt_area_lonmin = next_filter.get(DBA_KEY_LONMIN, 0.0);
+    double flt_area_lonmax = next_filter.get(DBA_KEY_LONMAX, 0.0);
+    bool has_flt_station_id = next_filter.contains(DBA_KEY_ANA_ID);
+    int flt_station_id = next_filter.get(DBA_KEY_ANA_ID, 0);
 
     for (map<SummaryKey, SummaryValue>::const_iterator i = cache_summary.begin();
          i != cache_summary.end(); ++i)
     {
+        if (has_flt_station_id && i->first.ana_id != flt_station_id)
+            continue;
+
+        if (has_flt_area)
+        {
+            const Station& s = cache_stations.find(i->first.ana_id)->second;
+            if (s.lat < flt_area_latmin || s.lat > flt_area_latmax
+             || s.lon < flt_area_lonmin || s.lon > flt_area_lonmax)
+                continue;
+        }
+
         bool match_rep_memo = !has_flt_rep_memo || flt_rep_memo == i->first.rep_memo;
         bool match_level    = !has_flt_level || flt_level == i->first.level;
         bool match_trange   = !has_flt_trange || flt_trange == i->first.trange;
@@ -297,6 +316,32 @@ void Model::select_varcode(wreport::Varcode val)
     process_summary();
 }
 
+void Model::select_station_id(int id)
+{
+    next_filter.unset(DBA_KEY_LATMIN);
+    next_filter.unset(DBA_KEY_LATMAX);
+    next_filter.unset(DBA_KEY_LONMIN);
+    next_filter.unset(DBA_KEY_LONMAX);
+    next_filter.set(DBA_KEY_ANA_ID, id);
+    process_summary();
+}
+
+void Model::select_station_bounds(double latmin, double latmax, double lonmin, double lonmax)
+{
+    qDebug() << "SSB" << latmin << latmax << lonmin << lonmax;
+    if (latmin < -90) latmin = -90;
+    if (latmax > 90) latmax = 90;
+    if (lonmin < -180) lonmin = -180;
+    if (lonmax > 180) lonmax = 180;
+
+    next_filter.set(DBA_KEY_LATMIN, latmin);
+    next_filter.set(DBA_KEY_LATMAX, latmax);
+    next_filter.set(DBA_KEY_LONMIN, lonmin);
+    next_filter.set(DBA_KEY_LONMAX, lonmax);
+    next_filter.unset(DBA_KEY_ANA_ID);
+    process_summary();
+}
+
 void Model::unselect_report()
 {
     next_filter.unset(DBA_KEY_REP_MEMO);
@@ -323,6 +368,16 @@ void Model::unselect_trange()
 void Model::unselect_varcode()
 {
     next_filter.unset(DBA_KEY_VAR);
+    process_summary();
+}
+
+void Model::unselect_station()
+{
+    next_filter.unset(DBA_KEY_LATMIN);
+    next_filter.unset(DBA_KEY_LATMAX);
+    next_filter.unset(DBA_KEY_LONMIN);
+    next_filter.unset(DBA_KEY_LONMAX);
+    next_filter.unset(DBA_KEY_ANA_ID);
     process_summary();
 }
 
