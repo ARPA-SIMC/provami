@@ -158,8 +158,6 @@ static std::vector<rawquery::Item> record_to_items(const dballe::Record& rec)
 
 void RawQueryModel::next_filter_changed()
 {
-    qDebug() << "NFC";
-
     // Rebuild filter
     std::vector<rawquery::Item> new_items = record_to_items(model.next_filter);
 
