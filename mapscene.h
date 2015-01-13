@@ -4,16 +4,21 @@
 #include <QObject>
 #include <QGraphicsScene>
 #include <string>
+#include <map>
 #include "model.h"
+
+struct StationItem;
 
 class MapScene : public QObject
 {
     Q_OBJECT
 
 protected:
+    std::map<int, StationItem*> stations;
     Model& model;
     QPen coastline_pen;
     QGraphicsItemGroup* coastline_group;
+    StationItem* highlighted = 0;
 
     // Takes ownership of i, passing it to 'scene'
     void add_coastline_path(const QPainterPath& p);
@@ -35,6 +40,7 @@ signals:
 public slots:
     void update_stations();
     void on_selection_changed();
+    void update_highlight();
 };
 
 #endif // MAPSCENE_H

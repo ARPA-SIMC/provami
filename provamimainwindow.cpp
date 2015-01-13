@@ -28,6 +28,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     connect(ui->filter_latmax, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_lonmin, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_lonmax, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
+    connect(ui->results, SIGNAL(clicked(QModelIndex)), this, SLOT(results_clicked(QModelIndex)));
 
     ui->results->setModel(&datagrid_model);
     ui->filter_report->setModel(&model.reports);
@@ -67,6 +68,14 @@ void ProvamiMainWindow::next_filter_changed()
     ui->filter_lonmax->reset();
     ui->filter_ana_id->reset();
 
+}
+
+void ProvamiMainWindow::results_clicked(QModelIndex idx)
+{
+    const Value* val = datagrid_model.valueAt(idx);
+    model.highlight.station_id = val->ana_id;
+    model.highlight.value_id = val->value_id;
+    model.highlight.notify_changed();
 }
 
 void ProvamiMainWindow::filter_latlon_changed()

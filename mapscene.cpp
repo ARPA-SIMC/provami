@@ -12,43 +12,68 @@ using namespace std;
 class StationItem : public QGraphicsRectItem
 {
 protected:
-    QPen pen_normal;
-    QPen pen_highlighted;
+    QPen pen_normal[2];
+    QPen pen_selected[2];
+    bool highlighted = false;
 
 public:
     int station_id;
 
     StationItem(const Station& s, const QPointF& point)
-        : QGraphicsRectItem(point.x()-0.0001, point.y()-0.0001, 0.0002, 0.0002), station_id(s.id)
+        : station_id(s.id)
     {
         setFlag(QGraphicsItem::ItemIsSelectable, true);
+        set_coords(point);
 
         if (s.ident.empty())
         {
             // Fixed stations
-            pen_normal.setColor(QColor(96, 128, 64));
-            pen_normal.setWidth(10);
-            pen_normal.setCosmetic(true);
-            pen_highlighted.setColor(QColor(255, 128, 128));
-            pen_highlighted.setWidth(10);
-            pen_highlighted.setCosmetic(true);
+            pen_normal[0].setColor(QColor(0x5f3f00));
+            pen_normal[0].setWidth(10);
+            pen_normal[0].setCosmetic(true);
+            pen_normal[1].setColor(QColor(0xcda05f));
+            pen_normal[1].setWidth(10);
+            pen_normal[1].setCosmetic(true);
+            pen_selected[0].setColor(QColor(0x895e11));
+            pen_selected[0].setWidth(10);
+            pen_selected[0].setCosmetic(true);
+            pen_selected[1].setColor(QColor(0xf8d39e));
+            pen_selected[1].setWidth(10);
+            pen_selected[1].setCosmetic(true);
         } else {
             // Mobile stations
-            pen_normal.setColor(QColor(96, 192, 96));
-            pen_normal.setWidth(10);
-            pen_normal.setCosmetic(true);
-            pen_highlighted.setColor(QColor(255, 192, 192));
-            pen_highlighted.setWidth(10);
-            pen_highlighted.setCosmetic(true);
+            pen_normal[0].setColor(QColor(0x05408a));
+            pen_normal[0].setWidth(10);
+            pen_normal[0].setCosmetic(true);
+            pen_normal[1].setColor(QColor(0x2e50a1));
+            pen_normal[1].setWidth(10);
+            pen_normal[1].setCosmetic(true);
+            pen_selected[0].setColor(QColor(0x163656));
+            pen_selected[0].setWidth(10);
+            pen_selected[0].setCosmetic(true);
+            pen_selected[1].setColor(QColor(0x7891a9));
+            pen_selected[1].setWidth(10);
+            pen_selected[1].setCosmetic(true);
         }
+    }
+
+    void set_coords(const QPointF& point)
+    {
+        setRect(point.x()-0.0001, point.y()-0.0001, 0.0002, 0.0002);
+    }
+
+    void set_highlighted(bool val)
+    {
+        highlighted = val;
+        update();
     }
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
     {
         if (isSelected())
-            setPen(pen_highlighted);
+            setPen(pen_selected[highlighted ? 1 : 0]);
         else
-            setPen(pen_normal);
+            setPen(pen_normal[highlighted ? 1 : 0]);
         QGraphicsRectItem::paint(painter, option, widget);
     }
 };
@@ -59,14 +84,12 @@ MapScene::MapScene(Model& model, QObject *parent)
       coastline_group(0)
 {
     connect(&model, SIGNAL(active_filter_changed()), this, SLOT(update_stations()));
+    connect(&model.highlight, SIGNAL(changed()), this, SLOT(update_highlight()));
     connect(&scene, SIGNAL(selectionChanged()), this, SLOT(on_selection_changed()));
-    const QList<QGraphicsItem *> empty_group;
 
-    coastline_group = scene.createItemGroup(empty_group);
+    coastline_group = scene.createItemGroup(QList<QGraphicsItem *>());
     coastline_group->setActive(false);
-
     coastline_pen.setColor(Qt::gray);
-
 }
 
 void MapScene::load_coastlines(const QString &fname)
@@ -139,13 +162,37 @@ void MapScene::to_latlon(QRectF &rect)
 
 void MapScene::update_stations()
 {
-    const std::map<int, Station>& stations = model.stations();
-    for (map<int, Station>::const_iterator si = stations.begin(); si != stations.end(); ++si)
+    // Initialize the removed list with all known IDs
+    set<int> removed;
+    for (const auto& i : stations)
+        removed.insert(i.first);
+
+    const std::map<int, Station>& new_stations = model.stations();
+    for (const auto& si : new_stations)
     {
-        QPointF center(si->second.lon, si->second.lat);
+        removed.erase(si.first);
+
+        QPointF center(si.second.lon, si.second.lat);
         to_proj(center);
-        StationItem* i = new StationItem(si->second, center);
-        scene.addItem(i);
+
+        auto old = stations.find(si.first);
+        if (old == stations.end())
+        {
+            StationItem* i = new StationItem(si.second, center);
+            scene.addItem(i);
+            stations.insert(make_pair(i->station_id, i));
+        } else {
+            old->second->set_coords(center);
+        }
+    }
+
+    for (auto i: removed)
+    {
+        auto old = stations.find(i);
+        if (old == stations.end()) continue;
+        scene.removeItem(old->second);
+        delete old->second;
+        stations.erase(i);
     }
 }
 
@@ -166,6 +213,22 @@ void MapScene::on_selection_changed()
         model.select_station_bounds(area.bottom(), area.top(), area.left(), area.right());
     } else if (items.length() == 0) {
         model.unselect_station();
+    }
+}
+
+void MapScene::update_highlight()
+{
+    if (highlighted)
+    {
+        if (highlighted->station_id == model.highlight.station_id)
+            return;
+        highlighted->set_highlighted(false);
+    }
+    auto s = stations.find(model.highlight.station_id);
+    if (s != stations.end())
+    {
+        s->second->set_highlighted(true);
+        highlighted = s->second;
     }
 }
 

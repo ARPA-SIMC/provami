@@ -12,6 +12,7 @@
 #include <set>
 #include <vector>
 #include <QAction>
+#include "highlight.h"
 
 namespace dballe {
 class Record;
@@ -62,6 +63,7 @@ protected:
 struct Value
 {
     int ana_id;
+    int value_id;
     std::string rep_memo;
     dballe::Level level;
     dballe::Trange trange;
@@ -252,6 +254,8 @@ protected:
     void process_summary();
 
 public:
+    // Current highlight
+    Highlight highlight;
     // Filter corresponding to the data currently shown
     dballe::Record active_filter;
     // Filter that is being edited
