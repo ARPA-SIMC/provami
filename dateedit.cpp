@@ -1,6 +1,7 @@
 #include "provami/dateedit.h"
 #include <QKeyEvent>
 #include <dballe/core/defs.h>
+#include <dballe/core/record.h>
 
 using namespace dballe;
 
@@ -13,6 +14,27 @@ DateEdit::DateEdit(QWidget *parent) :
 {
     connect(this, SIGNAL(editingFinished()), this, SLOT(on_editing_finished()));
     connect(this, SIGNAL(textEdited(QString)), this, SLOT(on_text_edited(QString)));
+}
+
+void DateEdit::set_record(Record &rec)
+{
+    this->rec = &rec;
+}
+
+QDateTime DateEdit::set_value(int* vals)
+{
+    setStyleSheet("");
+    if (vals[0] == MISSING_INT)
+    {
+        setText("");
+        return QDateTime();
+    }
+    else
+    {
+        QDateTime dt(QDate(vals[0], vals[1], vals[2]), QTime(vals[3], vals[4], vals[5]));
+        setText(dt.toString("yyyy-MM-dd hh:mm:ss"));
+        return dt;
+    }
 }
 
 void DateEdit::keyPressEvent(QKeyEvent *event)
@@ -95,18 +117,13 @@ bool DateEdit::validate(const QString &text, QDateTime& parsed)
     return !parsed.isNull() && parsed.isValid();
 }
 
-void DateEdit::complete_datetime(int *vals)
+void DateEdit::complete_datetime(int *vals) const
 {
     if (vals[1] == MISSING_INT) vals[1] = 1;
     if (vals[2] == MISSING_INT) vals[2] = 1;
     if (vals[3] == MISSING_INT) vals[3] = 0;
     if (vals[4] == MISSING_INT) vals[4] = 0;
     if (vals[5] == MISSING_INT) vals[5] = 0;
-}
-
-void DateEdit::reset()
-{
-    setStyleSheet("");
 }
 
 void DateEdit::on_editing_finished()
@@ -116,8 +133,10 @@ void DateEdit::on_editing_finished()
     {
         setText(parsed.toString("yyyy-MM-dd hh:mm:ss"));
         setStyleSheet("");
+        emit activate(parsed);
     } else {
         setStyleSheet("QLineEdit{background: #fbb;}");
+        reset();
     }}
 
 void DateEdit::on_text_edited(const QString &text)
@@ -129,6 +148,47 @@ void DateEdit::on_text_edited(const QString &text)
     } else {
         setStyleSheet("QLineEdit{background: #fbb;}");
     }
+}
+
+MinDateEdit::MinDateEdit(QWidget *parent)
+    : DateEdit(parent)
+{
+}
+
+void MinDateEdit::reset()
+{
+    int dt[6] = { MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT };
+    if (rec)
+    {
+        int dt_max[6];
+        rec->parse_date_extremes(dt, dt_max);
+    }
+    emit(activate(set_value(dt)));
+}
+
+MaxDateEdit::MaxDateEdit(QWidget *parent)
+    : DateEdit(parent)
+{
+}
+
+void MaxDateEdit::reset()
+{
+    int dt[6] = { MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT };
+    if (rec)
+    {
+        int dt_min[6];
+        rec->parse_date_extremes(dt_min, dt);
+    }
+    emit(activate(set_value(dt)));
+}
+
+void MaxDateEdit::complete_datetime(int *vals) const
+{
+    if (vals[1] == MISSING_INT) vals[1] = 12;
+    if (vals[2] == MISSING_INT) vals[2] = QDate(vals[0], vals[1], 1).daysInMonth();
+    if (vals[3] == MISSING_INT) vals[3] = 23;
+    if (vals[4] == MISSING_INT) vals[4] = 59;
+    if (vals[5] == MISSING_INT) vals[5] = 59;
 }
 
 /*

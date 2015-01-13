@@ -471,6 +471,10 @@ void Model::select_varcode(wreport::Varcode val)
     process_summary();
 }
 
+/*
+ * TODO: we will want something like this when we will implement
+ * printing a minimal query equivalent for the current filter,
+ * to use in command line apps and to run exporter scripts.
 static void optimize_datetime(dballe::Record& rec)
 {
     int dtmin[6];
@@ -487,18 +491,23 @@ static void optimize_datetime(dballe::Record& rec)
         rec.set_datetimemax(dtmax);
     }
 }
+*/
 
 void Model::select_datemin(const dballe::Datetime& val)
 {
+    int old[6];
+    next_filter.get_datetimemin(old);
+    if (val == dballe::Datetime(old)) return;
     next_filter.setmin(val);
-    optimize_datetime(next_filter);
     emit next_filter_changed();
 }
 
 void Model::select_datemax(const dballe::Datetime& val)
 {
+    int old[6];
+    next_filter.get_datetimemax(old);
+    if (val == dballe::Datetime(old)) return;
     next_filter.setmax(val);
-    optimize_datetime(next_filter);
     emit next_filter_changed();
 }
 
@@ -514,7 +523,6 @@ void Model::select_station_id(int id)
 
 void Model::select_station_bounds(double latmin, double latmax, double lonmin, double lonmax)
 {
-    qDebug() << "SSB" << latmin << latmax << lonmin << lonmax;
     if (latmin < -90) latmin = -90;
     if (latmax > 90) latmax = 90;
     if (lonmin < -180) lonmin = -180;
@@ -565,15 +573,21 @@ void Model::unselect_varcode()
 
 void Model::unselect_datemin()
 {
+    int old[6];
+    next_filter.get_datetimemin(old);
+    if (old[0] == MISSING_INT) return;
+
     next_filter.unset_datetimemin();
-    optimize_datetime(next_filter);
     emit next_filter_changed();
 }
 
 void Model::unselect_datemax()
 {
+    int old[6];
+    next_filter.get_datetimemax(old);
+    if (old[0] == MISSING_INT) return;
+
     next_filter.unset_datetimemax();
-    optimize_datetime(next_filter);
     emit next_filter_changed();
 }
 

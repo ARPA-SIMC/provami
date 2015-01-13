@@ -30,6 +30,8 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     connect(ui->filter_latmax, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_lonmin, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_lonmax, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
+    connect(ui->filter_datemin, SIGNAL(activate(QDateTime)), this, SLOT(filter_datemin_activated(QDateTime)));
+    connect(ui->filter_datemax, SIGNAL(activate(QDateTime)), this, SLOT(filter_datemax_activated(QDateTime)));
     connect(ui->results, SIGNAL(clicked(QModelIndex)), this, SLOT(results_clicked(QModelIndex)));
     connect(ui->station_data, SIGNAL(clicked(QModelIndex)), this, SLOT(station_data_clicked(QModelIndex)));
 
@@ -51,6 +53,8 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->filter_lonmin->set_record(model.next_filter, DBA_KEY_LONMIN);
     ui->filter_lonmax->set_record(model.next_filter, DBA_KEY_LONMAX);
     ui->filter_ana_id->set_record(model.next_filter, DBA_KEY_ANA_ID);
+    ui->filter_datemin->set_record(model.next_filter);
+    ui->filter_datemax->set_record(model.next_filter);
 
     map_scene.load_coastlines("/home/enrico/lavori/arpa/provami/world.dat");
     ui->mapview->setScene(&map_scene.scene);
@@ -72,7 +76,8 @@ void ProvamiMainWindow::next_filter_changed()
     ui->filter_lonmin->reset();
     ui->filter_lonmax->reset();
     ui->filter_ana_id->reset();
-
+    ui->filter_datemin->reset();
+    ui->filter_datemax->reset();
 }
 
 void ProvamiMainWindow::results_clicked(QModelIndex idx)
@@ -119,6 +124,26 @@ void ProvamiMainWindow::on_filter_ana_id_editingFinished()
         model.select_station_id(id);
     else
         model.unselect_station();
+}
+
+void ProvamiMainWindow::filter_datemin_activated(QDateTime dt)
+{
+    if (dt.isNull())
+        model.unselect_datemin();
+    else
+        model.select_datemin(dballe::Datetime(
+            dt.date().year(), dt.date().month(), dt.date().day(),
+            dt.time().hour(), dt.time().minute(), dt.time().second()));
+}
+
+void ProvamiMainWindow::filter_datemax_activated(QDateTime dt)
+{
+    if (dt.isNull())
+        model.unselect_datemax();
+    else
+        model.select_datemax(dballe::Datetime(
+            dt.date().year(), dt.date().month(), dt.date().day(),
+            dt.time().hour(), dt.time().minute(), dt.time().second()));
 }
 
 

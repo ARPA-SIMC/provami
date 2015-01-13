@@ -113,10 +113,10 @@
            </widget>
           </item>
           <item row="5" column="1">
-           <widget class="provami::DateEdit" name="filter_datemin"/>
+           <widget class="provami::MinDateEdit" name="filter_datemin"/>
           </item>
           <item row="6" column="1">
-           <widget class="provami::DateEdit" name="filter_datemax"/>
+           <widget class="provami::MaxDateEdit" name="filter_datemax"/>
           </item>
          </layout>
         </item>
@@ -427,7 +427,12 @@
    <header>provami/filtercombobox.h</header>
   </customwidget>
   <customwidget>
-   <class>provami::DateEdit</class>
+   <class>provami::MinDateEdit</class>
+   <extends>QLineEdit</extends>
+   <header>provami/dateedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>provami::MaxDateEdit</class>
    <extends>QLineEdit</extends>
    <header>provami/dateedit.h</header>
   </customwidget>

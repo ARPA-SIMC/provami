@@ -153,7 +153,7 @@ void AttrGridModel::on_highlight_changed()
     owner_varcode = var ? var->code() : 0;
     owner_id = value_id;
     values.clear();
-    if (owner_varcode != dballe::MISSING_INT)
+    if (owner_varcode)
     {
         Record attrs;
         db::AttrList wanted_attrs;

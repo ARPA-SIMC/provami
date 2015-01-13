@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QIntValidator>
 #include <QDoubleValidator>
+#include <QDateTime>
 #include <provami/model.h>
 #include <provami/datagridmodel.h>
 #include <provami/stationgridmodel.h>
@@ -57,6 +58,8 @@ private slots:
     void results_clicked(QModelIndex);
     void station_data_clicked(QModelIndex);
     void on_filter_ana_id_editingFinished();
+    void filter_datemin_activated(QDateTime);
+    void filter_datemax_activated(QDateTime);
     void on_actionExit_triggered();
     void on_actionRefresh_triggered();
     void highlight_changed();
