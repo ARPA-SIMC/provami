@@ -294,6 +294,7 @@ void Model::update(int var_id, wreport::Varcode var_related, const wreport::Var 
 
 void Model::remove(const Value &val)
 {
+    emit begin_data_changed();
     Record change;
     change.set(DBA_KEY_ANA_ID, val.ana_id);
     change.set(DBA_KEY_REP_MEMO, val.rep_memo.c_str());
@@ -306,8 +307,8 @@ void Model::remove(const Value &val)
     if (i != cache_values.end())
     {
         cache_values.erase(i);
-        emit data_changed();
     }
+    emit end_data_changed();
 }
 
 void Model::set_initial_filter(const Record &rec)
@@ -352,6 +353,7 @@ void Model::refresh()
     }
     emit active_filter_changed();
 
+    emit begin_data_changed();
     // Query data for the currently active filter
     qDebug() << "Refresh data started";
     Record query(active_filter);
@@ -361,7 +363,7 @@ void Model::refresh()
     {
         cache_values.push_back(Value(*cur));
     }
-    emit data_changed();
+    emit end_data_changed();
 
     // Recompute the available choices
     qDebug() << "Summary collation started";

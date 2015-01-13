@@ -157,6 +157,7 @@ void StationGridModel::on_highlight_changed()
 {
     if (station_id == model.highlight.station_id())
         return;
+    beginResetModel();
     station_id = model.highlight.station_id();
     values.clear();
     dballe::Record rec;
@@ -165,7 +166,7 @@ void StationGridModel::on_highlight_changed()
     auto cur = model.db->query_data(rec);
     while (cur->next())
         values.emplace_back(*cur);
-    reset();
+    endResetModel();
 }
 
 }

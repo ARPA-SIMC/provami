@@ -41,7 +41,8 @@ public:
 signals:
     
 public slots:
-    void on_model_refreshed();
+    void on_model_begin_refresh();
+    void on_model_end_refresh();
 };
 
 }

@@ -11,8 +11,10 @@ namespace provami {
 DataGridModel::DataGridModel(Model& model, QObject *parent) :
     QAbstractTableModel(parent), model(model)
 {
-    QObject::connect(&model, SIGNAL(data_changed()),
-                     this, SLOT(on_model_refreshed()));
+    QObject::connect(&model, SIGNAL(begin_data_changed()),
+                     this, SLOT(on_model_begin_refresh()));
+    QObject::connect(&model, SIGNAL(end_data_changed()),
+                     this, SLOT(on_model_end_refresh()));
 }
 
 DataGridModel::ColumnType DataGridModel::resolveColumnType(int column) const
@@ -204,9 +206,14 @@ const Value *DataGridModel::valueAt(const QModelIndex &index) const
     return &val;
 }
 
-void DataGridModel::on_model_refreshed()
+void DataGridModel::on_model_begin_refresh()
 {
-    reset();
+    beginResetModel();
+}
+
+void DataGridModel::on_model_end_refresh()
+{
+    endResetModel();
 }
 
 }

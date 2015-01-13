@@ -150,6 +150,7 @@ void AttrGridModel::on_highlight_changed()
     int value_id = model.highlight.value_id();
     if (owner_varcode == (var ? var->code() : 0) && owner_id == value_id)
         return;
+    beginResetModel();
     owner_varcode = var ? var->code() : 0;
     owner_id = value_id;
     values.clear();
@@ -161,7 +162,7 @@ void AttrGridModel::on_highlight_changed()
         for (const auto& v: attrs.vars())
             values.emplace_back(*v);
     }
-    reset();
+    endResetModel();
 }
 
 }

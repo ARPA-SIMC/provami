@@ -175,7 +175,8 @@ public slots:
 signals:
     void next_filter_changed();
     void active_filter_changed();
-    void data_changed();
+    void begin_data_changed();
+    void end_data_changed();
 
 public:
     dballe::DB* db;

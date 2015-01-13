@@ -167,9 +167,9 @@ void RawQueryModel::next_filter_changed()
     else
         new_items.emplace_back();
 
+    beginResetModel();
     values = new_items;
-
-    reset();
+    endResetModel();
 }
 
 Record RawQueryModel::build_record() const
