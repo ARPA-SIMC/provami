@@ -23,7 +23,7 @@ template<typename ITEM>
 int FilterModelBase<ITEM>::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) return 0;
-    return items.size();
+    return items.size() + 1;
 }
 
 template<typename ITEM>
@@ -31,11 +31,13 @@ QVariant FilterModelBase<ITEM>::data(const QModelIndex &index, int role) const
 {
     if (role != Qt::DisplayRole)
         return QVariant();
-
     if (!index.isValid()) return QVariant();
-    if ((unsigned)index.row() >= items.size()) return QVariant();
+    int idx = index.row();
+    if (idx == 0) return "(none)";
+    --idx;
+    if (idx >= (signed)items.size()) return QVariant();
 
-    return item_to_table_cell(items[index.row()]);
+    return item_to_table_cell(items[idx]);
 }
 
 template<typename ITEM>
@@ -48,13 +50,19 @@ void FilterModelBase<ITEM>::set_items(std::set<ITEM> &new_items)
     std::copy(new_items.begin(), new_items.end(), back_inserter(items));
     foreach (QModelIndex pi, pil)
     {
-        ITEM oitem = old[pi.row()];
+        int row = pi.row();
+
+        // If it was pointing to (none), it doesn't change
+        if (row == 0) continue;
+        --row;
+
+        ITEM oitem = old[row];
         typename vector<ITEM>::const_iterator i = std::find(items.begin(), items.end(), oitem);
         if (i == items.end())
         {
             changePersistentIndex(pi, QModelIndex());
         } else {
-            int new_pos = i - items.begin();
+            int new_pos = i - items.begin() + 1;
             changePersistentIndex(pi, index(new_pos));
         }
     }
@@ -64,8 +72,18 @@ void FilterModelBase<ITEM>::set_items(std::set<ITEM> &new_items)
 template<typename ITEM>
 void FilterModelBase<ITEM>::set_next_filter(int index)
 {
-    if (index < 0 || index > (signed)items.size())
+    if (index <= 0)
+    {
         filter_unselect();
+        return;
+    }
+
+    --index;
+    if (index > (signed)items.size())
+    {
+        filter_unselect();
+        return;
+    }
     filter_select(items[index]);
 }
 
