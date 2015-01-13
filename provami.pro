@@ -13,8 +13,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        provamimainwindow.cpp
+        provamimainwindow.cpp \
+    model.cpp
 
-HEADERS  += provamimainwindow.h
+HEADERS  += provamimainwindow.h \
+    model.h
 
 FORMS    += provamimainwindow.ui
