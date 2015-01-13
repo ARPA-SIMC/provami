@@ -24,6 +24,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
 {
     ui->setupUi(this);
     connect(&model, SIGNAL(next_filter_changed()), this, SLOT(next_filter_changed()));
+    connect(&model.highlight, SIGNAL(changed()), this, SLOT(highlight_changed()));
     connect(ui->filter_latmin, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_latmax, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_lonmin, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
@@ -155,4 +156,16 @@ void ProvamiMainWindow::on_actionExit_triggered()
 void ProvamiMainWindow::on_actionRefresh_triggered()
 {
     model.activate_next_filter();
+}
+
+void ProvamiMainWindow::highlight_changed()
+{
+    const Station* station = model.station(model.highlight.station_id);
+    ui->cur_st_lat->setText(QString("%1").arg(station->lat, 0, 'f', 5));
+    ui->cur_st_lon->setText(QString("%1").arg(station->lon, 0, 'f', 5));
+    ui->cur_st_id->setText(QString("%1").arg(station->id));
+    if (station->ident.empty())
+        ui->cur_st_name->setText("(fixed station)");
+    else
+        ui->cur_st_name->setText(station->ident.c_str());
 }

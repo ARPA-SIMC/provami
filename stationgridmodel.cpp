@@ -148,10 +148,8 @@ const StationValue *StationGridModel::valueAt(const QModelIndex &index) const
 
 void StationGridModel::on_highlight_changed()
 {
-    qDebug() << "onhighlightchanged";
     if (station_id == model.highlight.station_id)
         return;
-    qDebug() << "something changed";
     values.clear();
     dballe::Record rec;
     rec.set(DBA_KEY_ANA_ID, model.highlight.station_id);
@@ -159,6 +157,5 @@ void StationGridModel::on_highlight_changed()
     auto cur = model.db->query_data(rec);
     while (cur->next())
         values.emplace_back(*cur);
-    qDebug() << "queried " << values.size() << " values";
     reset();
 }

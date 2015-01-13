@@ -54,6 +54,7 @@ private slots:
     void on_filter_ana_id_editingFinished();
     void on_actionExit_triggered();
     void on_actionRefresh_triggered();
+    void highlight_changed();
 
 private:
     Ui::ProvamiMainWindow *ui;
