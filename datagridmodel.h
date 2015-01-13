@@ -22,7 +22,7 @@ public:
 signals:
     
 public slots:
-    
+    void on_model_refreshed();
 };
 
 #endif // DATAGRIDMODEL_H

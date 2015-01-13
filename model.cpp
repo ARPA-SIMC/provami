@@ -21,6 +21,14 @@ const std::map<int, Station> &Model::stations() const
     return cache_stations;
 }
 
+const Station *Model::station(int id) const
+{
+    std::map<int, Station>::const_iterator i = cache_stations.find(id);
+    if (i == cache_stations.end())
+        return 0;
+    return &(i->second);
+}
+
 const std::map<SummaryKey, SummaryValue> &Model::summary() const
 {
     return cache_summary;

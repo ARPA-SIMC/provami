@@ -87,6 +87,7 @@ public:
     ~Model();
 
     const std::map<int, Station>& stations() const;
+    const Station* station(int id) const;
     const std::map<SummaryKey, SummaryValue>& summary() const;
     const std::vector<Value>& values() const;
 
