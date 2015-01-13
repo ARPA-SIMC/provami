@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     mapscene.cpp \
     mapview.cpp \
     recordlineedit.cpp \
-    datagridview.cpp
+    datagridview.cpp \
+    filtercombobox.cpp
 
 HEADERS  += provamimainwindow.h \
     model.h \
@@ -28,6 +29,7 @@ HEADERS  += provamimainwindow.h \
     mapscene.h \
     mapview.h \
     recordlineedit.h \
-    datagridview.h
+    datagridview.h \
+    filtercombobox.h
 
 FORMS    += provamimainwindow.ui

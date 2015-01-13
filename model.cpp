@@ -3,6 +3,7 @@
 #include <dballe/core/record.h>
 #include <dballe/db/db.h>
 #include <set>
+#include <algorithm>
 #include <QDebug>
 
 using namespace std;
@@ -11,6 +12,7 @@ using namespace dballe;
 FilterModelQObjectBase::FilterModelQObjectBase(Model& model, QObject *parent)
     : QAbstractListModel(parent), model(model)
 {
+    connect(&model, SIGNAL(next_filter_changed()), this, SLOT(next_filter_changed()));
 }
 
 template<typename ITEM>
@@ -87,11 +89,26 @@ void FilterModelBase<ITEM>::set_next_filter(int index)
     filter_select(items[index]);
 }
 
+template<typename ITEM>
+void FilterModelBase<ITEM>::next_filter_changed()
+{
+    ITEM selected = from_model();
+    typename vector<ITEM>::const_iterator i = std::find(items.begin(), items.end(), selected);
+    if (i == items.end())
+        return;
+    int pos = i - items.begin();
+    qDebug() << "SELECTED" << pos;
+}
+
 
 
 FilterReportModel::FilterReportModel(Model &model, QObject *parent)
     : FilterModelBase<std::string>(model, parent)
 {
+}
+string FilterReportModel::from_model()
+{
+    return model.next_filter.get(DBA_KEY_REP_MEMO, "");
 }
 void FilterReportModel::filter_select(const string &val) { model.select_report(val); }
 void FilterReportModel::filter_unselect() { model.unselect_report(); }
@@ -101,6 +118,10 @@ QVariant FilterReportModel::item_to_table_cell(const std::string& val) const { r
 FilterLevelModel::FilterLevelModel(Model &model, QObject *parent)
     : FilterModelBase<dballe::Level>(model, parent)
 {
+}
+Level FilterLevelModel::from_model()
+{
+    return model.next_filter.get_level();
 }
 void FilterLevelModel::filter_select(const Level &val) { model.select_level(val); }
 void FilterLevelModel::filter_unselect() { model.unselect_level(); }
@@ -114,6 +135,10 @@ FilterTrangeModel::FilterTrangeModel(Model &model, QObject *parent)
     : FilterModelBase<dballe::Trange>(model, parent)
 {
 }
+Trange FilterTrangeModel::from_model()
+{
+    return model.next_filter.get_trange();
+}
 void FilterTrangeModel::filter_select(const Trange &val) { model.select_trange(val); }
 void FilterTrangeModel::filter_unselect() { model.unselect_trange(); }
 QVariant FilterTrangeModel::item_to_table_cell(const Trange& val) const
@@ -124,6 +149,11 @@ QVariant FilterTrangeModel::item_to_table_cell(const Trange& val) const
 FilterVarcodeModel::FilterVarcodeModel(Model &model, QObject *parent)
     : FilterModelBase<wreport::Varcode>(model, parent)
 {
+}
+wreport::Varcode FilterVarcodeModel::from_model()
+{
+    const char* scode = model.next_filter.get(DBA_KEY_VAR, "");
+    return wreport::descriptor_code(scode);
 }
 void FilterVarcodeModel::filter_select(const wreport::Varcode &val) { model.select_varcode(val); }
 void FilterVarcodeModel::filter_unselect() { model.unselect_varcode(); }
@@ -449,4 +479,11 @@ Value::Value(const dballe::db::Cursor &cur)
     level = cur.get_level();
     trange = cur.get_trange();
     cur.get_datetime(date);
+}
+
+
+ModelAction::ModelAction(Model &model, QObject *parent)
+    : QAction(parent), model(model)
+{
+    connect(this, SIGNAL(triggered()), this, SLOT(on_trigger()));
 }

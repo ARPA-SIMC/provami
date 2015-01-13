@@ -63,23 +63,6 @@ void ProvamiMainWindow::on_refresh_clicked()
     model.activate_next_filter();
 }
 
-void ProvamiMainWindow::on_filter_report_activated(int index)
-{
-    model.reports.set_next_filter(index);
-}
-void ProvamiMainWindow::on_filter_level_activated(int index)
-{
-    model.levels.set_next_filter(index);
-}
-void ProvamiMainWindow::on_filter_trange_activated(int index)
-{
-    model.tranges.set_next_filter(index);
-}
-void ProvamiMainWindow::on_filter_varcode_activated(int index)
-{
-    model.varcodes.set_next_filter(index);
-}
-
 void ProvamiMainWindow::next_filter_changed()
 {
     ui->filter_latmin->reset();
@@ -87,6 +70,7 @@ void ProvamiMainWindow::next_filter_changed()
     ui->filter_lonmin->reset();
     ui->filter_lonmax->reset();
     ui->filter_ana_id->reset();
+
 }
 
 void ProvamiMainWindow::filter_latlon_changed()

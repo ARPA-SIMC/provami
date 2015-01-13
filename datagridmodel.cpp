@@ -95,7 +95,7 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
             {
                 return QString("Fixed station, lat %1 lon %2").arg(sta->lat).arg(sta->lon);
             } else {
-                return QString("Mobile station %1, lat %2 lon %3")
+                return QString("Mobile station %1 at lat %2 lon %3")
                         .arg(sta->ident.c_str()).arg(sta->lat).arg(sta->lon);
             }
         }

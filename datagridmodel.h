@@ -25,6 +25,8 @@ public:
 
     explicit DataGridModel(Model &model, QObject *parent = 0);
 
+    Model& dataModel() { return model; }
+    const Model& dataModel() const { return model; }
     ColumnType resolveColumnType(int column) const;
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;

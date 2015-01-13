@@ -11,6 +11,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <QAction>
 
 namespace dballe {
 class Record;
@@ -88,6 +89,7 @@ public:
 
 public slots:
     virtual void set_next_filter(int index) = 0;
+    virtual void next_filter_changed() = 0;
 };
 
 template<class ITEM>
@@ -96,6 +98,8 @@ class FilterModelBase : public FilterModelQObjectBase
 protected:
     std::vector<ITEM> items;
 
+    /// Read the currently selected ITEM from the model
+    virtual ITEM from_model() = 0;
     virtual void filter_select(const ITEM& val) = 0;
     virtual void filter_unselect() = 0;
     virtual QVariant item_to_table_cell(const ITEM& val) const = 0;
@@ -108,11 +112,13 @@ public:
 
     void set_items(std::set<ITEM>& new_items);
     virtual void set_next_filter(int index);
+    virtual void next_filter_changed();
 };
 
 class FilterReportModel : public FilterModelBase<std::string>
 {
 protected:
+    virtual std::string from_model();
     virtual void filter_select(const std::string& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const std::string& val) const;
@@ -124,6 +130,7 @@ public:
 class FilterLevelModel : public FilterModelBase<dballe::Level>
 {
 protected:
+    virtual dballe::Level from_model();
     virtual void filter_select(const dballe::Level& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const dballe::Level &val) const;
@@ -136,6 +143,7 @@ public:
 class FilterTrangeModel : public FilterModelBase<dballe::Trange>
 {
 protected:
+    virtual dballe::Trange from_model();
     virtual void filter_select(const dballe::Trange& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const dballe::Trange &val) const;
@@ -147,6 +155,7 @@ public:
 class FilterVarcodeModel : public FilterModelBase<wreport::Varcode>
 {
 protected:
+    virtual wreport::Varcode from_model();
     virtual void filter_select(const wreport::Varcode& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const wreport::Varcode &val) const;
@@ -228,6 +237,20 @@ public:
 
     /// Connect to a new database, possibly disconnecting from the previous one
     void dballe_connect(const std::string& dballe_url);
+};
+
+class ModelAction : public QAction
+{
+    Q_OBJECT
+
+protected:
+    Model& model;
+
+protected slots:
+    virtual void on_trigger() = 0;
+
+public:
+    ModelAction(Model& model, QObject* parent=0);
 };
 
 #endif // MODEL_H

@@ -48,10 +48,6 @@ public:
 private slots:
     void on_refresh_clicked();
 
-    void on_filter_report_activated(int index);
-    void on_filter_level_activated(int index);
-    void on_filter_trange_activated(int index);
-    void on_filter_varcode_activated(int index);
     void next_filter_changed();
     void filter_latlon_changed();
     void on_filter_ana_id_editingFinished();
