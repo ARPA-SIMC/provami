@@ -14,6 +14,9 @@ class AttrGridModel : public QAbstractTableModel
 protected:
     Model& model;
     std::vector<wreport::Var> values;
+    wreport::Varcode owner_varcode = 0;
+    int owner_id = dballe::MISSING_INT;
+
 
 public:
     enum ColumnType {

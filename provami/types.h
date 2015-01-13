@@ -63,6 +63,7 @@ struct BaseValue
         if (ana_id != val.ana_id) return false;
         if (value_id != val.value_id) return false;
         if (var.code() != val.var.code()) return false;
+        if (rep_memo != val.rep_memo) return false;
         return true;
     }
 protected:
@@ -83,7 +84,6 @@ struct Value : public BaseValue
     bool operator==(const Value& val) const
     {
         if (!BaseValue::operator==(val)) return false;
-        if (rep_memo != val.rep_memo) return false;
         if (level != val.level) return false;
         if (trange != val.trange) return false;
         for (unsigned i = 0; i < 6; ++i)

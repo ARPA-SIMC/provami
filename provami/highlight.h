@@ -30,7 +30,12 @@ public:
         if (m_station_value) return &(m_station_value->var);
         return 0;
     }
-    //int value_id() const { return m_value_id; }
+    int value_id() const
+    {
+        if (m_value) return m_value->value_id;
+        if (m_station_value) return m_station_value->value_id;
+        return dballe::MISSING_INT;
+    }
     //int station_var_id() const { return m_station_var_id; }
 
     /// Set the currently highlighted data

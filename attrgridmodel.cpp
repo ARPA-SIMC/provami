@@ -147,18 +147,21 @@ const wreport::Var *AttrGridModel::valueAt(const QModelIndex &index) const
 
 void AttrGridModel::on_highlight_changed()
 {
-    /* TODO: extract varid and varcode from model.highlight and query stuff
-    if (station_id == model.highlight.station_id())
+    const wreport::Var* var = model.highlight.variable();
+    int value_id = model.highlight.value_id();
+    if (owner_varcode == (var ? var->code() : 0) && owner_id == value_id)
         return;
-    station_id = model.highlight.station_id();
+    owner_varcode = var->code();
+    owner_id = value_id;
     values.clear();
-    dballe::Record rec;
-    rec.set(DBA_KEY_ANA_ID, station_id);
-    rec.set_ana_context();
-    auto cur = model.db->query_data(rec);
-    while (cur->next())
-        values.emplace_back(*cur);
-        */
+    if (owner_varcode != dballe::MISSING_INT)
+    {
+        Record attrs;
+        db::AttrList wanted_attrs;
+        model.db->query_attrs(owner_id, owner_varcode, wanted_attrs, attrs);
+        for (const auto& v: attrs.vars())
+            values.emplace_back(*v);
+    }
     reset();
 }
 
