@@ -41,7 +41,7 @@ public:
 signals:
 
 public slots:
-    void on_model_refreshed();
+
 };
 
 class FilterLevelModel : public QAbstractListModel
@@ -60,7 +60,7 @@ public:
 signals:
 
 public slots:
-    void on_model_refreshed();
+
 };
 
 class FilterTrangeModel : public QAbstractListModel
@@ -79,7 +79,7 @@ public:
 signals:
 
 public slots:
-    void on_model_refreshed();
+
 };
 
 class FilterVarcodeModel : public QAbstractListModel
@@ -98,7 +98,7 @@ public:
 signals:
 
 public slots:
-    void on_model_refreshed();
+
 };
 
 #endif // DATAGRIDMODEL_H

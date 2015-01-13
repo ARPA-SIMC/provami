@@ -9,7 +9,7 @@ using namespace dballe;
 DataGridModel::DataGridModel(Model& model, QObject *parent) :
     QAbstractTableModel(parent), model(model)
 {
-    QObject::connect(&model, SIGNAL(refreshed()),
+    QObject::connect(&model, SIGNAL(data_changed()),
                      this, SLOT(on_model_refreshed()));
 }
 
@@ -94,8 +94,8 @@ void DataGridModel::on_model_refreshed()
 FilterReportModel::FilterReportModel(Model &model, QObject *parent)
     : QAbstractListModel(parent), model(model)
 {
-    QObject::connect(&model, SIGNAL(refreshed()),
-                     this, SLOT(on_model_refreshed()));
+    QObject::connect(&model, SIGNAL(next_filter_changed()),
+                     this, SLOT(reset()));
 }
 
 int FilterReportModel::rowCount(const QModelIndex &parent) const
@@ -115,17 +115,11 @@ QVariant FilterReportModel::data(const QModelIndex &index, int role) const
     return QVariant(model.reports()[index.row()].c_str());
 }
 
-void FilterReportModel::on_model_refreshed()
-{
-    reset();
-}
-
-
 FilterLevelModel::FilterLevelModel(Model &model, QObject *parent)
     : QAbstractListModel(parent), model(model)
 {
-    QObject::connect(&model, SIGNAL(refreshed()),
-                     this, SLOT(on_model_refreshed()));
+    QObject::connect(&model, SIGNAL(next_filter_changed()),
+                     this, SLOT(reset()));
 }
 
 int FilterLevelModel::rowCount(const QModelIndex &parent) const
@@ -146,16 +140,11 @@ QVariant FilterLevelModel::data(const QModelIndex &index, int role) const
     return QVariant(lev.describe().c_str());
 }
 
-void FilterLevelModel::on_model_refreshed()
-{
-    reset();
-}
-
 FilterTrangeModel::FilterTrangeModel(Model &model, QObject *parent)
     : QAbstractListModel(parent), model(model)
 {
-    QObject::connect(&model, SIGNAL(refreshed()),
-                     this, SLOT(on_model_refreshed()));
+    QObject::connect(&model, SIGNAL(next_filter_changed()),
+                     this, SLOT(reset()));
 }
 
 int FilterTrangeModel::rowCount(const QModelIndex &parent) const
@@ -176,16 +165,11 @@ QVariant FilterTrangeModel::data(const QModelIndex &index, int role) const
     return QVariant(tr.describe().c_str());
 }
 
-void FilterTrangeModel::on_model_refreshed()
-{
-    reset();
-}
-
 FilterVarcodeModel::FilterVarcodeModel(Model &model, QObject *parent)
     : QAbstractListModel(parent), model(model)
 {
-    QObject::connect(&model, SIGNAL(refreshed()),
-                     this, SLOT(on_model_refreshed()));
+    QObject::connect(&model, SIGNAL(next_filter_changed()),
+                     this, SLOT(reset()));
 }
 
 int FilterVarcodeModel::rowCount(const QModelIndex &parent) const
@@ -212,9 +196,4 @@ QVariant FilterVarcodeModel::data(const QModelIndex &index, int role) const
     } catch (wreport::error_notfound) {
     }
     return QVariant(desc.c_str());
-}
-
-void FilterVarcodeModel::on_model_refreshed()
-{
-    reset();
 }

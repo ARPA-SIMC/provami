@@ -21,9 +21,6 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QObject::connect(&model, SIGNAL(refreshed()),
-                     this, SLOT(on_model_refreshed()));
-
     ui->results->setModel(&datagrid_model);
     ui->filter_report->setModel(&filter_report_model);
     ui->filter_level->setModel(&filter_level_model);
@@ -39,9 +36,4 @@ ProvamiMainWindow::~ProvamiMainWindow()
 void ProvamiMainWindow::on_refresh_clicked()
 {
     model.refresh();
-}
-
-void ProvamiMainWindow::on_model_refreshed()
-{
-    using namespace dballe;
 }

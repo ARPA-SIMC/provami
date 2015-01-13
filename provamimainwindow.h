@@ -27,7 +27,6 @@ public:
     
 private slots:
     void on_refresh_clicked();
-    void on_model_refreshed();
 
 private:
     Ui::ProvamiMainWindow *ui;
