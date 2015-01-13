@@ -28,6 +28,9 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
 {
     using namespace dballe;
 
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
     if (!index.isValid()) return QVariant();
     if (index.row() >= model.values().size()) return QVariant();
     const Value& val = model.values()[index.row()];
@@ -38,6 +41,10 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
     ss_tr << val.trange;
     string varcode = format_code(val.var.code());
     string value = val.var.format();
+    char datetime[20];
+    snprintf(datetime, 20, "%04d-%02d-%02d %02d:%02d:%02d",
+             val.date[0], val.date[1], val.date[2],
+             val.date[3], val.date[4], val.date[5]);
 
     switch (index.column())
     {
@@ -48,7 +55,7 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
     case 4: return QVariant(val.rep_memo.c_str());
     case 5: return QVariant(ss_lev.str().c_str());
     case 6: return QVariant(ss_tr.str().c_str());
-    case 7: return QVariant();
+    case 7: return QVariant(datetime);
     case 8: return QVariant(varcode.c_str());
     case 9: return QVariant(value.c_str());
     default: return QVariant();
