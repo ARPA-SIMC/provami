@@ -24,3 +24,18 @@ void MapView::wheelEvent(QWheelEvent* event) {
     // Don't call superclass handler here
     // as wheel is normally used for moving scrollbars
 }
+
+void MapView::mousePressEvent(QMouseEvent *event)
+{
+    if (event->modifiers() & Qt::ShiftModifier)
+    {
+        setDragMode(QGraphicsView::RubberBandDrag);
+    }
+    QGraphicsView::mousePressEvent(event);
+}
+
+void MapView::mouseReleaseEvent(QMouseEvent *event)
+{
+    QGraphicsView::mouseReleaseEvent(event);
+    setDragMode(QGraphicsView::ScrollHandDrag);
+}

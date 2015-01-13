@@ -15,6 +15,7 @@ MapScene::MapScene(Model& model, QObject *parent)
       coastline_group(0)
 {
     connect(&model, SIGNAL(active_filter_changed()), this, SLOT(update_stations()));
+    connect(&scene, SIGNAL(selectionChanged()), this, SLOT(on_selection_changed()));
     const QList<QGraphicsItem *> empty_group;
 
     coastline_group = scene.createItemGroup(empty_group);
@@ -94,10 +95,25 @@ void MapScene::update_stations()
         to_proj(center);
         QGraphicsRectItem* i = new QGraphicsRectItem(center.x()-0.0001, center.y()-0.0001, 0.0002, 0.0002);
         scene.addItem(i);
+        i->setFlag(QGraphicsItem::ItemIsSelectable, true);
         if (si->second.ident.empty())
             i->setPen(station_fixed_pen);
         else
             i->setPen(station_mobile_pen);
+    }
+}
+
+void MapScene::on_selection_changed()
+{
+    QList<QGraphicsItem *> items = scene.selectedItems();
+    qDebug() << items.length() << "selected items";
+
+    QPen selected(Qt::red);
+    selected.setWidth(10);
+    selected.setCosmetic(true);
+    foreach(QGraphicsItem* i, items)
+    {
+        dynamic_cast<QGraphicsRectItem*>(i)->setPen(selected);
     }
 }
 

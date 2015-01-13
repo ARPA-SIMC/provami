@@ -34,7 +34,7 @@ signals:
     
 public slots:
     void update_stations();
-    
+    void on_selection_changed();
 };
 
 #endif // MAPSCENE_H
