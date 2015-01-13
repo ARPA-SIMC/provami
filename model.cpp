@@ -279,6 +279,7 @@ void Model::update(StationValue &val, const wreport::Var &new_val)
     Record change;
     change.set_ana_context();
     change.set(DBA_KEY_ANA_ID, val.ana_id);
+    change.set(DBA_KEY_REP_MEMO, val.rep_memo.c_str());
     change.set(new_val);
     db->insert(change, true, false);
     val.var = new_val;
