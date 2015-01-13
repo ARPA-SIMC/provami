@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>449</width>
-    <height>538</height>
+    <height>572</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -219,6 +219,13 @@
      <widget class="QPushButton" name="refresh">
       <property name="text">
        <string>Refresh</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QCheckBox" name="checkBox">
+      <property name="text">
+       <string>CheckBox</string>
       </property>
      </widget>
     </item>
