@@ -10,6 +10,7 @@ class MapView : public QGraphicsView
 protected:
     // Implement wheel zooming
     virtual void wheelEvent(QWheelEvent* event);
+
     // Selection on shift+drag
     virtual void mousePressEvent(QMouseEvent* event);
     virtual void mouseReleaseEvent(QMouseEvent* event);

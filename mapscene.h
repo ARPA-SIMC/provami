@@ -13,8 +13,6 @@ class MapScene : public QObject
 protected:
     Model& model;
     QPen coastline_pen;
-    QPen station_fixed_pen;
-    QPen station_mobile_pen;
     QGraphicsItemGroup* coastline_group;
 
     // Takes ownership of i, passing it to 'scene'

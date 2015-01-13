@@ -9,6 +9,48 @@
 
 using namespace std;
 
+class StationItem : public QGraphicsRectItem
+{
+protected:
+    QPen pen_normal;
+    QPen pen_highlighted;
+
+public:
+    StationItem(const Station& s, const QPointF& point)
+        : QGraphicsRectItem(point.x()-0.0001, point.y()-0.0001, 0.0002, 0.0002)
+    {
+        setFlag(QGraphicsItem::ItemIsSelectable, true);
+
+        if (s.ident.empty())
+        {
+            // Fixed stations
+            pen_normal.setColor(QColor(96, 128, 64));
+            pen_normal.setWidth(10);
+            pen_normal.setCosmetic(true);
+            pen_highlighted.setColor(QColor(255, 128, 128));
+            pen_highlighted.setWidth(10);
+            pen_highlighted.setCosmetic(true);
+        } else {
+            // Mobile stations
+            pen_normal.setColor(QColor(96, 192, 96));
+            pen_normal.setWidth(10);
+            pen_normal.setCosmetic(true);
+            pen_highlighted.setColor(QColor(255, 192, 192));
+            pen_highlighted.setWidth(10);
+            pen_highlighted.setCosmetic(true);
+        }
+    }
+
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+    {
+        if (isSelected())
+            setPen(pen_highlighted);
+        else
+            setPen(pen_normal);
+        QGraphicsRectItem::paint(painter, option, widget);
+    }
+};
+
 MapScene::MapScene(Model& model, QObject *parent)
     : QObject(parent),
       model(model),
@@ -22,12 +64,7 @@ MapScene::MapScene(Model& model, QObject *parent)
     coastline_group->setActive(false);
 
     coastline_pen.setColor(Qt::gray);
-    station_fixed_pen.setColor(QColor(64, 128, 64));
-    station_fixed_pen.setWidth(10);
-    station_fixed_pen.setCosmetic(true);
-    station_mobile_pen.setColor(QColor(96, 192, 96));
-    station_mobile_pen.setWidth(10);
-    station_mobile_pen.setCosmetic(true);
+
 }
 
 void MapScene::load_coastlines(const QString &fname)
@@ -93,13 +130,8 @@ void MapScene::update_stations()
     {
         QPointF center(si->second.lon, si->second.lat);
         to_proj(center);
-        QGraphicsRectItem* i = new QGraphicsRectItem(center.x()-0.0001, center.y()-0.0001, 0.0002, 0.0002);
+        StationItem* i = new StationItem(si->second, center);
         scene.addItem(i);
-        i->setFlag(QGraphicsItem::ItemIsSelectable, true);
-        if (si->second.ident.empty())
-            i->setPen(station_fixed_pen);
-        else
-            i->setPen(station_mobile_pen);
     }
 }
 
