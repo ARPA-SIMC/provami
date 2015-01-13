@@ -36,17 +36,6 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
     {
         const Value& val = model.values()[index.row()];
         const Station* sta = model.station(val.ana_id);
-        stringstream ss_lev;
-        ss_lev << val.level;
-        stringstream ss_tr;
-        ss_tr << val.trange;
-        string varcode = format_code(val.var.code());
-        string value = val.var.format();
-        char datetime[20];
-        snprintf(datetime, 20, "%04d-%02d-%02d %02d:%02d:%02d",
-                 val.date[0], val.date[1], val.date[2],
-                 val.date[3], val.date[4], val.date[5]);
-
         switch (index.column())
         {
         case 0: return QVariant(val.ana_id);
@@ -54,11 +43,65 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
         case 2: return sta ? QVariant(sta->lon) : QVariant();
         case 3: return QVariant(sta->ident.c_str());
         case 4: return QVariant(val.rep_memo.c_str());
-        case 5: return QVariant(ss_lev.str().c_str());
-        case 6: return QVariant(ss_tr.str().c_str());
-        case 7: return QVariant(datetime);
-        case 8: return QVariant(varcode.c_str());
-        case 9: return QVariant(value.c_str());
+        case 5:
+        {
+            stringstream ss_lev;
+            ss_lev << val.level;
+            return QVariant(ss_lev.str().c_str());
+        }
+        case 6:
+        {
+            stringstream ss_tr;
+            ss_tr << val.trange;
+            return QVariant(ss_tr.str().c_str());
+        }
+        case 7:
+        {
+            char datetime[20];
+            snprintf(datetime, 20, "%04d-%02d-%02d %02d:%02d:%02d",
+                     val.date[0], val.date[1], val.date[2],
+                     val.date[3], val.date[4], val.date[5]);
+            return QVariant(datetime);
+        }
+        case 8: return QVariant(format_code(val.var.code()).c_str());
+        case 9: return QVariant(val.var.format().c_str());
+        default: return QVariant();
+        }
+        break;
+    }
+    case Qt::ToolTipRole:
+    case Qt::StatusTipRole:
+    {
+        const Value& val = model.values()[index.row()];
+        const Station* sta = model.station(val.ana_id);
+        switch (index.column())
+        {
+        case 0: return QString("Station ID: %1").arg(val.ana_id);
+        case 1: return sta ? QString("Station latitude: %1").arg(sta->lat) : QVariant();
+        case 2: return sta ? QString("Station longitude: %1").arg(sta->lon) : QVariant();
+        case 3: return QString("Station identifier: %1").arg(sta->ident.c_str());
+        case 4: return QString("Station network: %1").arg(val.rep_memo.c_str());
+        case 5: return QVariant(val.level.describe().c_str());
+        case 6: return QVariant(val.trange.describe().c_str());
+        case 7:
+        {
+            char datetime[20];
+            snprintf(datetime, 20, "%04d-%02d-%02d %02d:%02d:%02d",
+                     val.date[0], val.date[1], val.date[2],
+                     val.date[3], val.date[4], val.date[5]);
+            return QVariant(datetime);
+        }
+        case 8:
+        {
+            return QString(val.var.info()->desc);
+        }
+        case 9:
+        {
+            return QString("%1: %2 %3").arg(
+                        QString(val.var.info()->desc),
+                        QString(val.var.format().c_str()),
+                        QString(val.var.info()->unit));
+        }
         default: return QVariant();
         }
         break;
