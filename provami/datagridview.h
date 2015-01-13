@@ -1,7 +1,9 @@
-#ifndef DATAGRIDVIEW_H
-#define DATAGRIDVIEW_H
+#ifndef PROVAMI_DATAGRIDVIEW_H
+#define PROVAMI_DATAGRIDVIEW_H
 
 #include <QTableView>
+
+namespace provami {
 
 class DataGridView : public QTableView
 {
@@ -18,5 +20,7 @@ signals:
 public slots:
     
 };
+
+}
 
 #endif // DATAGRIDVIEW_H

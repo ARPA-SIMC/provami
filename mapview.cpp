@@ -1,5 +1,7 @@
-#include "mapview.h"
+#include "provami/mapview.h"
 #include <QWheelEvent>
+
+namespace provami {
 
 MapView::MapView(QWidget *parent) :
     QGraphicsView(parent)
@@ -38,4 +40,6 @@ void MapView::mouseReleaseEvent(QMouseEvent *event)
 {
     QGraphicsView::mouseReleaseEvent(event);
     setDragMode(QGraphicsView::ScrollHandDrag);
+}
+
 }

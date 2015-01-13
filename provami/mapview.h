@@ -1,7 +1,9 @@
-#ifndef MAPVIEW_H
-#define MAPVIEW_H
+#ifndef PROVAMI_MAPVIEW_H
+#define PROVAMI_MAPVIEW_H
 
 #include <QGraphicsView>
+
+namespace provami {
 
 class MapView : public QGraphicsView
 {
@@ -23,5 +25,7 @@ signals:
 public slots:
     
 };
+
+}
 
 #endif // MAPVIEW_H

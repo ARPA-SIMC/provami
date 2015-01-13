@@ -1,9 +1,11 @@
-#ifndef RECORDLINEEDIT_H
-#define RECORDLINEEDIT_H
+#ifndef PROVAMI_RECORDLINEEDIT_H
+#define PROVAMI_RECORDLINEEDIT_H
 
 #include <QLineEdit>
 #include <QKeyEvent>
 #include <dballe/core/record.h>
+
+namespace provami {
 
 class RecordLineEdit : public QLineEdit
 {
@@ -32,4 +34,5 @@ protected slots:
     void on_text_edited(const QString& text);
 };
 
+}
 #endif // RECORDLINEEDIT_H

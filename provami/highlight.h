@@ -1,8 +1,11 @@
-#ifndef HIGHLIGHT_H
-#define HIGHLIGHT_H
+#ifndef PROVAMI_HIGHLIGHT_H
+#define PROVAMI_HIGHLIGHT_H
 
 #include <QObject>
 #include <dballe/core/defs.h>
+#include <provami/types.h>
+
+namespace provami {
 
 class Highlight : public QObject
 {
@@ -15,6 +18,8 @@ public:
     int value_id = dballe::MISSING_INT;
     int station_var_id = dballe::MISSING_INT;
 
+    void select_value(const Value*);
+    void select_value(const StationValue*);
     void notify_changed();
 
 signals:
@@ -23,5 +28,7 @@ signals:
 public slots:
 
 };
+
+}
 
 #endif // HIGHLIGHT_H

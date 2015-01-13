@@ -1,9 +1,11 @@
-#ifndef STATIONGRIDMODEL_H
-#define STATIONGRIDMODEL_H
+#ifndef PROVAMI_STATIONGRIDMODEL_H
+#define PROVAMI_STATIONGRIDMODEL_H
 
 #include <QAbstractTableModel>
 #include <dballe/core/defs.h>
-#include <model.h>
+#include <provami/model.h>
+
+namespace provami {
 
 class StationGridModel : public QAbstractTableModel
 {
@@ -40,5 +42,7 @@ signals:
 public slots:
     void on_highlight_changed();
 };
+
+}
 
 #endif // STATIONGRIDMODEL_H

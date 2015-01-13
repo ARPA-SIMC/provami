@@ -1,4 +1,4 @@
-#include "provamimainwindow.h"
+#include "provami/provamimainwindow.h"
 #include "ui_provamimainwindow.h"
 #include <set>
 #include <map>
@@ -7,12 +7,13 @@
 #include <dballe/core/var.h>
 #include <dballe/core/record.h>
 #include <QDebug>
-#include "model.h"
-#include "mapscene.h"
+#include "provami/model.h"
+#include "provami/mapscene.h"
 
 using namespace std;
 using namespace dballe;
 
+namespace provami {
 
 ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     QMainWindow(parent),
@@ -168,4 +169,6 @@ void ProvamiMainWindow::highlight_changed()
         ui->cur_st_name->setText("(fixed station)");
     else
         ui->cur_st_name->setText(station->ident.c_str());
+}
+
 }

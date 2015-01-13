@@ -1,5 +1,7 @@
-#include "filtercombobox.h"
+#include "provami/filtercombobox.h"
 #include <QDebug>
+
+namespace provami {
 
 FilterComboBox::FilterComboBox(QWidget *parent) :
     QComboBox(parent), model(0)
@@ -28,4 +30,6 @@ void FilterComboBox::on_next_filter_changed()
 {
     int idx = model->get_current_index_from_model();
     setCurrentIndex(idx);
+}
+
 }

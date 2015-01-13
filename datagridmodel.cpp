@@ -1,10 +1,12 @@
-#include "datagridmodel.h"
+#include <provami/datagridmodel.h>
 #include <dballe/core/var.h>
 #include <QDebug>
 #include <sstream>
 
 using namespace std;
 using namespace dballe;
+
+namespace provami {
 
 DataGridModel::DataGridModel(Model& model, QObject *parent) :
     QAbstractTableModel(parent), model(model)
@@ -205,4 +207,6 @@ const Value *DataGridModel::valueAt(const QModelIndex &index) const
 void DataGridModel::on_model_refreshed()
 {
     reset();
+}
+
 }

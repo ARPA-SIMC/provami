@@ -8,21 +8,23 @@ DEPENDPATH += .
 INCLUDEPATH += .
 
 # Input
-HEADERS += datagridmodel.h \
-           datagridview.h \
-           filtercombobox.h \
-           highlight.h \
-           mapscene.h \
-           mapview.h \
-           model.h \
-           provamimainwindow.h \
-           recordlineedit.h \
-           stationgridmodel.h
+HEADERS += provami/types.h \
+           provami/highlight.h \
+           provami/datagridmodel.h \
+           provami/datagridview.h \
+           provami/filtercombobox.h \
+           provami/mapscene.h \
+           provami/mapview.h \
+           provami/model.h \
+           provami/provamimainwindow.h \
+           provami/recordlineedit.h \
+           provami/stationgridmodel.h
 FORMS += provamimainwindow.ui
-SOURCES += datagridmodel.cpp \
+SOURCES += types.cpp \
+           highlight.cpp \
+           datagridmodel.cpp \
            datagridview.cpp \
            filtercombobox.cpp \
-           highlight.cpp \
            main.cpp \
            mapscene.cpp \
            mapview.cpp \

@@ -1,4 +1,4 @@
-#include "mapscene.h"
+#include "provami/mapscene.h"
 #include <QFile>
 #include <QTextStream>
 #include <QGraphicsPathItem>
@@ -8,6 +8,8 @@
 #include <memory>
 
 using namespace std;
+
+namespace provami {
 
 class StationItem : public QGraphicsRectItem
 {
@@ -237,4 +239,6 @@ void MapScene::add_coastline_path(const QPainterPath &p)
     QAbstractGraphicsShapeItem* i = new QGraphicsPathItem(p);
     coastline_group->addToGroup(i);
     i->setPen(coastline_pen);
+}
+
 }

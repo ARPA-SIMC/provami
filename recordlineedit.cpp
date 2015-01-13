@@ -1,7 +1,9 @@
-#include "recordlineedit.h"
+#include "provami/recordlineedit.h"
 
 using namespace dballe;
 using namespace std;
+
+namespace provami {
 
 RecordLineEdit::RecordLineEdit(QWidget *parent) :
     QLineEdit(parent), rec(0), key(DBA_KEY_ERROR)
@@ -53,4 +55,6 @@ void RecordLineEdit::keyPressEvent(QKeyEvent *event)
     default:
         QLineEdit::keyPressEvent(event);
     }
+}
+
 }

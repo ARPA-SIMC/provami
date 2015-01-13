@@ -1,5 +1,5 @@
-#include "provamimainwindow.h"
-#include "model.h"
+#include "provami/provamimainwindow.h"
+#include "provami/model.h"
 #include <dballe/core/record.h>
 #include <QApplication>
 #include <cstdlib>
@@ -7,6 +7,7 @@
 
 using namespace std;
 using namespace dballe;
+using namespace provami;
 
 int main(int argc, char *argv[])
 {

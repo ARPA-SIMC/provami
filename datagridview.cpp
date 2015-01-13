@@ -1,9 +1,11 @@
-#include "datagridview.h"
+#include "provami/datagridview.h"
 #include <QDebug>
 #include <QContextMenuEvent>
 #include <QMenu>
-#include "model.h"
-#include "datagridmodel.h"
+#include <provami/model.h>
+#include <provami/datagridmodel.h>
+
+namespace provami {
 
 struct SelectStationIDAction : public ModelAction
 {
@@ -196,4 +198,6 @@ void DataGridView::contextMenuEvent(QContextMenuEvent *event)
     QMenu menu(this);
     build_menu(menu, m->dataModel(), ctype, *val);
     menu.exec(event->globalPos());
+}
+
 }

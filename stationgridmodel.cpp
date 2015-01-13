@@ -1,8 +1,10 @@
-#include "stationgridmodel.h"
+#include "provami/stationgridmodel.h"
 #include <dballe/core/var.h>
 #include <QDebug>
 
 using namespace dballe;
+
+namespace provami {
 
 StationGridModel::StationGridModel(Model &model, QObject *parent) :
     QAbstractTableModel(parent), model(model)
@@ -158,4 +160,6 @@ void StationGridModel::on_highlight_changed()
     while (cur->next())
         values.emplace_back(*cur);
     reset();
+}
+
 }

@@ -1,11 +1,13 @@
-#ifndef MAPSCENE_H
-#define MAPSCENE_H
+#ifndef PROVAMI_MAPSCENE_H
+#define PROVAMI_MAPSCENE_H
 
 #include <QObject>
 #include <QGraphicsScene>
 #include <string>
 #include <map>
-#include "model.h"
+#include <provami/model.h>
+
+namespace provami {
 
 struct StationItem;
 
@@ -43,4 +45,5 @@ public slots:
     void update_highlight();
 };
 
+}
 #endif // MAPSCENE_H

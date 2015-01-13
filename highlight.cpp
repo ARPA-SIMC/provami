@@ -1,4 +1,6 @@
-#include "highlight.h"
+#include "provami/highlight.h"
+
+namespace provami {
 
 Highlight::Highlight(QObject *parent) :
     QObject(parent)
@@ -8,4 +10,6 @@ Highlight::Highlight(QObject *parent) :
 void Highlight::notify_changed()
 {
     emit changed();
+}
+
 }

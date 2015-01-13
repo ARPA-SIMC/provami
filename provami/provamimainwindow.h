@@ -1,5 +1,5 @@
-#ifndef PROVAMIMAINWINDOW_H
-#define PROVAMIMAINWINDOW_H
+#ifndef PROVAMI_PROVAMIMAINWINDOW_H
+#define PROVAMI_PROVAMIMAINWINDOW_H
 
 #include <QMainWindow>
 #include <QIntValidator>
@@ -12,6 +12,8 @@
 namespace Ui {
 class ProvamiMainWindow;
 }
+
+namespace provami {
 
 class QOptionalIntValidator : public QIntValidator
 {
@@ -59,5 +61,7 @@ private slots:
 private:
     Ui::ProvamiMainWindow *ui;
 };
+
+}
 
 #endif // PROVAMIMAINWINDOW_H

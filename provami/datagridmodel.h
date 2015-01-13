@@ -1,8 +1,10 @@
-#ifndef DATAGRIDMODEL_H
-#define DATAGRIDMODEL_H
+#ifndef PROVAMI_DATAGRIDMODEL_H
+#define PROVMAI_DATAGRIDMODEL_H
 
 #include <QAbstractTableModel>
-#include <model.h>
+#include <provami/model.h>
+
+namespace provami {
 
 class DataGridModel : public QAbstractTableModel
 {
@@ -42,4 +44,5 @@ public slots:
     void on_model_refreshed();
 };
 
+}
 #endif // DATAGRIDMODEL_H

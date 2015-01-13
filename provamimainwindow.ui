@@ -30,7 +30,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_filter">
        <property name="sizePolicy">
@@ -56,7 +56,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="FilterComboBox" name="filter_report"/>
+           <widget class="provami::FilterComboBox" name="filter_report"/>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_2">
@@ -66,7 +66,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="FilterComboBox" name="filter_level"/>
+           <widget class="provami::FilterComboBox" name="filter_level"/>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_3">
@@ -76,7 +76,7 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="FilterComboBox" name="filter_trange"/>
+           <widget class="provami::FilterComboBox" name="filter_trange"/>
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_4">
@@ -86,10 +86,10 @@
            </widget>
           </item>
           <item row="3" column="1">
-           <widget class="FilterComboBox" name="filter_varcode"/>
+           <widget class="provami::FilterComboBox" name="filter_varcode"/>
           </item>
           <item row="4" column="1">
-           <widget class="FilterComboBox" name="filter_ident"/>
+           <widget class="provami::FilterComboBox" name="filter_ident"/>
           </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_11">
@@ -108,7 +108,7 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="MapView" name="mapview">
+         <widget class="provami::MapView" name="mapview">
           <property name="dragMode">
            <enum>QGraphicsView::ScrollHandDrag</enum>
           </property>
@@ -135,7 +135,7 @@
              </widget>
             </item>
             <item>
-             <widget class="RecordLineEdit" name="filter_latmin"/>
+             <widget class="provami::RecordLineEdit" name="filter_latmin"/>
             </item>
             <item>
              <widget class="QLabel" name="label_7">
@@ -145,7 +145,7 @@
              </widget>
             </item>
             <item>
-             <widget class="RecordLineEdit" name="filter_latmax"/>
+             <widget class="provami::RecordLineEdit" name="filter_latmax"/>
             </item>
            </layout>
           </item>
@@ -165,7 +165,7 @@
              </widget>
             </item>
             <item>
-             <widget class="RecordLineEdit" name="filter_lonmin"/>
+             <widget class="provami::RecordLineEdit" name="filter_lonmin"/>
             </item>
             <item>
              <widget class="QLabel" name="label_8">
@@ -175,7 +175,7 @@
              </widget>
             </item>
             <item>
-             <widget class="RecordLineEdit" name="filter_lonmax"/>
+             <widget class="provami::RecordLineEdit" name="filter_lonmax"/>
             </item>
            </layout>
           </item>
@@ -195,7 +195,7 @@
              </widget>
             </item>
             <item>
-             <widget class="RecordLineEdit" name="filter_ana_id"/>
+             <widget class="provami::RecordLineEdit" name="filter_ana_id"/>
             </item>
            </layout>
           </item>
@@ -292,10 +292,38 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>&amp;4 Attrs</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_7">
+        <item>
+         <layout class="QFormLayout" name="formLayout_3">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>Variable:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="attr_var">
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTableView" name="tableView"/>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
     <item>
-     <widget class="DataGridView" name="results">
+     <widget class="provami::DataGridView" name="results">
       <attribute name="verticalHeaderVisible">
        <bool>false</bool>
       </attribute>
@@ -359,24 +387,24 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>MapView</class>
+   <class>provami::MapView</class>
    <extends>QGraphicsView</extends>
-   <header>mapview.h</header>
+   <header>provami/mapview.h</header>
   </customwidget>
   <customwidget>
-   <class>RecordLineEdit</class>
+   <class>provami::RecordLineEdit</class>
    <extends>QLineEdit</extends>
-   <header>recordlineedit.h</header>
+   <header>provami/recordlineedit.h</header>
   </customwidget>
   <customwidget>
-   <class>DataGridView</class>
+   <class>provami::DataGridView</class>
    <extends>QTableView</extends>
-   <header location="global">datagridview.h</header>
+   <header>provami/datagridview.h</header>
   </customwidget>
   <customwidget>
-   <class>FilterComboBox</class>
+   <class>provami::FilterComboBox</class>
    <extends>QComboBox</extends>
-   <header location="global">filtercombobox.h</header>
+   <header>provami/filtercombobox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
