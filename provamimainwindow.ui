@@ -30,7 +30,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_filter">
        <property name="sizePolicy">
@@ -205,7 +205,7 @@
       </widget>
       <widget class="QWidget" name="tab_station">
        <attribute name="title">
-        <string>Station</string>
+        <string>&amp;3 Station</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
