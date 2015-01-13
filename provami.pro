@@ -17,13 +17,15 @@ SOURCES += main.cpp\
     model.cpp \
     datagridmodel.cpp \
     mapscene.cpp \
-    mapview.cpp
+    mapview.cpp \
+    recordlineedit.cpp
 
 HEADERS  += provamimainwindow.h \
     model.h \
     datagridmodel.h \
     mapview.h \
     mapscene.h \
-    mapview.h
+    mapview.h \
+    recordlineedit.h
 
 FORMS    += provamimainwindow.ui

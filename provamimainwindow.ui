@@ -125,7 +125,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="filter_latmin"/>
+             <widget class="RecordLineEdit" name="filter_latmin"/>
             </item>
             <item>
              <widget class="QLabel" name="label_7">
@@ -135,7 +135,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="filter_latmax"/>
+             <widget class="RecordLineEdit" name="filter_latmax"/>
             </item>
            </layout>
           </item>
@@ -155,7 +155,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="filter_lonmin"/>
+             <widget class="RecordLineEdit" name="filter_lonmin"/>
             </item>
             <item>
              <widget class="QLabel" name="label_8">
@@ -165,7 +165,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="filter_lonmax"/>
+             <widget class="RecordLineEdit" name="filter_lonmax"/>
             </item>
            </layout>
           </item>
@@ -185,7 +185,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="filter_ana_id"/>
+             <widget class="RecordLineEdit" name="filter_ana_id"/>
             </item>
            </layout>
           </item>
@@ -257,6 +257,11 @@
    <class>MapView</class>
    <extends>QGraphicsView</extends>
    <header>mapview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>RecordLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>recordlineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
