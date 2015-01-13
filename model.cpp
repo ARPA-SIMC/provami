@@ -173,6 +173,24 @@ const std::vector<Value> &Model::values() const
     return cache_values;
 }
 
+std::vector<Value> &Model::values()
+{
+    return cache_values;
+}
+
+void Model::update(Value &val, const wreport::Var &new_val)
+{
+    Record change;
+    change.set(DBA_KEY_ANA_ID, val.ana_id);
+    change.set(DBA_KEY_REP_MEMO, val.rep_memo.c_str());
+    change.set(val.level);
+    change.set(val.trange);
+    change.set_datetime(val.date);
+    change.set(new_val);
+    db->insert(change, true, false);
+    val.var = new_val;
+}
+
 void Model::dballe_connect(const std::string &dballe_url)
 {
     if (db)

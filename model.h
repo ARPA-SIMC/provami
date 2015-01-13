@@ -213,6 +213,15 @@ public:
     const Station* station(int id) const;
     const std::map<SummaryKey, SummaryValue>& summaries() const;
     const std::vector<Value>& values() const;
+    std::vector<Value>& values();
+
+    /**
+     * Update \a val in the database to have the value \a new_val
+     *
+     * Updates the 'val' member of 'val' if it succeeded, otherwise
+     * exceptions are raised
+     */
+    void update(Value& val, const wreport::Var& new_val);
 
     /// Connect to a new database, possibly disconnecting from the previous one
     void dballe_connect(const std::string& dballe_url);
