@@ -13,6 +13,9 @@ class MapScene : public QObject
 protected:
     Model& model;
     QPen coastline_pen;
+    QPen station_fixed_pen;
+    QPen station_mobile_pen;
+    QGraphicsItemGroup* coastline_group;
 
     // Takes ownership of i, passing it to 'scene'
     void add_coastline_path(const QPainterPath& p);
@@ -22,7 +25,7 @@ public:
 
     explicit MapScene(Model& model, QObject *parent = 0);
     
-    void load_coastlines(const std::string& fname);
+    void load_coastlines(const QString& fname);
 
     void to_proj(QPointF& point);
     void to_latlon(QPointF& point);

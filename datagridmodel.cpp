@@ -1,6 +1,6 @@
 #include "datagridmodel.h"
 #include <dballe/core/var.h>
-#include <stdio.h>
+#include <QDebug>
 #include <sstream>
 
 using namespace std;

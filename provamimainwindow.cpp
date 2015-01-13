@@ -1,10 +1,10 @@
 #include "provamimainwindow.h"
 #include "ui_provamimainwindow.h"
-#include <stdio.h>
 #include <set>
 #include <map>
 #include <dballe/core/defs.h>
 #include <dballe/core/var.h>
+#include <QDebug>
 #include "model.h"
 #include "mapscene.h"
 
@@ -26,6 +26,8 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
 
     map_scene.load_coastlines("/home/enrico/lavori/arpa/provami/world.dat");
     ui->mapview->setScene(&map_scene.scene);
+
+    qDebug() << "Scene rect: " << map_scene.scene.sceneRect();
 }
 
 ProvamiMainWindow::~ProvamiMainWindow()

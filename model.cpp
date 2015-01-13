@@ -3,7 +3,7 @@
 #include <dballe/core/record.h>
 #include <dballe/db/db.h>
 #include <set>
-#include <stdio.h>
+#include <QDebug>
 
 using namespace std;
 using namespace dballe;
@@ -193,7 +193,7 @@ void Model::refresh()
     cache_values.clear();
 
     // Query summary for the currently active filter
-    fprintf(stderr, "Refresh summary started\n");
+    qDebug() << "Refresh summary started";
     auto_ptr<db::Cursor> cur = this->db->query_summary(active_filter);
     while (cur->next())
     {
@@ -206,7 +206,7 @@ void Model::refresh()
     emit active_filter_changed();
 
     // Query data for the currently active filter
-    fprintf(stderr, "Refresh data started\n");
+    qDebug() << "Refresh data started";
     Record query(active_filter);
     query.set("limit", 100);
     cur = this->db->query_data(query);
@@ -217,10 +217,10 @@ void Model::refresh()
     emit data_changed();
 
     // Recompute the available choices
-    fprintf(stderr, "Summary collation started\n");
+    qDebug() << "Summary collation started";
     process_summary();
 
-    fprintf(stderr, "Refresh done\n");
+    qDebug() << "Refresh done";
 }
 
 void Model::activate_next_filter()
