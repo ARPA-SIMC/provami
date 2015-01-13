@@ -79,7 +79,11 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
         case 0: return QString("Station ID: %1").arg(val.ana_id);
         case 1: return sta ? QString("Station latitude: %1").arg(sta->lat) : QVariant();
         case 2: return sta ? QString("Station longitude: %1").arg(sta->lon) : QVariant();
-        case 3: return QString("Station identifier: %1").arg(sta->ident.c_str());
+        case 3:
+            if (sta->ident.empty())
+                return QString("Fixed station with no identifier");
+            else
+                return QString("Station identifier: %1").arg(sta->ident.c_str());
         case 4: return QString("Station network: %1").arg(val.rep_memo.c_str());
         case 5: return QVariant(val.level.describe().c_str());
         case 6: return QVariant(val.trange.describe().c_str());
