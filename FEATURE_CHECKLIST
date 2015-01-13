@@ -1,0 +1,16 @@
+Filter:
+ - enumeration of available options
+ - restriction to available options after a selection
+Map:
+ - current station is visible
+ - highlighted station is visible
+ - single station selection
+ - box station selection
+Station:
+ - shows current station info
+ - value is editable and persists
+Attrs:
+ - shows current var info
+ - value is editable and persists
+Data:
+ - value is editable and persists
