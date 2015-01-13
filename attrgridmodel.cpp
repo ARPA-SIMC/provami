@@ -1,4 +1,4 @@
-#include "provami/stationgridmodel.h"
+#include "provami/attrgridmodel.h"
 #include <dballe/core/var.h>
 #include <QDebug>
 
@@ -6,37 +6,36 @@ using namespace dballe;
 
 namespace provami {
 
-StationGridModel::StationGridModel(Model &model, QObject *parent) :
+AttrGridModel::AttrGridModel(Model &model, QObject *parent) :
     QAbstractTableModel(parent), model(model)
 {
     QObject::connect(&model.highlight, SIGNAL(changed()),
                      this, SLOT(on_highlight_changed()));
 }
 
-StationGridModel::ColumnType StationGridModel::resolveColumnType(int column) const
+AttrGridModel::ColumnType AttrGridModel::resolveColumnType(int column) const
 {
     switch (column)
     {
-    case 0: return CT_NETWORK;
-    case 1: return CT_VARCODE;
-    case 2: return CT_VALUE;
+    case 0: return CT_VARCODE;
+    case 1: return CT_VALUE;
     default: return CT_INVALID;
     }
 }
 
-int StationGridModel::rowCount(const QModelIndex &parent) const
+int AttrGridModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) return 0;
     return values.size();
 }
 
-int StationGridModel::columnCount(const QModelIndex &parent) const
+int AttrGridModel::columnCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) return 0;
-    return 3;
+    return 2;
 }
 
-QVariant StationGridModel::data(const QModelIndex &index, int role) const
+QVariant AttrGridModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid()) return QVariant();
     if ((unsigned)index.row() >= values.size()) return QVariant();
@@ -47,12 +46,11 @@ QVariant StationGridModel::data(const QModelIndex &index, int role) const
     {
     case Qt::DisplayRole:
     {
-        const StationValue& val = values[index.row()];
+        const wreport::Var& var = values[index.row()];
         switch (ctype)
         {
-        case CT_NETWORK: return QVariant(val.rep_memo.c_str());
-        case CT_VARCODE: return QVariant(format_code(val.var.code()).c_str());
-        case CT_VALUE: return QVariant(val.var.format().c_str());
+        case CT_VARCODE: return QVariant(format_code(var.code()).c_str());
+        case CT_VALUE: return QVariant(var.format().c_str());
         default: return QVariant();
         }
         break;
@@ -60,20 +58,16 @@ QVariant StationGridModel::data(const QModelIndex &index, int role) const
     case Qt::ToolTipRole:
     case Qt::StatusTipRole:
     {
-        const StationValue& val = values[index.row()];
+        const wreport::Var& var = values[index.row()];
         switch (ctype)
         {
-        case CT_NETWORK: return QString("Station network: %1").arg(val.rep_memo.c_str());
-        case CT_VARCODE:
-        {
-            return QString(val.var.info()->desc);
-        }
+        case CT_VARCODE: return QString(var.info()->desc);
         case CT_VALUE:
         {
             return QString("%1: %2 %3").arg(
-                        QString(val.var.info()->desc),
-                        QString(val.var.format().c_str()),
-                        QString(val.var.info()->unit));
+                        QString(var.info()->desc),
+                        QString(var.format().c_str()),
+                        QString(var.info()->unit));
         }
         default: return QVariant();
         }
@@ -83,7 +77,7 @@ QVariant StationGridModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-QVariant StationGridModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant AttrGridModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role != Qt::DisplayRole)
         return QVariant();
@@ -93,14 +87,13 @@ QVariant StationGridModel::headerData(int section, Qt::Orientation orientation, 
 
     switch (resolveColumnType(section))
     {
-    case CT_NETWORK: return QVariant("Rep");
     case CT_VARCODE: return QVariant("Var");
     case CT_VALUE: return QVariant("Value");
     default: return QVariant();
     }
 }
 
-Qt::ItemFlags StationGridModel::flags(const QModelIndex &index) const
+Qt::ItemFlags AttrGridModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid()) return Qt::NoItemFlags;
     if ((unsigned)index.row() >= values.size()) return Qt::NoItemFlags;
@@ -111,7 +104,7 @@ Qt::ItemFlags StationGridModel::flags(const QModelIndex &index) const
     return res;
 }
 
-bool StationGridModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool AttrGridModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (!index.isValid()) return false;
     if ((unsigned)index.row() >= values.size()) return false;
@@ -123,38 +116,38 @@ bool StationGridModel::setData(const QModelIndex &index, const QVariant &value, 
     QByteArray utf8_val = str_val.toUtf8();
 
     // Access the value we need to change
-    StationValue& val = values[index.row()];
-    wreport::Var new_var(val.var);
+    wreport::Var& var = values[index.row()];
+    wreport::Var new_attr(var);
     try {
-        new_var.set_from_formatted(utf8_val.constData());
+        new_attr.set_from_formatted(utf8_val.constData());
     } catch (std::exception& e) {
         qDebug() << "Cannot set value:" << e.what();
         return false;
     }
-
-    // TODO: update the database, and the variable in our index
+/* TODO: update
     try {
         model.update(val, new_var);
     } catch (std::exception& e) {
         qDebug() << "Cannot save value in the database:" << e.what();
         return false;
     }
-
+*/
     emit dataChanged(index, index);
 
     return true;
 }
 
-const StationValue *StationGridModel::valueAt(const QModelIndex &index) const
+const wreport::Var *AttrGridModel::valueAt(const QModelIndex &index) const
 {
     if (!index.isValid()) return NULL;
     if ((unsigned)index.row() >= values.size()) return NULL;
-    const StationValue& val = values[index.row()];
-    return &val;
+    const wreport::Var& var = values[index.row()];
+    return &var;
 }
 
-void StationGridModel::on_highlight_changed()
+void AttrGridModel::on_highlight_changed()
 {
+    /* TODO: extract varid and varcode from model.highlight and query stuff
     if (station_id == model.highlight.station_id())
         return;
     station_id = model.highlight.station_id();
@@ -165,6 +158,7 @@ void StationGridModel::on_highlight_changed()
     auto cur = model.db->query_data(rec);
     while (cur->next())
         values.emplace_back(*cur);
+        */
     reset();
 }
 

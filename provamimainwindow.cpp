@@ -17,7 +17,7 @@ namespace provami {
 
 ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     QMainWindow(parent),
-    model(model), datagrid_model(model), stationgrid_model(model), map_scene(model),
+    model(model), datagrid_model(model), stationgrid_model(model), attrgrid_model(model), map_scene(model),
     lat_validator(-90, 90, 5),
     lon_validator(-180, 180, 5),
     id_validator(0, std::numeric_limits<int>::max()),
@@ -35,6 +35,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
 
     ui->results->setModel(&datagrid_model);
     ui->station_data->setModel(&stationgrid_model);
+    ui->attr_data->setModel(&attrgrid_model);
     ui->filter_report->setModel(&model.reports);
     ui->filter_level->setModel(&model.levels);
     ui->filter_trange->setModel(&model.tranges);

@@ -4,10 +4,11 @@
 #include <QMainWindow>
 #include <QIntValidator>
 #include <QDoubleValidator>
-#include "model.h"
-#include "datagridmodel.h"
-#include "stationgridmodel.h"
-#include "mapscene.h"
+#include <provami/model.h>
+#include <provami/datagridmodel.h>
+#include <provami/stationgridmodel.h>
+#include <provami/attrgridmodel.h>
+#include <provami/mapscene.h>
 
 namespace Ui {
 class ProvamiMainWindow;
@@ -39,6 +40,7 @@ protected:
     Model& model;
     DataGridModel datagrid_model;
     StationGridModel stationgrid_model;
+    AttrGridModel attrgrid_model;
     MapScene map_scene;
     QOptionalDoubleValidator lat_validator;
     QOptionalDoubleValidator lon_validator;
