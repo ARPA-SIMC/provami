@@ -60,28 +60,45 @@ protected:
     friend class Model;
 };
 
-struct Value
+struct BaseValue
 {
     int ana_id;
     int value_id;
+    wreport::Var var;
+
+    bool operator==(const BaseValue& val) const
+    {
+        if (ana_id != val.ana_id) return false;
+        if (value_id != val.value_id) return false;
+        if (var.code() != val.var.code()) return false;
+        return true;
+    }
+protected:
+    BaseValue(const dballe::db::Cursor& cur);
+};
+
+struct StationValue : public BaseValue
+{
+    StationValue(const dballe::db::Cursor& cur);
+};
+
+struct Value : public BaseValue
+{
     std::string rep_memo;
     dballe::Level level;
     dballe::Trange trange;
     int date[6];
-    wreport::Var var;
 
     bool operator==(const Value& val) const
     {
-        if (ana_id != val.ana_id) return false;
+        if (!BaseValue::operator==(val)) return false;
         if (rep_memo != val.rep_memo) return false;
         if (level != val.level) return false;
         if (trange != val.trange) return false;
         for (unsigned i = 0; i < 6; ++i)
             if (date[i] != val.date[i]) return false;
-        if (var.code() != val.var.code()) return false;
         return true;
     }
-
 
 protected:
     Value(const dballe::db::Cursor& cur);
@@ -239,9 +256,10 @@ signals:
     void active_filter_changed();
     void data_changed();
 
-protected:
+public:
     dballe::DB* db;
 
+protected:    
     // Filtering elements
     std::map<int, Station> cache_stations;
 
@@ -283,6 +301,14 @@ public:
      * exceptions are raised
      */
     void update(Value& val, const wreport::Var& new_val);
+
+    /**
+     * Update \a val in the database to have the value \a new_val
+     *
+     * Updates the 'val' member of 'val' if it succeeded, otherwise
+     * exceptions are raised
+     */
+    void update(StationValue& val, const wreport::Var& new_val);
 
     /// Remove the value from the database
     void remove(const Value& val);

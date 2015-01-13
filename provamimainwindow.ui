@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>449</width>
-    <height>572</height>
+    <height>612</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -30,7 +30,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_filter">
        <property name="sizePolicy">
@@ -281,10 +281,14 @@
             </item>
            </layout>
           </item>
-          <item>
-           <widget class="QTableWidget" name="tableWidget"/>
-          </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QTableView" name="station_data">
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+         </widget>
         </item>
        </layout>
       </widget>

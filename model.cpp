@@ -272,6 +272,16 @@ void Model::update(Value &val, const wreport::Var &new_val)
     val.var = new_val;
 }
 
+void Model::update(StationValue &val, const wreport::Var &new_val)
+{
+    Record change;
+    change.set_ana_context();
+    change.set(DBA_KEY_ANA_ID, val.ana_id);
+    change.set(new_val);
+    db->insert(change, true, false);
+    val.var = new_val;
+}
+
 void Model::remove(const Value &val)
 {
     Record change;
@@ -562,17 +572,26 @@ SummaryValue::SummaryValue(const dballe::db::Cursor &cur)
 }
 
 
-Value::Value(const dballe::db::Cursor &cur)
+BaseValue::BaseValue(const db::Cursor &cur)
     : var(cur.get_var())
 {
     ana_id = cur.get_station_id();
     value_id = cur.attr_reference_id();
+}
+
+StationValue::StationValue(const dballe::db::Cursor &cur)
+    : BaseValue(cur)
+{
+}
+
+Value::Value(const dballe::db::Cursor &cur)
+    : BaseValue(cur)
+{
     rep_memo = cur.get_rep_memo("");
     level = cur.get_level();
     trange = cur.get_trange();
     cur.get_datetime(date);
 }
-
 
 ModelAction::ModelAction(Model &model, QObject *parent)
     : QAction(parent), model(model)
@@ -585,3 +604,5 @@ template class FilterModelBase<std::string>;
 template class FilterModelBase<Level>;
 template class FilterModelBase<Trange>;
 template class FilterModelBase<wreport::Varcode>;
+
+

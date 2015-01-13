@@ -6,6 +6,7 @@
 #include <QDoubleValidator>
 #include "model.h"
 #include "datagridmodel.h"
+#include "stationgridmodel.h"
 #include "mapscene.h"
 
 namespace Ui {
@@ -35,6 +36,7 @@ class ProvamiMainWindow : public QMainWindow
 protected:
     Model& model;
     DataGridModel datagrid_model;
+    StationGridModel stationgrid_model;
     MapScene map_scene;
     QOptionalDoubleValidator lat_validator;
     QOptionalDoubleValidator lon_validator;
