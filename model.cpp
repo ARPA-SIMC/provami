@@ -11,8 +11,6 @@ using namespace dballe;
 FilterModelQObjectBase::FilterModelQObjectBase(Model& model, QObject *parent)
     : QAbstractListModel(parent), model(model)
 {
-    QObject::connect(&model, SIGNAL(next_filter_changed()),
-                     this, SLOT(reset()));
 }
 
 template<typename ITEM>
@@ -43,9 +41,24 @@ QVariant FilterModelBase<ITEM>::data(const QModelIndex &index, int role) const
 template<typename ITEM>
 void FilterModelBase<ITEM>::set_items(std::set<ITEM> &new_items)
 {
+    emit layoutAboutToBeChanged();
+    QModelIndexList pil = persistentIndexList();
+    vector<ITEM> old = items;
     items.clear();
     std::copy(new_items.begin(), new_items.end(), back_inserter(items));
-    reset();
+    foreach (QModelIndex pi, pil)
+    {
+        ITEM oitem = old[pi.row()];
+        typename vector<ITEM>::const_iterator i = std::find(items.begin(), items.end(), oitem);
+        if (i == items.end())
+        {
+            changePersistentIndex(pi, QModelIndex());
+        } else {
+            int new_pos = i - items.begin();
+            changePersistentIndex(pi, index(new_pos));
+        }
+    }
+    emit layoutChanged();
 }
 
 template<typename ITEM>
