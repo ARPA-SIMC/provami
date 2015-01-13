@@ -6,6 +6,9 @@
 #include <dballe/core/defs.h>
 #include <dballe/core/var.h>
 #include <dballe/core/record.h>
+#include <QFileDialog>
+#include <QProcess>
+#include <QMessageBox>
 #include <QDebug>
 #include "provami/model.h"
 #include "provami/mapscene.h"
@@ -35,6 +38,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     //connect(ui->text_query, SIGNAL(textChanged()), this, SLOT(text_query_changed());
     connect(ui->results, SIGNAL(clicked(QModelIndex)), this, SLOT(results_clicked(QModelIndex)));
     connect(ui->station_data, SIGNAL(clicked(QModelIndex)), this, SLOT(station_data_clicked(QModelIndex)));
+    connect(ui->export_go, SIGNAL(clicked()), this, SLOT(export_go()));
 
     ui->results->setModel(&datagrid_model);
     ui->station_data->setModel(&stationgrid_model);
@@ -60,8 +64,14 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
 
     map_scene.load_coastlines("/home/enrico/lavori/arpa/provami/world.dat");
     ui->mapview->setScene(&map_scene.scene);
+    //qDebug() << "Scene rect: " << map_scene.scene.sceneRect();
 
-    qDebug() << "Scene rect: " << map_scene.scene.sceneRect();
+    ui->export_format->addItem("BUFR", "bufr");
+    ui->export_format->addItem("BUFR (generic)", "gbufr");
+    ui->export_format->addItem("CREX", "crex");
+    ui->export_format->addItem("CREX (generic)", "gcrex");
+    ui->export_format->addItem("Gnu R", "gnur");
+    ui->export_format->addItem("CSV", "csv");
 
     statusBar()->showMessage("Antani");
 }
@@ -229,6 +239,38 @@ void ProvamiMainWindow::highlight_changed()
     } else {
         ui->attr_var->setText("-");
     }
+}
+
+void ProvamiMainWindow::export_go()
+{
+    int fmt_idx = ui->export_format->currentIndex();
+    if (fmt_idx == -1) return;
+
+    QString format = ui->export_format->itemData(fmt_idx).toString();
+
+    QString fileName = QFileDialog::getSaveFileName(this, "Export data");
+    if (fileName.isEmpty()) return;
+
+    qDebug() << "Export " << format << " " << fileName;
+
+    QStringList args;
+    args << "--dsn" << model.dballe_url().c_str();
+    args << "--outfile" << fileName;
+    if (format == "gbufr")
+        args << "bufr" << "--generic";
+    else if (format == "gcrex")
+        args << "crex" << "--generic";
+    else
+        args << format;
+    args += rawquery_model.as_shell_args(false);
+
+    qDebug() << "Running dbaexport" << args;
+
+    int res = QProcess::execute("dbaexport", args);
+    if (res != 0)
+        QMessageBox::warning(this, "Export failed", "Export failed: dbaexport returned an error code.");
+    else
+        qDebug() << "dbaexport ran successfully";
 }
 
 }

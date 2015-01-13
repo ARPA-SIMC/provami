@@ -66,6 +66,7 @@ private slots:
     void on_actionExit_triggered();
     void on_actionRefresh_triggered();
     void highlight_changed();
+    void export_go();
 
 private:
     Ui::ProvamiMainWindow *ui;

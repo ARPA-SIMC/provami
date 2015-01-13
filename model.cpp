@@ -324,6 +324,8 @@ void Model::dballe_connect(const std::string &dballe_url)
         db = 0;
     }
 
+    m_dballe_url = dballe_url;
+
     auto_ptr<DB> new_db = DB::connect_from_url(dballe_url.c_str());
     db = new_db.release();
     refresh();

@@ -224,7 +224,7 @@ static std::string shell_escape(const std::string& s)
     return res;
 }
 
-QStringList RawQueryModel::as_shell_args() const
+QStringList RawQueryModel::as_shell_args(bool quoted) const
 {
     QStringList res;
     std::vector<rawquery::Item> new_items = record_to_items(build_record());
@@ -232,7 +232,10 @@ QStringList RawQueryModel::as_shell_args() const
     {
         std::string s(item.key.c_str());
         s += "=";
-        s += shell_escape(item.val);
+        if (quoted)
+            s += shell_escape(item.val);
+        else
+            s += item.val;
         res.append(s.c_str());
     }
     return res;

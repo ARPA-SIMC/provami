@@ -45,7 +45,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex& index) const;
     bool setData(const QModelIndex& index, const QVariant& value, int role=Qt::EditRole);
     const rawquery::Item* valueAt(const QModelIndex& index) const;
-    QStringList as_shell_args() const;
+    QStringList as_shell_args(bool quoted=true) const;
 
 signals:
 

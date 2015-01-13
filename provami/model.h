@@ -189,6 +189,8 @@ protected:
     // Sample values for the currently active filter
     std::vector<Value> cache_values;
 
+    std::string m_dballe_url;
+
     /// Process the summary value regenerating the filtering elements lists
     void process_summary();
 
@@ -214,6 +216,8 @@ public:
     const std::map<SummaryKey, SummaryValue>& summaries() const;
     const std::vector<Value>& values() const;
     std::vector<Value>& values();
+
+    const std::string& dballe_url() const { return m_dballe_url; }
 
     /**
      * Update \a val in the database to have the value \a new_val
