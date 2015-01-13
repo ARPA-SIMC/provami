@@ -71,43 +71,6 @@ ProvamiMainWindow::~ProvamiMainWindow()
     delete ui;
 }
 
-static bool is_shell_safe(char c)
-{
-    if (isalnum(c)) return true;
-    switch (c)
-    {
-    case '@':
-    case '%':
-    case '_':
-    case '-':
-    case '+':
-    case '=':
-    case ':':
-    case ',':
-    case '.':
-    case '/':
-        return true;
-    }
-    return false;
-}
-
-static std::string shell_escape(const std::string& s)
-{
-    if (s.empty()) return s;
-    bool is_safe = true;
-    for (auto c: s)
-        is_safe = is_safe && is_shell_safe(c);
-    if (is_safe) return s;
-    std::string res("'");
-    for (auto c: s)
-        if (c == '\'')
-            res += "'\\''";
-        else
-            res += c;
-    res += '\'';
-    return res;
-}
-
 void ProvamiMainWindow::next_filter_changed()
 {
     ui->filter_latmin->reset();
@@ -117,33 +80,7 @@ void ProvamiMainWindow::next_filter_changed()
     ui->filter_ana_id->reset();
     ui->filter_datemin->reset();
     ui->filter_datemax->reset();
-
-    /*
-    ui->query_raw->clear();
-    for (int k = 0; k < (int)DBA_KEY_COUNT; ++k)
-        if (auto var = model.next_filter.key_peek((dba_keyword)k))
-        {
-            if (!var->isset()) continue;
-            string q(Record::keyword_name((dba_keyword)k));
-            q += "=";
-            q += shell_escape(var->format(""));
-            query.append(q.c_str());
-        }
-*/
-/*
-    // Format the current query and set it into text_query
-    QStringList query;
-    for (int k = 0; k < (int)DBA_KEY_COUNT; ++k)
-        if (auto var = model.next_filter.key_peek((dba_keyword)k))
-        {
-            if (!var->isset()) continue;
-            string q(Record::keyword_name((dba_keyword)k));
-            q += "=";
-            q += shell_escape(var->format(""));
-            query.append(q.c_str());
-        }
-    ui->text_query->setPlainText(query.join(" "));
-    */
+    ui->raw_query_shell->setText(rawquery_model.as_shell_args().join(" "));
 }
 
 void ProvamiMainWindow::results_clicked(QModelIndex idx)

@@ -124,19 +124,7 @@ bool RawQueryModel::setData(const QModelIndex &index, const QVariant &value, int
     case CT_VALUE: values[index.row()].val = value.toString().toStdString(); break;
     }
 
-    // Reparse values building a new record
-    Record new_rec;
-    for (const auto& item: values)
-    {
-        if (item.key.empty() || item.val.empty()) continue;
-        try {
-            new_rec.set_from_string(item.key.c_str(), item.val.c_str());
-        } catch (std::exception) {
-            continue;
-        }
-    }
-
-    model.set_filter(new_rec);
+    model.set_filter(build_record());
 
     return true;
 }
@@ -149,23 +137,31 @@ const rawquery::Item* RawQueryModel::valueAt(const QModelIndex &index) const
     return &item;
 }
 
+static std::vector<rawquery::Item> record_to_items(const dballe::Record& rec)
+{
+    std::vector<rawquery::Item> new_items;
+
+    for (int k = 0; k < (int)DBA_KEY_COUNT; ++k)
+        if (auto var = rec.key_peek((dba_keyword)k))
+        {
+            if (!var->isset()) continue;
+            new_items.emplace_back(rawquery::Item{ Record::keyword_name((dba_keyword)k), var->format("") });
+        }
+    for (auto var: rec.vars())
+    {
+        if (!var->isset()) continue;
+        new_items.emplace_back(rawquery::Item{ wreport::varcode_format(var->code()), var->format("") });
+    }
+
+    return new_items;
+}
+
 void RawQueryModel::next_filter_changed()
 {
     qDebug() << "NFC";
 
     // Rebuild filter
-    std::vector<rawquery::Item> new_items;
-    for (int k = 0; k < (int)DBA_KEY_COUNT; ++k)
-        if (auto var = model.next_filter.key_peek((dba_keyword)k))
-        {
-            if (!var->isset()) continue;
-            new_items.emplace_back(rawquery::Item{ Record::keyword_name((dba_keyword)k), var->format("") });
-        }
-    for (auto var: model.next_filter.vars())
-    {
-        if (!var->isset()) continue;
-        new_items.emplace_back(rawquery::Item{ wreport::varcode_format(var->code()), var->format("") });
-    }
+    std::vector<rawquery::Item> new_items = record_to_items(model.next_filter);
 
     // Preserve the last row if partially edited, or add a new one
     if (!values.empty() && (values.back().key.empty() || values.back().val.empty()))
@@ -175,24 +171,74 @@ void RawQueryModel::next_filter_changed()
 
     values = new_items;
 
-    /*
-    const wreport::Var* var = model.highlight.variable();
-    int value_id = model.highlight.value_id();
-    if (owner_varcode == (var ? var->code() : 0) && owner_id == value_id)
-        return;
-    owner_varcode = var ? var->code() : 0;
-    owner_id = value_id;
-    values.clear();
-    if (owner_varcode)
-    {
-        Record attrs;
-        db::AttrList wanted_attrs;
-        model.db->query_attrs(owner_id, owner_varcode, wanted_attrs, attrs);
-        for (const auto& v: attrs.vars())
-            values.emplace_back(*v);
-    }
-    */
     reset();
 }
+
+Record RawQueryModel::build_record() const
+{
+    Record new_rec;
+    for (const auto& item: values)
+    {
+        if (item.key.empty() || item.val.empty()) continue;
+        try {
+            new_rec.set_from_string(item.key.c_str(), item.val.c_str());
+        } catch (std::exception) {
+            continue;
+        }
+    }
+    return new_rec;
+}
+
+static bool is_shell_safe(char c)
+{
+    if (isalnum(c)) return true;
+    switch (c)
+    {
+    case '@':
+    case '%':
+    case '_':
+    case '-':
+    case '+':
+    case '=':
+    case ':':
+    case ',':
+    case '.':
+    case '/':
+        return true;
+    }
+    return false;
+}
+
+static std::string shell_escape(const std::string& s)
+{
+    if (s.empty()) return s;
+    bool is_safe = true;
+    for (auto c: s)
+        is_safe = is_safe && is_shell_safe(c);
+    if (is_safe) return s;
+    std::string res("'");
+    for (auto c: s)
+        if (c == '\'')
+            res += "'\\''";
+        else
+            res += c;
+    res += '\'';
+    return res;
+}
+
+QStringList RawQueryModel::as_shell_args() const
+{
+    QStringList res;
+    std::vector<rawquery::Item> new_items = record_to_items(build_record());
+    for (auto item: new_items)
+    {
+        std::string s(item.key.c_str());
+        s += "=";
+        s += shell_escape(item.val);
+        res.append(s.c_str());
+    }
+    return res;
+}
+
 
 }

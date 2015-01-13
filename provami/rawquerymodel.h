@@ -22,6 +22,9 @@ protected:
     Model& model;
     std::vector<rawquery::Item> values;
 
+    /// Build a record with the current contents
+    dballe::Record build_record() const;
+
 public:
     enum ColumnType {
         CT_INVALID,
@@ -42,6 +45,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex& index) const;
     bool setData(const QModelIndex& index, const QVariant& value, int role=Qt::EditRole);
     const rawquery::Item* valueAt(const QModelIndex& index) const;
+    QStringList as_shell_args() const;
 
 signals:
 
