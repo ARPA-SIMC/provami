@@ -234,6 +234,24 @@ void Model::update(Value &val, const wreport::Var &new_val)
     val.var = new_val;
 }
 
+void Model::remove(const Value &val)
+{
+    Record change;
+    change.set(DBA_KEY_ANA_ID, val.ana_id);
+    change.set(DBA_KEY_REP_MEMO, val.rep_memo.c_str());
+    change.set(val.level);
+    change.set(val.trange);
+    change.set_datetime(val.date);
+    change.set(DBA_KEY_VAR, format_code(val.var.code()));
+    db->remove(change);
+    vector<Value>::iterator i = std::find(cache_values.begin(), cache_values.end(), val);
+    if (i != cache_values.end())
+    {
+        cache_values.erase(i);
+        emit data_changed();
+    }
+}
+
 void Model::set_initial_filter(const Record &rec)
 {
     active_filter = rec;

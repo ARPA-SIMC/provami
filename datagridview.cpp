@@ -99,6 +99,22 @@ struct SelectVarcodeAction : public ModelAction
 };
 
 
+struct DeleteRecordAction : public ModelAction
+{
+    const Value& val;
+
+    DeleteRecordAction(Model& model, const Value& val, QObject* parent=0)
+        : ModelAction(model, parent), val(val)
+    {
+        setIconText("Delete record");
+    }
+
+    void on_trigger()
+    {
+        model.remove(val);
+    }
+};
+
 DataGridView::DataGridView(QWidget *parent) :
     QTableView(parent)
 {
@@ -132,6 +148,7 @@ static void build_menu(QMenu& menu, Model& model, DataGridModel::ColumnType ctyp
     case DataGridModel::CT_INVALID:
         break;
     }
+    menu.addAction(new DeleteRecordAction(model, val, &menu));
 
     //menu.addAction(val.var.info()->desc);
     /*

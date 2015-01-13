@@ -68,6 +68,19 @@ struct Value
     int date[6];
     wreport::Var var;
 
+    bool operator==(const Value& val) const
+    {
+        if (ana_id != val.ana_id) return false;
+        if (rep_memo != val.rep_memo) return false;
+        if (level != val.level) return false;
+        if (trange != val.trange) return false;
+        for (unsigned i = 0; i < 6; ++i)
+            if (date[i] != val.date[i]) return false;
+        if (var.code() != val.var.code()) return false;
+        return true;
+    }
+
+
 protected:
     Value(const dballe::db::Cursor& cur);
 
@@ -245,6 +258,9 @@ public:
      * exceptions are raised
      */
     void update(Value& val, const wreport::Var& new_val);
+
+    /// Remove the value from the database
+    void remove(const Value& val);
 
     /// Set a filter before the initial connect
     void set_initial_filter(const dballe::Record& rec);
