@@ -170,6 +170,7 @@ public slots:
     void unselect_varcode();
     void unselect_datemin();
     void unselect_datemax();
+    void set_filter(const dballe::Record& new_filter);
 
 signals:
     void next_filter_changed();

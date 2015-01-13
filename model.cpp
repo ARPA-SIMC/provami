@@ -499,7 +499,7 @@ void Model::select_datemin(const dballe::Datetime& val)
     next_filter.get_datetimemin(old);
     if (val == dballe::Datetime(old)) return;
     next_filter.setmin(val);
-    emit next_filter_changed();
+    process_summary();
 }
 
 void Model::select_datemax(const dballe::Datetime& val)
@@ -508,7 +508,7 @@ void Model::select_datemax(const dballe::Datetime& val)
     next_filter.get_datetimemax(old);
     if (val == dballe::Datetime(old)) return;
     next_filter.setmax(val);
-    emit next_filter_changed();
+    process_summary();
 }
 
 void Model::select_station_id(int id)
@@ -578,7 +578,7 @@ void Model::unselect_datemin()
     if (old[0] == MISSING_INT) return;
 
     next_filter.unset_datetimemin();
-    emit next_filter_changed();
+    process_summary();
 }
 
 void Model::unselect_datemax()
@@ -588,8 +588,13 @@ void Model::unselect_datemax()
     if (old[0] == MISSING_INT) return;
 
     next_filter.unset_datetimemax();
-    emit next_filter_changed();
+    process_summary();
 }
+
+void Model::set_filter(const Record &new_filter)
+{
+    next_filter = new_filter;
+    process_summary();}
 
 void Model::unselect_station()
 {

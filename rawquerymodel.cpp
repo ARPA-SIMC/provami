@@ -135,34 +135,9 @@ bool RawQueryModel::setData(const QModelIndex &index, const QVariant &value, int
             continue;
         }
     }
-/*
-    if ((unsigned)index.row() == values.size() - 1)
-    {
-    } else {
-    }
-    // Skip changes on empty strings
-    QString str_val = value.toString();
-    if (str_val.isEmpty()) return false;
-    QByteArray utf8_val = str_val.toUtf8();
 
-    // Access the value we need to change
-    wreport::Var& var = values[index.row()];
-    wreport::Var new_attr(var);
-    try {
-        new_attr.set_from_formatted(utf8_val.constData());
-    } catch (std::exception& e) {
-        qDebug() << "Cannot set value:" << e.what();
-        return false;
-    }
-    try {
-        model.update(owner_id, owner_varcode, new_attr);
-    } catch (std::exception& e) {
-        qDebug() << "Cannot save value in the database:" << e.what();
-        return false;
-    }
-    values[index.row()] = new_attr;
-    emit dataChanged(index, index);
-*/
+    model.set_filter(new_rec);
+
     return true;
 }
 
