@@ -20,7 +20,8 @@ HEADERS += provami/types.h \
            provami/recordlineedit.h \
            provami/stationgridmodel.h \
            provami/attrgridmodel.h \
-           provami/dateedit.h
+           provami/dateedit.h \
+    provami/rawquerymodel.h
 FORMS += provamimainwindow.ui
 SOURCES += types.cpp \
            highlight.cpp \
@@ -35,4 +36,5 @@ SOURCES += types.cpp \
            recordlineedit.cpp \
            stationgridmodel.cpp \
            attrgridmodel.cpp \
-           dateedit.cpp
+           dateedit.cpp \
+    rawquerymodel.cpp

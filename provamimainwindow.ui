@@ -305,6 +305,9 @@
         </item>
         <item>
          <widget class="QTableView" name="station_data">
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
           <attribute name="verticalHeaderVisible">
            <bool>false</bool>
           </attribute>
@@ -336,7 +339,25 @@
          </layout>
         </item>
         <item>
-         <widget class="QTableView" name="attr_data"/>
+         <widget class="QTableView" name="attr_data">
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>&amp;5 Query</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QTableView" name="raw_query">
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+         </widget>
         </item>
        </layout>
       </widget>

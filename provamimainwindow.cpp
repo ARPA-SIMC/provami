@@ -17,7 +17,7 @@ namespace provami {
 
 ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     QMainWindow(parent),
-    model(model), datagrid_model(model), stationgrid_model(model), attrgrid_model(model), map_scene(model),
+    model(model), datagrid_model(model), stationgrid_model(model), attrgrid_model(model), rawquery_model(model), map_scene(model),
     lat_validator(-90, 90, 5),
     lon_validator(-180, 180, 5),
     id_validator(0, std::numeric_limits<int>::max()),
@@ -32,12 +32,14 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     connect(ui->filter_lonmax, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_datemin, SIGNAL(activate(QDateTime)), this, SLOT(filter_datemin_activated(QDateTime)));
     connect(ui->filter_datemax, SIGNAL(activate(QDateTime)), this, SLOT(filter_datemax_activated(QDateTime)));
+    //connect(ui->text_query, SIGNAL(textChanged()), this, SLOT(text_query_changed());
     connect(ui->results, SIGNAL(clicked(QModelIndex)), this, SLOT(results_clicked(QModelIndex)));
     connect(ui->station_data, SIGNAL(clicked(QModelIndex)), this, SLOT(station_data_clicked(QModelIndex)));
 
     ui->results->setModel(&datagrid_model);
     ui->station_data->setModel(&stationgrid_model);
     ui->attr_data->setModel(&attrgrid_model);
+    ui->raw_query->setModel(&rawquery_model);
     ui->filter_report->setModel(&model.reports);
     ui->filter_level->setModel(&model.levels);
     ui->filter_trange->setModel(&model.tranges);
@@ -69,6 +71,43 @@ ProvamiMainWindow::~ProvamiMainWindow()
     delete ui;
 }
 
+static bool is_shell_safe(char c)
+{
+    if (isalnum(c)) return true;
+    switch (c)
+    {
+    case '@':
+    case '%':
+    case '_':
+    case '-':
+    case '+':
+    case '=':
+    case ':':
+    case ',':
+    case '.':
+    case '/':
+        return true;
+    }
+    return false;
+}
+
+static std::string shell_escape(const std::string& s)
+{
+    if (s.empty()) return s;
+    bool is_safe = true;
+    for (auto c: s)
+        is_safe = is_safe && is_shell_safe(c);
+    if (is_safe) return s;
+    std::string res("'");
+    for (auto c: s)
+        if (c == '\'')
+            res += "'\\''";
+        else
+            res += c;
+    res += '\'';
+    return res;
+}
+
 void ProvamiMainWindow::next_filter_changed()
 {
     ui->filter_latmin->reset();
@@ -78,6 +117,33 @@ void ProvamiMainWindow::next_filter_changed()
     ui->filter_ana_id->reset();
     ui->filter_datemin->reset();
     ui->filter_datemax->reset();
+
+    /*
+    ui->query_raw->clear();
+    for (int k = 0; k < (int)DBA_KEY_COUNT; ++k)
+        if (auto var = model.next_filter.key_peek((dba_keyword)k))
+        {
+            if (!var->isset()) continue;
+            string q(Record::keyword_name((dba_keyword)k));
+            q += "=";
+            q += shell_escape(var->format(""));
+            query.append(q.c_str());
+        }
+*/
+/*
+    // Format the current query and set it into text_query
+    QStringList query;
+    for (int k = 0; k < (int)DBA_KEY_COUNT; ++k)
+        if (auto var = model.next_filter.key_peek((dba_keyword)k))
+        {
+            if (!var->isset()) continue;
+            string q(Record::keyword_name((dba_keyword)k));
+            q += "=";
+            q += shell_escape(var->format(""));
+            query.append(q.c_str());
+        }
+    ui->text_query->setPlainText(query.join(" "));
+    */
 }
 
 void ProvamiMainWindow::results_clicked(QModelIndex idx)
@@ -143,7 +209,15 @@ void ProvamiMainWindow::filter_datemax_activated(QDateTime dt)
     else
         model.select_datemax(dballe::Datetime(
             dt.date().year(), dt.date().month(), dt.date().day(),
-            dt.time().hour(), dt.time().minute(), dt.time().second()));
+                                 dt.time().hour(), dt.time().minute(), dt.time().second()));
+}
+
+void ProvamiMainWindow::text_query_changed()
+{
+    // TODO: argparse
+    // TODO: set_from_string
+    // if ok: set filter
+    // if not ok: mark background as red
 }
 
 

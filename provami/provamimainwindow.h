@@ -9,6 +9,7 @@
 #include <provami/datagridmodel.h>
 #include <provami/stationgridmodel.h>
 #include <provami/attrgridmodel.h>
+#include <provami/rawquerymodel.h>
 #include <provami/mapscene.h>
 
 namespace Ui {
@@ -42,6 +43,7 @@ protected:
     DataGridModel datagrid_model;
     StationGridModel stationgrid_model;
     AttrGridModel attrgrid_model;
+    RawQueryModel rawquery_model;
     MapScene map_scene;
     QOptionalDoubleValidator lat_validator;
     QOptionalDoubleValidator lon_validator;
@@ -60,6 +62,7 @@ private slots:
     void on_filter_ana_id_editingFinished();
     void filter_datemin_activated(QDateTime);
     void filter_datemax_activated(QDateTime);
+    void text_query_changed();
     void on_actionExit_triggered();
     void on_actionRefresh_triggered();
     void highlight_changed();
