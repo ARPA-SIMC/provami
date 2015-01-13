@@ -17,8 +17,9 @@ StationGridModel::ColumnType StationGridModel::resolveColumnType(int column) con
 {
     switch (column)
     {
-    case 0: return CT_VARCODE;
-    case 1: return CT_VALUE;
+    case 0: return CT_NETWORK;
+    case 1: return CT_VARCODE;
+    case 2: return CT_VALUE;
     default: return CT_INVALID;
     }
 }
@@ -32,7 +33,7 @@ int StationGridModel::rowCount(const QModelIndex &parent) const
 int StationGridModel::columnCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) return 0;
-    return 2;
+    return 3;
 }
 
 QVariant StationGridModel::data(const QModelIndex &index, int role) const
@@ -49,6 +50,7 @@ QVariant StationGridModel::data(const QModelIndex &index, int role) const
         const StationValue& val = values[index.row()];
         switch (ctype)
         {
+        case CT_NETWORK: return QVariant(val.rep_memo.c_str());
         case CT_VARCODE: return QVariant(format_code(val.var.code()).c_str());
         case CT_VALUE: return QVariant(val.var.format().c_str());
         default: return QVariant();
@@ -61,6 +63,7 @@ QVariant StationGridModel::data(const QModelIndex &index, int role) const
         const StationValue& val = values[index.row()];
         switch (ctype)
         {
+        case CT_NETWORK: return QString("Station network: %1").arg(val.rep_memo.c_str());
         case CT_VARCODE:
         {
             return QString(val.var.info()->desc);
@@ -90,6 +93,7 @@ QVariant StationGridModel::headerData(int section, Qt::Orientation orientation, 
 
     switch (resolveColumnType(section))
     {
+    case CT_NETWORK: return QVariant("Rep");
     case CT_VARCODE: return QVariant("Var");
     case CT_VALUE: return QVariant("Value");
     default: return QVariant();

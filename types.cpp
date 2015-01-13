@@ -45,6 +45,7 @@ BaseValue::BaseValue(const db::Cursor &cur)
     : var(cur.get_var())
 {
     ana_id = cur.get_station_id();
+    rep_memo = cur.get_rep_memo("");
     value_id = cur.attr_reference_id();
 }
 
@@ -56,7 +57,6 @@ StationValue::StationValue(const dballe::db::Cursor &cur)
 Value::Value(const dballe::db::Cursor &cur)
     : BaseValue(cur)
 {
-    rep_memo = cur.get_rep_memo("");
     level = cur.get_level();
     trange = cur.get_trange();
     cur.get_datetime(date);

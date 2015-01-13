@@ -27,7 +27,7 @@ public:
     const wreport::Var* variable() const
     {
         if (m_value) return &(m_value->var);
-        if (m_station_value) return &(m_value->var);
+        if (m_station_value) return &(m_station_value->var);
         return 0;
     }
     //int value_id() const { return m_value_id; }

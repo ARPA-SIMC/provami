@@ -164,6 +164,10 @@ void MapScene::to_latlon(QRectF &rect)
 
 void MapScene::update_stations()
 {
+    // Save the current highlighted station id
+    int highlighted_station_id = highlighted ? highlighted->station_id : dballe::MISSING_INT;
+    highlighted = 0;
+
     // Initialize the removed list with all known IDs
     set<int> removed;
     for (const auto& i : stations)
@@ -183,8 +187,10 @@ void MapScene::update_stations()
             StationItem* i = new StationItem(si.second, center);
             scene.addItem(i);
             stations.insert(make_pair(i->station_id, i));
+            if (si.first == highlighted_station_id) highlighted = i;
         } else {
             old->second->set_coords(center);
+            if (si.first == highlighted_station_id) highlighted = old->second;
         }
     }
 

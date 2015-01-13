@@ -19,6 +19,7 @@ protected:
 public:
     enum ColumnType {
         CT_INVALID,
+        CT_NETWORK,
         CT_VARCODE,
         CT_VALUE,
     };

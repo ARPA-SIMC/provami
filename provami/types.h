@@ -55,6 +55,7 @@ struct BaseValue
 {
     int ana_id;
     int value_id;
+    std::string rep_memo;
     wreport::Var var;
 
     bool operator==(const BaseValue& val) const
@@ -75,7 +76,6 @@ struct StationValue : public BaseValue
 
 struct Value : public BaseValue
 {
-    std::string rep_memo;
     dballe::Level level;
     dballe::Trange trange;
     int date[6];
