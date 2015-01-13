@@ -30,7 +30,6 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     connect(ui->filter_lonmax, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
 
     ui->results->setModel(&datagrid_model);
-    ui->results->setMouseTracking(true);
     ui->filter_report->setModel(&model.reports);
     ui->filter_level->setModel(&model.levels);
     ui->filter_trange->setModel(&model.tranges);
