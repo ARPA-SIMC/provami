@@ -223,6 +223,9 @@ public:
      */
     void update(Value& val, const wreport::Var& new_val);
 
+    /// Set a filter before the initial connect
+    void set_initial_filter(const dballe::Record& rec);
+
     /// Connect to a new database, possibly disconnecting from the previous one
     void dballe_connect(const std::string& dballe_url);
 };

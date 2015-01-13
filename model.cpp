@@ -191,6 +191,12 @@ void Model::update(Value &val, const wreport::Var &new_val)
     val.var = new_val;
 }
 
+void Model::set_initial_filter(const Record &rec)
+{
+    active_filter = rec;
+    next_filter = rec;
+}
+
 void Model::dballe_connect(const std::string &dballe_url)
 {
     if (db)
