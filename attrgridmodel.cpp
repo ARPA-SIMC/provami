@@ -124,14 +124,13 @@ bool AttrGridModel::setData(const QModelIndex &index, const QVariant &value, int
         qDebug() << "Cannot set value:" << e.what();
         return false;
     }
-/* TODO: update
     try {
-        model.update(val, new_var);
+        model.update(owner_id, owner_varcode, new_attr);
     } catch (std::exception& e) {
         qDebug() << "Cannot save value in the database:" << e.what();
         return false;
     }
-*/
+    values[index.row()] = new_attr;
     emit dataChanged(index, index);
 
     return true;

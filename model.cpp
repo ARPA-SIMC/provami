@@ -285,6 +285,13 @@ void Model::update(StationValue &val, const wreport::Var &new_val)
     val.var = new_val;
 }
 
+void Model::update(int var_id, wreport::Varcode var_related, const wreport::Var &new_val)
+{
+    Record change;
+    change.set(new_val);
+    db->attr_insert(var_id, var_related, change);
+}
+
 void Model::remove(const Value &val)
 {
     Record change;

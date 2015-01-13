@@ -226,6 +226,11 @@ public:
      */
     void update(StationValue& val, const wreport::Var& new_val);
 
+    /**
+     * Update an attribute
+     */
+    void update(int var_id, wreport::Varcode var_related, const wreport::Var& new_val);
+
     /// Remove the value from the database
     void remove(const Value& val);
 
