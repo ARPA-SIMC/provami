@@ -16,8 +16,10 @@ protected:
     QPen pen_highlighted;
 
 public:
+    int station_id;
+
     StationItem(const Station& s, const QPointF& point)
-        : QGraphicsRectItem(point.x()-0.0001, point.y()-0.0001, 0.0002, 0.0002)
+        : QGraphicsRectItem(point.x()-0.0001, point.y()-0.0001, 0.0002, 0.0002), station_id(s.id)
     {
         setFlag(QGraphicsItem::ItemIsSelectable, true);
 
@@ -140,12 +142,13 @@ void MapScene::on_selection_changed()
     QList<QGraphicsItem *> items = scene.selectedItems();
     qDebug() << items.length() << "selected items";
 
-    QPen selected(Qt::red);
-    selected.setWidth(10);
-    selected.setCosmetic(true);
-    foreach(QGraphicsItem* i, items)
+    if (items.length() == 1)
     {
-        dynamic_cast<QGraphicsRectItem*>(i)->setPen(selected);
+        StationItem* si = dynamic_cast<StationItem*>(items[0]);
+        qDebug() << "Selected" << si->station_id;
+    } else if (items.length() > 1) {
+        QRectF area = scene.selectionArea().boundingRect();
+        qDebug() << "Selected" << area;
     }
 }
 

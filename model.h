@@ -21,6 +21,7 @@ class Model;
 
 struct Station
 {
+    int id;
     double lat;
     double lon;
     std::string ident;

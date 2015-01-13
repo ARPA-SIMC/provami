@@ -258,7 +258,7 @@ void Model::process_summary()
             set_reports.insert(i->first.rep_memo);
         if (match_rep_memo && match_trange && match_varcode)
             set_levels.insert(i->first.level);
-        if (match_rep_memo && match_level && match_varcode)
+        if(match_rep_memo && match_level && match_varcode)
             set_tranges.insert(i->first.trange);
         if (match_rep_memo && match_level && match_trange)
             set_varcodes.insert(i->first.varcode);
@@ -328,6 +328,7 @@ void Model::unselect_varcode()
 
 Station::Station(const dballe::db::Cursor &cur)
 {
+    id = cur.get_station_id();
     lat = cur.get_lat();
     lon = cur.get_lon();
     ident = cur.get_ident("");
