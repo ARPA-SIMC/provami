@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "model.h"
 #include "datagridmodel.h"
+#include "mapscene.h"
 
 namespace Ui {
 class ProvamiMainWindow;
@@ -16,6 +17,7 @@ class ProvamiMainWindow : public QMainWindow
 protected:
     Model& model;
     DataGridModel datagrid_model;
+    MapScene map_scene;
 
 public:
     explicit ProvamiMainWindow(Model& model, QWidget *parent = 0);

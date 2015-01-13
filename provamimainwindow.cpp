@@ -6,13 +6,14 @@
 #include <dballe/core/defs.h>
 #include <dballe/core/var.h>
 #include "model.h"
+#include "mapscene.h"
 
 using namespace std;
 
 
 ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     QMainWindow(parent),
-    model(model), datagrid_model(model),
+    model(model), datagrid_model(model), map_scene(model),
     ui(new Ui::ProvamiMainWindow)
 {
     ui->setupUi(this);
@@ -22,6 +23,9 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->filter_level->setModel(&model.levels);
     ui->filter_trange->setModel(&model.tranges);
     ui->filter_varcode->setModel(&model.varcodes);
+
+    map_scene.load_coastlines("/home/enrico/lavori/arpa/provami/world.dat");
+    ui->mapview->setScene(&map_scene.scene);
 }
 
 ProvamiMainWindow::~ProvamiMainWindow()
@@ -31,7 +35,7 @@ ProvamiMainWindow::~ProvamiMainWindow()
 
 void ProvamiMainWindow::on_refresh_clicked()
 {
-    model.refresh();
+    model.activate_next_filter();
 }
 
 void ProvamiMainWindow::on_filter_report_activated(int index)

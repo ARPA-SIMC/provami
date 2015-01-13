@@ -15,10 +15,15 @@ TEMPLATE = app
 SOURCES += main.cpp\
         provamimainwindow.cpp \
     model.cpp \
-    datagridmodel.cpp
+    datagridmodel.cpp \
+    mapscene.cpp \
+    mapview.cpp
 
 HEADERS  += provamimainwindow.h \
     model.h \
-    datagridmodel.h
+    datagridmodel.h \
+    mapview.h \
+    mapscene.h \
+    mapview.h
 
 FORMS    += provamimainwindow.ui
