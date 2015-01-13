@@ -4,6 +4,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace dballe;
 
 DataGridModel::DataGridModel(Model& model, QObject *parent) :
     QAbstractTableModel(parent), model(model)
@@ -26,13 +27,11 @@ int DataGridModel::columnCount(const QModelIndex &parent) const
 
 QVariant DataGridModel::data(const QModelIndex &index, int role) const
 {
-    using namespace dballe;
-
     if (role != Qt::DisplayRole)
         return QVariant();
 
     if (!index.isValid()) return QVariant();
-    if (index.row() >= model.values().size()) return QVariant();
+    if ((unsigned)index.row() >= model.values().size()) return QVariant();
     const Value& val = model.values()[index.row()];
     const Station* sta = model.station(val.ana_id);
     stringstream ss_lev;
@@ -87,6 +86,135 @@ QVariant DataGridModel::headerData(int section, Qt::Orientation orientation, int
 }
 
 void DataGridModel::on_model_refreshed()
+{
+    reset();
+}
+
+
+FilterReportModel::FilterReportModel(Model &model, QObject *parent)
+    : QAbstractListModel(parent), model(model)
+{
+    QObject::connect(&model, SIGNAL(refreshed()),
+                     this, SLOT(on_model_refreshed()));
+}
+
+int FilterReportModel::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid()) return 0;
+    return model.reports().size();
+}
+
+QVariant FilterReportModel::data(const QModelIndex &index, int role) const
+{
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    if (!index.isValid()) return QVariant();
+    if ((unsigned)index.row() >= model.reports().size()) return QVariant();
+
+    return QVariant(model.reports()[index.row()].c_str());
+}
+
+void FilterReportModel::on_model_refreshed()
+{
+    reset();
+}
+
+
+FilterLevelModel::FilterLevelModel(Model &model, QObject *parent)
+    : QAbstractListModel(parent), model(model)
+{
+    QObject::connect(&model, SIGNAL(refreshed()),
+                     this, SLOT(on_model_refreshed()));
+}
+
+int FilterLevelModel::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid()) return 0;
+    return model.levels().size();
+}
+
+QVariant FilterLevelModel::data(const QModelIndex &index, int role) const
+{
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    if (!index.isValid()) return QVariant();
+    if ((unsigned)index.row() >= model.levels().size()) return QVariant();
+
+    const Level& lev = model.levels()[index.row()];
+    return QVariant(lev.describe().c_str());
+}
+
+void FilterLevelModel::on_model_refreshed()
+{
+    reset();
+}
+
+FilterTrangeModel::FilterTrangeModel(Model &model, QObject *parent)
+    : QAbstractListModel(parent), model(model)
+{
+    QObject::connect(&model, SIGNAL(refreshed()),
+                     this, SLOT(on_model_refreshed()));
+}
+
+int FilterTrangeModel::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid()) return 0;
+    return model.tranges().size();
+}
+
+QVariant FilterTrangeModel::data(const QModelIndex &index, int role) const
+{
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    if (!index.isValid()) return QVariant();
+    if ((unsigned)index.row() >= model.tranges().size()) return QVariant();
+
+    const Trange& tr = model.tranges()[index.row()];
+    return QVariant(tr.describe().c_str());
+}
+
+void FilterTrangeModel::on_model_refreshed()
+{
+    reset();
+}
+
+FilterVarcodeModel::FilterVarcodeModel(Model &model, QObject *parent)
+    : QAbstractListModel(parent), model(model)
+{
+    QObject::connect(&model, SIGNAL(refreshed()),
+                     this, SLOT(on_model_refreshed()));
+}
+
+int FilterVarcodeModel::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid()) return 0;
+    return model.varcodes().size();
+}
+
+QVariant FilterVarcodeModel::data(const QModelIndex &index, int role) const
+{
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    if (!index.isValid()) return QVariant();
+    if ((unsigned)index.row() >= model.varcodes().size()) return QVariant();
+
+    wreport::Varcode code = model.varcodes()[index.row()];
+    string desc = format_code(code);
+
+    try {
+        wreport::Varinfo info = varinfo(code);
+        desc += ": ";
+        desc += info->desc;
+    } catch (wreport::error_notfound) {
+    }
+    return QVariant(desc.c_str());
+}
+
+void FilterVarcodeModel::on_model_refreshed()
 {
     reset();
 }

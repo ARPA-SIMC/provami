@@ -62,7 +62,7 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QComboBox" name="filter_var"/>
+        <widget class="QComboBox" name="filter_varcode"/>
        </item>
       </layout>
      </widget>

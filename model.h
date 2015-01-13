@@ -7,6 +7,7 @@
 #include <wreport/var.h>
 #include <string>
 #include <map>
+#include <vector>
 
 namespace dballe {
 class Record;
@@ -81,6 +82,10 @@ protected:
     std::map<int, Station> cache_stations;
     std::map<SummaryKey, SummaryValue> cache_summary;
     std::vector<Value> cache_values;
+    std::vector<std::string> cache_reports;
+    std::vector<dballe::Level> cache_levels;
+    std::vector<dballe::Trange> cache_tranges;
+    std::vector<wreport::Varcode> cache_varcodes;
 
 public:
     Model();
@@ -88,8 +93,12 @@ public:
 
     const std::map<int, Station>& stations() const;
     const Station* station(int id) const;
-    const std::map<SummaryKey, SummaryValue>& summary() const;
+    const std::map<SummaryKey, SummaryValue>& summaries() const;
     const std::vector<Value>& values() const;
+    const std::vector<std::string>& reports() const;
+    const std::vector<dballe::Level>& levels() const;
+    const std::vector<dballe::Trange>& tranges() const;
+    const std::vector<wreport::Varcode>& varcodes() const;
 
     /// Connect to a new database, possibly disconnecting from the previous one
     void dballe_connect(const std::string& dballe_url);

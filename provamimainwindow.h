@@ -16,6 +16,10 @@ class ProvamiMainWindow : public QMainWindow
 protected:
     Model& model;
     DataGridModel datagrid_model;
+    FilterReportModel filter_report_model;
+    FilterLevelModel filter_level_model;
+    FilterTrangeModel filter_trange_model;
+    FilterVarcodeModel filter_varcode_model;
 
 public:
     explicit ProvamiMainWindow(Model& model, QWidget *parent = 0);
