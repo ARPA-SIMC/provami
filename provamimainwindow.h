@@ -16,10 +16,6 @@ class ProvamiMainWindow : public QMainWindow
 protected:
     Model& model;
     DataGridModel datagrid_model;
-    FilterReportModel filter_report_model;
-    FilterLevelModel filter_level_model;
-    FilterTrangeModel filter_trange_model;
-    FilterVarcodeModel filter_varcode_model;
 
 public:
     explicit ProvamiMainWindow(Model& model, QWidget *parent = 0);
@@ -27,6 +23,11 @@ public:
     
 private slots:
     void on_refresh_clicked();
+
+    void on_filter_report_activated(int index);
+    void on_filter_level_activated(int index);
+    void on_filter_trange_activated(int index);
+    void on_filter_varcode_activated(int index);
 
 private:
     Ui::ProvamiMainWindow *ui;

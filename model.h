@@ -2,17 +2,22 @@
 #define MODEL_H
 
 #include <QObject>
+#include <QAbstractListModel>
 #include <dballe/core/defs.h>
 #include <dballe/core/record.h>
 #include <dballe/db/db.h>
 #include <wreport/var.h>
 #include <string>
 #include <map>
+#include <set>
 #include <vector>
 
 namespace dballe {
 class Record;
 }
+
+class Model;
+
 
 struct Station
 {
@@ -67,6 +72,88 @@ protected:
     friend class Model;
 };
 
+// Base class with common signals and slots for all subclasses
+// This allows us to use a template as a child class.
+// See http://doc.qt.digia.com/qq/qq15-academic.html
+class FilterModelQObjectBase : public QAbstractListModel
+{
+    Q_OBJECT
+
+protected:
+    Model& model;
+
+public:
+    explicit FilterModelQObjectBase(Model& model, QObject *parent=0);
+
+public slots:
+    virtual void set_next_filter(int index) = 0;
+};
+
+template<class ITEM>
+class FilterModelBase : public FilterModelQObjectBase
+{
+protected:
+    std::vector<ITEM> items;
+
+    virtual void filter_select(const ITEM& val) = 0;
+    virtual void filter_unselect() = 0;
+    virtual QVariant item_to_table_cell(const ITEM& val) const = 0;
+
+public:
+    explicit FilterModelBase(Model& model, QObject *parent=0);
+
+    int rowCount(const QModelIndex &parent) const;
+    QVariant data(const QModelIndex &index, int role) const;
+
+    void set_items(std::set<ITEM>& new_items);
+    virtual void set_next_filter(int index);
+};
+
+class FilterReportModel : public FilterModelBase<std::string>
+{
+protected:
+    virtual void filter_select(const std::string& val);
+    virtual void filter_unselect();
+    virtual QVariant item_to_table_cell(const std::string& val) const;
+
+public:
+    explicit FilterReportModel(Model& model, QObject* parent=0);
+};
+
+class FilterLevelModel : public FilterModelBase<dballe::Level>
+{
+protected:
+    virtual void filter_select(const dballe::Level& val);
+    virtual void filter_unselect();
+    virtual QVariant item_to_table_cell(const dballe::Level &val) const;
+
+public:
+    explicit FilterLevelModel(Model &model, QObject *parent=0);
+};
+
+
+class FilterTrangeModel : public FilterModelBase<dballe::Trange>
+{
+protected:
+    virtual void filter_select(const dballe::Trange& val);
+    virtual void filter_unselect();
+    virtual QVariant item_to_table_cell(const dballe::Trange &val) const;
+
+public:
+    explicit FilterTrangeModel(Model &model, QObject *parent = 0);
+};
+
+class FilterVarcodeModel : public FilterModelBase<wreport::Varcode>
+{
+protected:
+    virtual void filter_select(const wreport::Varcode& val);
+    virtual void filter_unselect();
+    virtual QVariant item_to_table_cell(const wreport::Varcode &val) const;
+
+public:
+    explicit FilterVarcodeModel(Model &model, QObject *parent = 0);
+};
+
 class Model : public QObject
 {
     Q_OBJECT
@@ -80,6 +167,10 @@ public slots:
     void select_level(const dballe::Level& val);
     void select_trange(const dballe::Trange& val);
     void select_varcode(wreport::Varcode val);
+    void unselect_report();
+    void unselect_level();
+    void unselect_trange();
+    void unselect_varcode();
 
 signals:
     void next_filter_changed();
@@ -96,10 +187,6 @@ protected:
 
     // Filtering elements
     std::map<int, Station> cache_stations;
-    std::vector<std::string> cache_reports;
-    std::vector<dballe::Level> cache_levels;
-    std::vector<dballe::Trange> cache_tranges;
-    std::vector<wreport::Varcode> cache_varcodes;
 
     // Summary of items for the currently active filter
     std::map<SummaryKey, SummaryValue> cache_summary;
@@ -110,6 +197,11 @@ protected:
     void process_summary();
 
 public:
+    FilterReportModel reports;
+    FilterLevelModel levels;
+    FilterTrangeModel tranges;
+    FilterVarcodeModel varcodes;
+
     Model();
     ~Model();
 
@@ -117,10 +209,6 @@ public:
     const Station* station(int id) const;
     const std::map<SummaryKey, SummaryValue>& summaries() const;
     const std::vector<Value>& values() const;
-    const std::vector<std::string>& reports() const;
-    const std::vector<dballe::Level>& levels() const;
-    const std::vector<dballe::Trange>& tranges() const;
-    const std::vector<wreport::Varcode>& varcodes() const;
 
     /// Connect to a new database, possibly disconnecting from the previous one
     void dballe_connect(const std::string& dballe_url);

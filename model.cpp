@@ -8,8 +8,109 @@
 using namespace std;
 using namespace dballe;
 
+FilterModelQObjectBase::FilterModelQObjectBase(Model& model, QObject *parent)
+    : QAbstractListModel(parent), model(model)
+{
+    QObject::connect(&model, SIGNAL(next_filter_changed()),
+                     this, SLOT(reset()));
+}
+
+template<typename ITEM>
+FilterModelBase<ITEM>::FilterModelBase(Model& model, QObject *parent)
+    : FilterModelQObjectBase(model, parent)
+{
+}
+
+template<typename ITEM>
+int FilterModelBase<ITEM>::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid()) return 0;
+    return items.size();
+}
+
+template<typename ITEM>
+QVariant FilterModelBase<ITEM>::data(const QModelIndex &index, int role) const
+{
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    if (!index.isValid()) return QVariant();
+    if ((unsigned)index.row() >= items.size()) return QVariant();
+
+    return item_to_table_cell(items[index.row()]);
+}
+
+template<typename ITEM>
+void FilterModelBase<ITEM>::set_items(std::set<ITEM> &new_items)
+{
+    items.clear();
+    std::copy(new_items.begin(), new_items.end(), back_inserter(items));
+    reset();
+}
+
+template<typename ITEM>
+void FilterModelBase<ITEM>::set_next_filter(int index)
+{
+    if (index < 0 || index > (signed)items.size())
+        filter_unselect();
+    filter_select(items[index]);
+}
+
+
+
+FilterReportModel::FilterReportModel(Model &model, QObject *parent)
+    : FilterModelBase<std::string>(model, parent)
+{
+}
+void FilterReportModel::filter_select(const string &val) { model.select_report(val); }
+void FilterReportModel::filter_unselect() { model.unselect_report(); }
+QVariant FilterReportModel::item_to_table_cell(const std::string& val) const { return QVariant(val.c_str()); }
+
+
+FilterLevelModel::FilterLevelModel(Model &model, QObject *parent)
+    : FilterModelBase<dballe::Level>(model, parent)
+{
+}
+void FilterLevelModel::filter_select(const Level &val) { model.select_level(val); }
+void FilterLevelModel::filter_unselect() { model.unselect_level(); }
+QVariant FilterLevelModel::item_to_table_cell(const Level& val) const
+{
+    return QVariant(val.describe().c_str());
+}
+
+
+FilterTrangeModel::FilterTrangeModel(Model &model, QObject *parent)
+    : FilterModelBase<dballe::Trange>(model, parent)
+{
+}
+void FilterTrangeModel::filter_select(const Trange &val) { model.select_trange(val); }
+void FilterTrangeModel::filter_unselect() { model.unselect_trange(); }
+QVariant FilterTrangeModel::item_to_table_cell(const Trange& val) const
+{
+    return QVariant(val.describe().c_str());
+}
+
+FilterVarcodeModel::FilterVarcodeModel(Model &model, QObject *parent)
+    : FilterModelBase<wreport::Varcode>(model, parent)
+{
+}
+void FilterVarcodeModel::filter_select(const wreport::Varcode &val) { model.select_varcode(val); }
+void FilterVarcodeModel::filter_unselect() { model.unselect_varcode(); }
+QVariant FilterVarcodeModel::item_to_table_cell(const wreport::Varcode& val) const
+{
+    string desc = format_code(val);
+    try {
+        wreport::Varinfo info = varinfo(val);
+        desc += ": ";
+        desc += info->desc;
+    } catch (wreport::error_notfound) {
+    }
+    return QVariant(desc.c_str());
+}
+
+
 Model::Model()
-    : db(0)
+    : db(0), reports(*this), levels(*this), tranges(*this), varcodes(*this)
 {
 }
 
@@ -40,11 +141,6 @@ const std::vector<Value> &Model::values() const
 {
     return cache_values;
 }
-
-const std::vector<string>& Model::reports() const { return cache_reports; }
-const std::vector<Level> &Model::levels() const { return cache_levels; }
-const std::vector<Trange> &Model::tranges() const { return cache_tranges; }
-const std::vector<wreport::Varcode> &Model::varcodes() const { return cache_varcodes; }
 
 void Model::dballe_connect(const std::string &dballe_url)
 {
@@ -104,16 +200,10 @@ void Model::activate_next_filter()
 
 void Model::process_summary()
 {
-    fprintf(stderr, "PS\n");
-    cache_reports.clear();
-    cache_levels.clear();
-    cache_tranges.clear();
-    cache_varcodes.clear();
-
     set<std::string> set_reports;
     set<dballe::Level> set_levels;
     set<dballe::Trange> set_tranges;
-    set<wreport::Varcode> set_varcode;
+    set<wreport::Varcode> set_varcodes;
 
     // Scan the filter building a todo list of things to match
     bool has_flt_rep_memo = next_filter.contains(DBA_KEY_REP_MEMO);
@@ -123,7 +213,7 @@ void Model::process_summary()
     bool has_flt_trange = next_filter.contains_trange();
     Trange flt_trange = next_filter.get_trange();
     bool has_flt_varcode = next_filter.contains(DBA_KEY_VAR);
-    wreport::Varcode flt_varcode = next_filter.get(DBA_KEY_VAR, 0);
+    wreport::Varcode flt_varcode = wreport::descriptor_code(next_filter.get(DBA_KEY_VAR, "B00000"));
 
     for (map<SummaryKey, SummaryValue>::const_iterator i = cache_summary.begin();
          i != cache_summary.end(); ++i)
@@ -140,13 +230,13 @@ void Model::process_summary()
         if (match_rep_memo && match_level && match_varcode)
             set_tranges.insert(i->first.trange);
         if (match_rep_memo && match_level && match_trange)
-            set_varcode.insert(i->first.varcode);
+            set_varcodes.insert(i->first.varcode);
     }
 
-    std::copy(set_reports.begin(), set_reports.end(), back_inserter(cache_reports));
-    std::copy(set_levels.begin(), set_levels.end(), back_inserter(cache_levels));
-    std::copy(set_tranges.begin(), set_tranges.end(), back_inserter(cache_tranges));
-    std::copy(set_varcode.begin(), set_varcode.end(), back_inserter(cache_varcodes));
+    reports.set_items(set_reports);
+    levels.set_items(set_levels);
+    tranges.set_items(set_tranges);
+    varcodes.set_items(set_varcodes);
 
     emit next_filter_changed();
 }
@@ -171,7 +261,37 @@ void Model::select_trange(const Trange &val)
 
 void Model::select_varcode(wreport::Varcode val)
 {
-    next_filter.set(DBA_KEY_VAR, val);
+    std::string code = wreport::varcode_format(val);
+    next_filter.set(DBA_KEY_VAR, code.c_str());
+    process_summary();
+}
+
+void Model::unselect_report()
+{
+    next_filter.unset(DBA_KEY_REP_MEMO);
+    process_summary();
+}
+
+void Model::unselect_level()
+{
+    next_filter.unset(DBA_KEY_LEVELTYPE1);
+    next_filter.unset(DBA_KEY_L1);
+    next_filter.unset(DBA_KEY_LEVELTYPE2);
+    next_filter.unset(DBA_KEY_L2);
+    process_summary();
+}
+
+void Model::unselect_trange()
+{
+    next_filter.unset(DBA_KEY_PINDICATOR);
+    next_filter.unset(DBA_KEY_P1);
+    next_filter.unset(DBA_KEY_P2);
+    process_summary();
+}
+
+void Model::unselect_varcode()
+{
+    next_filter.unset(DBA_KEY_VAR);
     process_summary();
 }
 

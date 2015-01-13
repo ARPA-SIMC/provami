@@ -13,19 +13,15 @@ using namespace std;
 ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     QMainWindow(parent),
     model(model), datagrid_model(model),
-    filter_report_model(model),
-    filter_level_model(model),
-    filter_trange_model(model),
-    filter_varcode_model(model),
     ui(new Ui::ProvamiMainWindow)
 {
     ui->setupUi(this);
 
     ui->results->setModel(&datagrid_model);
-    ui->filter_report->setModel(&filter_report_model);
-    ui->filter_level->setModel(&filter_level_model);
-    ui->filter_trange->setModel(&filter_trange_model);
-    ui->filter_varcode->setModel(&filter_varcode_model);
+    ui->filter_report->setModel(&model.reports);
+    ui->filter_level->setModel(&model.levels);
+    ui->filter_trange->setModel(&model.tranges);
+    ui->filter_varcode->setModel(&model.varcodes);
 }
 
 ProvamiMainWindow::~ProvamiMainWindow()
@@ -36,4 +32,21 @@ ProvamiMainWindow::~ProvamiMainWindow()
 void ProvamiMainWindow::on_refresh_clicked()
 {
     model.refresh();
+}
+
+void ProvamiMainWindow::on_filter_report_activated(int index)
+{
+    model.reports.set_next_filter(index);
+}
+void ProvamiMainWindow::on_filter_level_activated(int index)
+{
+    model.levels.set_next_filter(index);
+}
+void ProvamiMainWindow::on_filter_trange_activated(int index)
+{
+    model.tranges.set_next_filter(index);
+}
+void ProvamiMainWindow::on_filter_varcode_activated(int index)
+{
+    model.varcodes.set_next_filter(index);
 }
