@@ -19,6 +19,7 @@ public:
 signals:
     
 public slots:
+    void on_next_filter_changed();
     
 };
 

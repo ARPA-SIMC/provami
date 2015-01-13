@@ -37,11 +37,12 @@ struct SelectNetworkAction : public ModelAction
         : ModelAction(model, parent), val(val)
     {
         setIconText(QString("Select network %1").arg(val.rep_memo.c_str()));
+        setEnabled(model.reports.has_item(val.rep_memo));
     }
 
     void on_trigger()
     {
-        model.select_report(val.rep_memo);
+        model.reports.select(val.rep_memo);
     }
 };
 
@@ -53,11 +54,12 @@ struct SelectLevelAction : public ModelAction
         : ModelAction(model, parent), val(val)
     {
         setIconText(QString("Select level %1").arg(val.level.describe().c_str()));
+        setEnabled(model.levels.has_item(val.level));
     }
 
     void on_trigger()
     {
-        model.select_level(val.level);
+        model.levels.select(val.level);
     }
 };
 
@@ -69,11 +71,12 @@ struct SelectTrangeAction : public ModelAction
         : ModelAction(model, parent), val(val)
     {
         setIconText(QString("Select time range %1").arg(val.trange.describe().c_str()));
+        setEnabled(model.tranges.has_item(val.trange));
     }
 
     void on_trigger()
     {
-        model.select_trange(val.trange);
+        model.tranges.select(val.trange);
     }
 };
 
@@ -86,11 +89,12 @@ struct SelectVarcodeAction : public ModelAction
         : ModelAction(model, parent), val(val)
     {
         setIconText(QString("Select variable %1").arg(val.var.info()->desc));
+        setEnabled(model.varcodes.has_item(val.var.code()));
     }
 
     void on_trigger()
     {
-        model.select_varcode(val.var.code());
+        model.varcodes.select(val.var.code());
     }
 };
 
@@ -139,7 +143,6 @@ static void build_menu(QMenu& menu, Model& model, DataGridModel::ColumnType ctyp
 void DataGridView::contextMenuEvent(QContextMenuEvent *event)
 {
     QModelIndex index = indexAt(event->pos());
-    qDebug() << "CME" << index.row() << index.column();
     DataGridModel* m = dynamic_cast<DataGridModel*>(model());
     if (!m) return;
 

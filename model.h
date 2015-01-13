@@ -86,10 +86,14 @@ protected:
 
 public:
     explicit FilterModelQObjectBase(Model& model, QObject *parent=0);
+    Model& get_model() { return model; }
+    const Model& get_model() const { return model; }
+    virtual int get_current_index_from_model() = 0;
+    /// String tag used to identify this model in debug messages
+    virtual const char* debug_tag() = 0;
 
 public slots:
     virtual void set_next_filter(int index) = 0;
-    virtual void next_filter_changed() = 0;
 };
 
 template<class ITEM>
@@ -100,8 +104,11 @@ protected:
 
     /// Read the currently selected ITEM from the model
     virtual ITEM from_model() = 0;
+    /// Select the given item in the model
     virtual void filter_select(const ITEM& val) = 0;
+    /// Unselect the filter we control in the model
     virtual void filter_unselect() = 0;
+    /// Convert an item to a QVariant used as DisplayRole data
     virtual QVariant item_to_table_cell(const ITEM& val) const = 0;
 
 public:
@@ -110,9 +117,12 @@ public:
     int rowCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
 
+    /// Try selecting this item, if it is available in the model
+    void select(const ITEM& item);
+    bool has_item(const ITEM& item);
     void set_items(std::set<ITEM>& new_items);
     virtual void set_next_filter(int index);
-    virtual void next_filter_changed();
+    virtual int get_current_index_from_model();
 };
 
 class FilterReportModel : public FilterModelBase<std::string>
@@ -122,6 +132,7 @@ protected:
     virtual void filter_select(const std::string& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const std::string& val) const;
+    virtual const char* debug_tag() { return "report"; }
 
 public:
     explicit FilterReportModel(Model& model, QObject* parent=0);
@@ -134,6 +145,7 @@ protected:
     virtual void filter_select(const dballe::Level& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const dballe::Level &val) const;
+    virtual const char* debug_tag() { return "level"; }
 
 public:
     explicit FilterLevelModel(Model &model, QObject *parent=0);
@@ -147,6 +159,7 @@ protected:
     virtual void filter_select(const dballe::Trange& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const dballe::Trange &val) const;
+    virtual const char* debug_tag() { return "trange"; }
 
 public:
     explicit FilterTrangeModel(Model &model, QObject *parent = 0);
@@ -159,6 +172,7 @@ protected:
     virtual void filter_select(const wreport::Varcode& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const wreport::Varcode &val) const;
+    virtual const char* debug_tag() { return "varcode"; }
 
 public:
     explicit FilterVarcodeModel(Model &model, QObject *parent = 0);

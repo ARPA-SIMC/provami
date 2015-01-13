@@ -12,7 +12,6 @@ using namespace dballe;
 FilterModelQObjectBase::FilterModelQObjectBase(Model& model, QObject *parent)
     : QAbstractListModel(parent), model(model)
 {
-    connect(&model, SIGNAL(next_filter_changed()), this, SLOT(next_filter_changed()));
 }
 
 template<typename ITEM>
@@ -40,6 +39,20 @@ QVariant FilterModelBase<ITEM>::data(const QModelIndex &index, int role) const
     if (idx >= (signed)items.size()) return QVariant();
 
     return item_to_table_cell(items[idx]);
+}
+
+template<typename ITEM>
+void FilterModelBase<ITEM>::select(const ITEM &item)
+{
+    if (!has_item(item)) return;
+    filter_select(item);
+}
+
+template<typename ITEM>
+bool FilterModelBase<ITEM>::has_item(const ITEM &item)
+{
+    typename vector<ITEM>::const_iterator i = std::find(items.begin(), items.end(), item);
+    return i != items.end();
 }
 
 template<typename ITEM>
@@ -90,14 +103,14 @@ void FilterModelBase<ITEM>::set_next_filter(int index)
 }
 
 template<typename ITEM>
-void FilterModelBase<ITEM>::next_filter_changed()
+int FilterModelBase<ITEM>::get_current_index_from_model()
 {
     ITEM selected = from_model();
     typename vector<ITEM>::const_iterator i = std::find(items.begin(), items.end(), selected);
     if (i == items.end())
-        return;
+        return 0;
     int pos = i - items.begin();
-    qDebug() << "SELECTED" << pos;
+    return pos + 1;
 }
 
 
@@ -487,3 +500,9 @@ ModelAction::ModelAction(Model &model, QObject *parent)
 {
     connect(this, SIGNAL(triggered()), this, SLOT(on_trigger()));
 }
+
+
+template class FilterModelBase<std::string>;
+template class FilterModelBase<Level>;
+template class FilterModelBase<Trange>;
+template class FilterModelBase<wreport::Varcode>;
