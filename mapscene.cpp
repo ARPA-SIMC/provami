@@ -222,11 +222,11 @@ void MapScene::update_highlight()
 {
     if (highlighted)
     {
-        if (highlighted->station_id == model.highlight.station_id)
+        if (highlighted->station_id == model.highlight.station_id())
             return;
         highlighted->set_highlighted(false);
     }
-    auto s = stations.find(model.highlight.station_id);
+    auto s = stations.find(model.highlight.station_id());
     if (s != stations.end())
     {
         s->second->set_highlighted(true);

@@ -11,16 +11,34 @@ class Highlight : public QObject
 {
     Q_OBJECT
 
+protected:
+    const Value* m_value = 0;
+    const StationValue* m_station_value = 0;
+
 public:
     explicit Highlight(QObject *parent = 0);
 
-    int station_id = dballe::MISSING_INT;
-    int value_id = dballe::MISSING_INT;
-    int station_var_id = dballe::MISSING_INT;
+    int station_id() const
+    {
+        if (m_value) return m_value->ana_id;
+        if (m_station_value) return m_station_value->ana_id;
+        return dballe::MISSING_INT;
+    }
+    const wreport::Var* variable() const
+    {
+        if (m_value) return &(m_value->var);
+        if (m_station_value) return &(m_value->var);
+        return 0;
+    }
+    //int value_id() const { return m_value_id; }
+    //int station_var_id() const { return m_station_var_id; }
 
-    void select_value(const Value*);
-    void select_value(const StationValue*);
-    void notify_changed();
+    /// Set the currently highlighted data
+    void select_value(const Value* val);
+    /// Set the currently highlighted station data
+    void select_station_value(const StationValue* val);
+    /// Reset highlights, for example after a full model change
+    void reset();
 
 signals:
     void changed();

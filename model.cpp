@@ -327,6 +327,8 @@ void Model::refresh()
     cache_summary.clear();
     cache_values.clear();
 
+    highlight.reset();
+
     // Query summary for the currently active filter
     qDebug() << "Refresh summary started";
     auto_ptr<db::Cursor> cur = this->db->query_summary(active_filter);

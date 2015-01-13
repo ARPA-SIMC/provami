@@ -150,11 +150,12 @@ const StationValue *StationGridModel::valueAt(const QModelIndex &index) const
 
 void StationGridModel::on_highlight_changed()
 {
-    if (station_id == model.highlight.station_id)
+    if (station_id == model.highlight.station_id())
         return;
+    station_id = model.highlight.station_id();
     values.clear();
     dballe::Record rec;
-    rec.set(DBA_KEY_ANA_ID, model.highlight.station_id);
+    rec.set(DBA_KEY_ANA_ID, station_id);
     rec.set_ana_context();
     auto cur = model.db->query_data(rec);
     while (cur->next())

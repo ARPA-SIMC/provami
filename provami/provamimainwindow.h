@@ -53,6 +53,7 @@ private slots:
     void next_filter_changed();
     void filter_latlon_changed();
     void results_clicked(QModelIndex);
+    void station_data_clicked(QModelIndex);
     void on_filter_ana_id_editingFinished();
     void on_actionExit_triggered();
     void on_actionRefresh_triggered();

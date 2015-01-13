@@ -31,6 +31,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     connect(ui->filter_lonmin, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_lonmax, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->results, SIGNAL(clicked(QModelIndex)), this, SLOT(results_clicked(QModelIndex)));
+    connect(ui->station_data, SIGNAL(clicked(QModelIndex)), this, SLOT(station_data_clicked(QModelIndex)));
 
     ui->results->setModel(&datagrid_model);
     ui->station_data->setModel(&stationgrid_model);
@@ -76,9 +77,13 @@ void ProvamiMainWindow::next_filter_changed()
 void ProvamiMainWindow::results_clicked(QModelIndex idx)
 {
     const Value* val = datagrid_model.valueAt(idx);
-    model.highlight.station_id = val->ana_id;
-    model.highlight.value_id = val->value_id;
-    model.highlight.notify_changed();
+    model.highlight.select_value(val);
+}
+
+void ProvamiMainWindow::station_data_clicked(QModelIndex idx)
+{
+    const StationValue* val = stationgrid_model.valueAt(idx);
+    model.highlight.select_station_value(val);
 }
 
 void ProvamiMainWindow::filter_latlon_changed()
@@ -161,14 +166,32 @@ void ProvamiMainWindow::on_actionRefresh_triggered()
 
 void ProvamiMainWindow::highlight_changed()
 {
-    const Station* station = model.station(model.highlight.station_id);
-    ui->cur_st_lat->setText(QString("%1").arg(station->lat, 0, 'f', 5));
-    ui->cur_st_lon->setText(QString("%1").arg(station->lon, 0, 'f', 5));
-    ui->cur_st_id->setText(QString("%1").arg(station->id));
-    if (station->ident.empty())
-        ui->cur_st_name->setText("(fixed station)");
-    else
-        ui->cur_st_name->setText(station->ident.c_str());
+    const Station* station = model.station(model.highlight.station_id());
+    if (station)
+    {
+        ui->cur_st_lat->setText(QString("%1").arg(station->lat, 0, 'f', 5));
+        ui->cur_st_lon->setText(QString("%1").arg(station->lon, 0, 'f', 5));
+        ui->cur_st_id->setText(QString("%1").arg(station->id));
+        if (station->ident.empty())
+            ui->cur_st_name->setText("(fixed station)");
+        else
+            ui->cur_st_name->setText(station->ident.c_str());
+    } else {
+        ui->cur_st_lat->setText("-");
+        ui->cur_st_lon->setText("-");
+        ui->cur_st_id->setText("-");
+        ui->cur_st_name->setText("-");
+    }
+    const wreport::Var* var = model.highlight.variable();
+    if (var)
+    {
+        string formatted = wreport::varcode_format(var->code());
+        formatted += " ";
+        formatted += var->info()->desc;
+        ui->attr_var->setText(formatted.c_str());
+    } else {
+        ui->attr_var->setText("-");
+    }
 }
 
 }

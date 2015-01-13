@@ -7,8 +7,22 @@ Highlight::Highlight(QObject *parent) :
 {
 }
 
-void Highlight::notify_changed()
+void Highlight::select_value(const Value *val)
 {
+    m_value = val;
+    emit changed();
+}
+
+void Highlight::select_station_value(const StationValue *val)
+{
+    m_station_value = val;
+    emit changed();
+}
+
+void Highlight::reset()
+{
+    m_value = 0;
+    m_station_value = 0;
     emit changed();
 }
 
