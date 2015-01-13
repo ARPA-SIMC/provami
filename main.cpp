@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
 {
     Model model;
     QApplication a(argc, argv);
-    ProvamiMainWindow w;
+    ProvamiMainWindow w(model);
     w.show();
 
     if (argc > 1)

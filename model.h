@@ -51,6 +51,8 @@ protected:
 
 class Model : public QObject
 {
+    Q_OBJECT
+
 public slots:
     /// Reload data summary from the database
     void refresh();
@@ -61,13 +63,14 @@ signals:
 protected:
     dballe::DB* db;
     std::map<int, Station> cache_stations;
-    std::map<SummaryKey, SummaryValue> cache_data;
+    std::map<SummaryKey, SummaryValue> cache_summary;
 
 public:
     Model();
     ~Model();
 
     const std::map<int, Station>& stations() const;
+    const std::map<SummaryKey, SummaryValue>& summary() const;
 
     /// Connect to a new database, possibly disconnecting from the previous one
     void dballe_connect(const std::string& dballe_url);

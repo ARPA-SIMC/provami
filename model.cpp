@@ -2,6 +2,7 @@
 #include <memory>
 #include <dballe/core/record.h>
 #include <dballe/db/db.h>
+#include <stdio.h>
 
 using namespace std;
 
@@ -18,6 +19,11 @@ Model::~Model()
 const std::map<int, Station> &Model::stations() const
 {
     return cache_stations;
+}
+
+const std::map<SummaryKey, SummaryValue> &Model::summary() const
+{
+    return cache_summary;
 }
 
 void Model::dballe_connect(const std::string &dballe_url)
@@ -39,8 +45,9 @@ void Model::refresh()
 {
     using namespace dballe;
 
+    fprintf(stderr, "Refresh started\n");
     cache_stations.clear();
-    cache_data.clear();
+    cache_summary.clear();
 
     Record query, result;
     auto_ptr<db::Cursor> cur = this->db->query_summary(query);
@@ -51,16 +58,14 @@ void Model::refresh()
         if (cache_stations.find(ana_id) == cache_stations.end())
             cache_stations.insert(make_pair(ana_id, Station(result)));
 
-        cache_data.insert(make_pair(SummaryKey(result), SummaryValue(result)));
+        cache_summary.insert(make_pair(SummaryKey(result), SummaryValue(result)));
     }
+    fprintf(stderr, "Notifying refresh done\n");
 
     emit refreshed();
-}
 
-void Model::refreshed()
-{
+    fprintf(stderr, "Refresh done\n");
 }
-
 
 Station::Station(const dballe::Record &rec)
 {
@@ -91,7 +96,8 @@ SummaryKey::SummaryKey(const dballe::Record &rec)
     rep_memo = rec.get(DBA_KEY_REP_MEMO, "");
     level = rec.get_level();
     trange = rec.get_trange();
-    var = WR_STRING_TO_VAR(rec.get(DBA_KEY_VAR).enqc());
+    fprintf(stderr, "VAVA %s", rec.get(DBA_KEY_VAR).enqc());
+    var = resolve_varcode(rec.get(DBA_KEY_VAR).enqc());
 }
 
 
