@@ -28,7 +28,7 @@ bool SummaryKey::operator <(const SummaryKey &sk) const
 SummaryKey::SummaryKey(const dballe::db::Cursor &cur)
 {
     ana_id = cur.get_station_id();
-    rep_memo = cur.get_rep_memo("");
+    rep_memo = cur.get_rep_memo();
     level = cur.get_level();
     trange = cur.get_trange();
     varcode = cur.get_varcode();
@@ -45,7 +45,7 @@ BaseValue::BaseValue(const db::Cursor &cur)
     : var(cur.get_var())
 {
     ana_id = cur.get_station_id();
-    rep_memo = cur.get_rep_memo("");
+    rep_memo = cur.get_rep_memo();
     value_id = cur.attr_reference_id();
 }
 

@@ -155,13 +155,9 @@ void AttrGridModel::on_highlight_changed()
     owner_id = value_id;
     values.clear();
     if (owner_varcode)
-    {
-        Record attrs;
-        db::AttrList wanted_attrs;
-        model.db->query_attrs(owner_id, owner_varcode, wanted_attrs, attrs);
-        for (const auto& v: attrs.vars())
+        model.db->query_attrs(owner_id, owner_varcode, [this](std::unique_ptr<wreport::Var> v) {
             values.emplace_back(*v);
-    }
+        });
     endResetModel();
 }
 

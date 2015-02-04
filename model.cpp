@@ -327,7 +327,7 @@ void Model::dballe_connect(const std::string &dballe_url)
 
     m_dballe_url = dballe_url;
 
-    auto_ptr<DB> new_db = DB::connect_from_url(dballe_url.c_str());
+    auto new_db = DB::connect_from_url(dballe_url.c_str());
     db = new_db.release();
     refresh();
 }
@@ -342,7 +342,7 @@ void Model::refresh()
 
     // Query summary for the currently active filter
     qDebug() << "Refresh summary started";
-    auto_ptr<db::Cursor> cur = this->db->query_summary(active_filter);
+    auto cur = this->db->query_summary(active_filter);
     while (cur->next())
     {
         int ana_id = cur->get_station_id();
