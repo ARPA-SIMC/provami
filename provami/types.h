@@ -43,10 +43,12 @@ protected:
 
 struct SummaryValue
 {
-    // TODO
+    int count;
+    dballe::Datetime datemin;
+    dballe::Datetime datemax;
 
 protected:
-    SummaryValue(const dballe::db::Cursor& cur);
+    SummaryValue(dballe::db::Cursor& cur, bool want_details);
 
     friend class Model;
 };

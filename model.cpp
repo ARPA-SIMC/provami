@@ -342,6 +342,17 @@ void Model::refresh()
 
     // Query summary for the currently active filter
     qDebug() << "Refresh summary started";
+
+    active_filter.unset(DBA_KEY_QUERY);
+
+    // Check if the active filter is empty
+    bool is_empty = active_filter.iter_keys([](dba_keyword, const wreport::Var&) { return false; });
+
+    bool want_details = is_empty;
+
+    // If the active filter is empty, request all details
+    if (want_details) active_filter.set(DBA_KEY_QUERY, "details");
+
     auto cur = this->db->query_summary(active_filter);
     while (cur->next())
     {
@@ -349,7 +360,7 @@ void Model::refresh()
         if (cache_stations.find(ana_id) == cache_stations.end())
             cache_stations.insert(make_pair(ana_id, Station(*cur)));
 
-        cache_summary.insert(make_pair(SummaryKey(*cur), SummaryValue(*cur)));
+        cache_summary.insert(make_pair(SummaryKey(*cur), SummaryValue(*cur, want_details)));
     }
     emit active_filter_changed();
 

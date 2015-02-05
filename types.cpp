@@ -1,5 +1,6 @@
 #include "provami/types.h"
 #include <dballe/db/db.h>
+#include <dballe/core/record.h>
 
 using namespace dballe;
 
@@ -35,9 +36,16 @@ SummaryKey::SummaryKey(const dballe::db::Cursor &cur)
 }
 
 
-SummaryValue::SummaryValue(const dballe::db::Cursor &cur)
+SummaryValue::SummaryValue(dballe::db::Cursor &cur, bool want_details)
 {
-
+    if (want_details)
+    {
+        Record rec;
+        cur.to_record(rec);
+        count = rec[DBA_KEY_CONTEXT_ID].enqi();
+        datemin = rec.get_datetimemin();
+        datemin = rec.get_datetimemax();
+    }
 }
 
 
