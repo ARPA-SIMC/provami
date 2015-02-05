@@ -362,6 +362,22 @@ void Model::refresh()
 
         cache_summary.insert(make_pair(SummaryKey(*cur), SummaryValue(*cur, want_details)));
     }
+
+    // Update dtmax and dtmax
+    bool first = true;
+    for (auto i: cache_summary)
+    {
+        if (first)
+        {
+            dtmin = i.second.datemin;
+            dtmax = i.second.datemax;
+            first = false;
+        } else {
+            if (i.second.datemin < dtmin) dtmin = i.second.datemin;
+            if (i.second.datemax > dtmax) dtmax = i.second.datemax;
+        }
+
+    }
     emit active_filter_changed();
 
     emit begin_data_changed();

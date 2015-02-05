@@ -209,6 +209,11 @@ public:
     FilterVarcodeModel varcodes;
     FilterIdentModel idents;
 
+    // Last known minimum datetime for the data that we have
+    dballe::Datetime dtmin;
+    // Last known maximum datetime for the data that we have
+    dballe::Datetime dtmax;
+
     Model();
     ~Model();
 

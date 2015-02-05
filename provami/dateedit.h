@@ -9,12 +9,14 @@ struct Record;
 }
 
 namespace provami {
+struct Model;
 
 class DateEdit : public QLineEdit
 {
     Q_OBJECT
 
 protected:
+    Model* model = 0;
     QRegExp fmt1;
     QRegExp fmt2;
     dballe::Record* rec = 0;
@@ -43,6 +45,9 @@ protected:
 public:
     explicit DateEdit(QWidget *parent = 0);
 
+    void set_model(Model& model);
+
+
     void set_record(dballe::Record& rec);
 
     /// Reset using the original value
@@ -56,13 +61,17 @@ public slots:
 protected slots:
     void on_editing_finished();
     void on_text_edited(const QString& text);
+    virtual void on_minmax_changed() = 0;
+
 };
 
 class MinDateEdit : public DateEdit
 {
+protected:
+    void on_minmax_changed() override;
+
 public:
     explicit MinDateEdit(QWidget *parent = 0);
-
     void reset() override;
 };
 
@@ -70,6 +79,7 @@ class MaxDateEdit : public DateEdit
 {
 protected:
     void complete_datetime(int* vals) const override;
+    void on_minmax_changed() override;
 
 public:
     explicit MaxDateEdit(QWidget *parent = 0);

@@ -20,7 +20,8 @@ namespace provami {
 
 ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     QMainWindow(parent),
-    model(model), datagrid_model(model), stationgrid_model(model), attrgrid_model(model), rawquery_model(model), map_scene(model),
+    model(model), datagrid_model(model), stationgrid_model(model), attrgrid_model(model),
+    rawquery_model(model), map_scene(model),
     lat_validator(-90, 90, 5),
     lon_validator(-180, 180, 5),
     id_validator(0, std::numeric_limits<int>::max()),
@@ -59,8 +60,8 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->filter_lonmin->set_record(model.next_filter, DBA_KEY_LONMIN);
     ui->filter_lonmax->set_record(model.next_filter, DBA_KEY_LONMAX);
     ui->filter_ana_id->set_record(model.next_filter, DBA_KEY_ANA_ID);
-    ui->filter_datemin->set_record(model.next_filter);
-    ui->filter_datemax->set_record(model.next_filter);
+    ui->filter_datemin->set_model(model);
+    ui->filter_datemax->set_model(model);
 
     map_scene.load_coastlines("/usr/share/provami/world.dat");
     ui->mapview->setScene(&map_scene.scene);

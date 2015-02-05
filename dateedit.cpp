@@ -1,8 +1,11 @@
 #include "provami/dateedit.h"
+#include "provami/model.h"
 #include <QKeyEvent>
 #include <dballe/core/defs.h>
 #include <dballe/core/record.h>
+#include <sstream>
 
+using namespace std;
 using namespace dballe;
 
 namespace provami {
@@ -16,9 +19,11 @@ DateEdit::DateEdit(QWidget *parent) :
     connect(this, SIGNAL(textEdited(QString)), this, SLOT(on_text_edited(QString)));
 }
 
-void DateEdit::set_record(Record &rec)
+void DateEdit::set_model(Model &model)
 {
-    this->rec = &rec;
+    this->model = &model;
+    this->rec = &model.next_filter;
+    connect(this->model, SIGNAL(active_filter_changed()), this, SLOT(on_minmax_changed()));
 }
 
 QDateTime DateEdit::set_value(int* vals)
@@ -150,6 +155,13 @@ void DateEdit::on_text_edited(const QString &text)
     }
 }
 
+void MinDateEdit::on_minmax_changed()
+{
+    stringstream buf;
+    buf << model->dtmin;
+    setToolTip(QString::fromStdString(buf.str()));
+}
+
 MinDateEdit::MinDateEdit(QWidget *parent)
     : DateEdit(parent)
 {
@@ -189,6 +201,13 @@ void MaxDateEdit::complete_datetime(int *vals) const
     if (vals[3] == MISSING_INT) vals[3] = 23;
     if (vals[4] == MISSING_INT) vals[4] = 59;
     if (vals[5] == MISSING_INT) vals[5] = 59;
+}
+
+void MaxDateEdit::on_minmax_changed()
+{
+    stringstream buf;
+    buf << model->dtmax;
+    setToolTip(QString::fromStdString(buf.str()));
 }
 
 /*
