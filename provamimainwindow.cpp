@@ -73,7 +73,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->export_format->addItem("Gnu R", "gnur");
     ui->export_format->addItem("CSV", "csv");
 
-    statusBar()->showMessage("Antani");
+    //statusBar()->showMessage("Antani");
 }
 
 ProvamiMainWindow::~ProvamiMainWindow()
