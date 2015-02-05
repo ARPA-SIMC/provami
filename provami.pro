@@ -42,6 +42,8 @@ SOURCES += types.cpp \
            dateedit.cpp \
     rawquerymodel.cpp
 
+DISTFILES += world.dat
+
 # From https://wiki.maemo.org/Packaging_a_Qt_application
 unix {
   #VARIABLES
@@ -51,14 +53,19 @@ unix {
   BINDIR = $$PREFIX/bin
   DATADIR =$$PREFIX/share
 
-  DEFINES += DATADIR=\\\"$$DATADIR\\\" PKGDATADIR=\\\"$$PKGDATADIR\\\"
+  # No point defining this, since deb/rpm build tools need to redefine PREFIX
+  # at build time to install in the package build dirs.
+  #DEFINES += DATADIR=\\\"$$DATADIR\\\" PKGDATADIR=\\\"$$PKGDATADIR\\\"
 
   #MAKE INSTALL
 
-  INSTALLS += target
+  INSTALLS += target data
   # desktop service iconxpm icon26 icon48 icon64
 
-  target.path =$$BINDIR
+  data.path = $$DATADIR/provami
+  data.files = world.dat
+
+  target.path = $$BINDIR
 
   # desktop.path = $$DATADIR/applications/hildon
   # desktop.files += $${TARGET}.desktop

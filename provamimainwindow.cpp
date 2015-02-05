@@ -62,7 +62,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->filter_datemin->set_record(model.next_filter);
     ui->filter_datemax->set_record(model.next_filter);
 
-    map_scene.load_coastlines("/home/enrico/lavori/arpa/provami/world.dat");
+    map_scene.load_coastlines("/usr/share/provami/world.dat");
     ui->mapview->setScene(&map_scene.scene);
     //qDebug() << "Scene rect: " << map_scene.scene.sceneRect();
 
