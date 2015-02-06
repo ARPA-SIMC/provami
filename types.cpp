@@ -44,7 +44,7 @@ SummaryValue::SummaryValue(dballe::db::Cursor &cur, bool want_details)
         cur.to_record(rec);
         count = rec[DBA_KEY_CONTEXT_ID].enqi();
         datemin = rec.get_datetimemin();
-        datemin = rec.get_datetimemax();
+        datemax = rec.get_datetimemax();
     }
 }
 
