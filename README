@@ -1,2 +1,6 @@
 $ qmake-qt5 provami.pro
 $ make
+
+# patching make dist:
+$ make dist
+$ tar xzvf provami-qt1.0.0.tar.gz ; mv provami-qt1.0.0 provami-qt-1.0.0 ; tar czvf provami-qt-1.0.0.tar.gz provami-qt-1.0.0
