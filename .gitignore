@@ -1,0 +1,9 @@
+*.o
+moc_*.cpp
+/Makefile
+/debian/provami-qt
+/debian/provami-qt.substvars
+/debian/provami-qt.debhelper.log
+/debian/files
+/provami-qt
+/ui_provamimainwindow.h
