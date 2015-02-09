@@ -44,35 +44,28 @@ SOURCES += types.cpp \
 
 DISTFILES += world.dat
 
-# From https://wiki.maemo.org/Packaging_a_Qt_application
+# From the qantenna .pro files: http://qantenna.sourceforge.net/
 unix {
-  #VARIABLES
-  isEmpty(PREFIX) {
-    PREFIX = /usr
-  }
-  BINDIR = $$PREFIX/bin
-  DATADIR =$$PREFIX/share
+    CONFIG += debug
+    # Prefix: base instalation directory
+    isEmpty(PREFIX){
+        PREFIX = /usr/local
+    }
 
-  # No point defining this, since deb/rpm build tools need to redefine PREFIX
-  # at build time to install in the package build dirs.
-  #DEFINES += DATADIR=\\\"$$DATADIR\\\" PKGDATADIR=\\\"$$PKGDATADIR\\\"
+    DEB_BUILD = $$system(echo \$DEB_BUILD_OPTIONS)
+    contains(DEB_BUILD, nostrip){
+        QMAKE_STRIP =:
+    }
 
-  #MAKE INSTALL
+    # No point defining this, since deb/rpm build tools need to redefine PREFIX
+    # at build time to install in the package build dirs.
+    #DEFINES += PREFIX=\\\"$${PREFIX}\\\"
+    #DEFINES += DATADIR=\\\"$$DATADIR\\\" PKGDATADIR=\\\"$$PKGDATADIR\\\"
 
-  INSTALLS += target data
-  # desktop service iconxpm icon26 icon48 icon64
+    target.path = $${PREFIX}/bin
 
-  data.path = $$DATADIR/provami
-  data.files = world.dat
+    data.path = $$PREFIX/share/provami
+    data.files = world.dat
 
-  target.path = $$BINDIR
-
-  # desktop.path = $$DATADIR/applications/hildon
-  # desktop.files += $${TARGET}.desktop
-
-  # service.path = $$DATADIR/dbus-1/services
-  # service.files += $${TARGET}.service
-
-  # icon64.path = $$DATADIR/icons/hicolor/64x64/apps
-  # icon64.files += ../data/64x64/$${TARGET}.png
+    INSTALLS += target data
 }
