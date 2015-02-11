@@ -75,10 +75,10 @@ void RefreshThread::run()
             qDebug() << "worker: starting summary query";
             const char* query_request = sum_query->key_peek_value(DBA_KEY_QUERY);
             bool with_details = query_request ? strcmp(query_request, "details") == 0 : false;
+            auto cur = db->query_summary(*sum_query);
             {
                 MutexLock lock(mutex);
-                qDebug() << "worker: starting dballe summary query";
-                cur_summary = db->query_summary(*sum_query);
+                cur_summary = move(cur);
             }
             qDebug() << "worker: notifying summary query";
             emit have_new_summary(with_details);
@@ -88,10 +88,10 @@ void RefreshThread::run()
         if (data_query)
         {
             qDebug() << "worker: starting data query";
+            auto cur = db->query_data(*data_query);
             {
                 MutexLock lock(mutex);
-                qDebug() << "worker: starting dballe data query";
-                cur_data = db->query_data(*data_query);
+                cur_data = move(cur);
             }
             qDebug() << "worker: notifying data query";
             emit have_new_data();
