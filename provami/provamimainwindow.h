@@ -69,6 +69,7 @@ private slots:
     void on_stats_changed();
     void highlight_changed();
     void export_go();
+    void on_progress(QString progress);
 
     void on_actionRefreshAccurate_triggered();
 

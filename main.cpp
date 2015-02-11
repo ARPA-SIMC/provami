@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     } else {
         model.dballe_connect(args[0]);
     }
+    model.refresh_thread.start();
     w.show();
     qDebug() << "entering event loop" << endl;
     return a.exec();

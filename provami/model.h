@@ -1,19 +1,19 @@
 #ifndef PROVAMI_MODEL_H
 #define PROVAMI_MODEL_H
 
+#include <provami/types.h>
+#include <provami/highlight.h>
+#include <provami/refreshthread.h>
 #include <QObject>
 #include <QAbstractListModel>
 #include <dballe/core/defs.h>
 #include <dballe/core/record.h>
 #include <dballe/db/db.h>
-
 #include <string>
 #include <map>
 #include <set>
 #include <vector>
 #include <QAction>
-#include <provami/types.h>
-#include <provami/highlight.h>
 
 namespace dballe {
 class Record;
@@ -144,35 +144,6 @@ public:
     explicit FilterIdentModel(Model& model, QObject* parent=0);
 };
 
-class RefreshThread : public QObject// : public QThread
-{
-    Q_OBJECT
-
-protected:
-/*    void run()
-    {
-        model.refresh();
-    }
-*/
-public:
-    dballe::DB* db = 0;
-    bool want_details;
-    std::unique_ptr<dballe::db::Cursor> cur_summary;
-    std::unique_ptr<dballe::db::Cursor> cur_data;
-
-    void query_summary(const dballe::Query& query, bool want_details);
-
-    void query_data(const dballe::Query& query)
-    {
-        cur_data = db->query_data(query);
-        emit have_new_data();
-    }
-
-signals:
-    void have_new_summary();
-    void have_new_data();
-};
-
 class Model : public QObject
 {
     Q_OBJECT
@@ -200,7 +171,7 @@ public slots:
     void unselect_datemin();
     void unselect_datemax();
     void set_filter(const dballe::Record& new_filter);
-    void on_have_new_summary();
+    void on_have_new_summary(bool with_details);
     void on_have_new_data();
 
 signals:
@@ -208,13 +179,13 @@ signals:
     void active_filter_changed();
     void begin_data_changed();
     void end_data_changed();
+    void progress(QString);
 
 public:
     dballe::DB* db;
-
-protected:    
     RefreshThread refresh_thread;
 
+protected:    
     // Filtering elements
     std::map<int, Station> cache_stations;
 

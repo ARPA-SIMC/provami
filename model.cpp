@@ -227,7 +227,7 @@ QVariant FilterIdentModel::item_to_table_cell(const std::string& val) const { re
 Model::Model()
     : db(0), reports(*this), levels(*this), tranges(*this), varcodes(*this), idents(*this)
 {
-    connect(&refresh_thread, SIGNAL(have_new_summary()), this, SLOT(on_have_new_summary()));
+    connect(&refresh_thread, SIGNAL(have_new_summary(bool)), this, SLOT(on_have_new_summary(bool)));
     connect(&refresh_thread, SIGNAL(have_new_data()), this, SLOT(on_have_new_data()));
 }
 
@@ -340,7 +340,7 @@ void Model::dballe_connect(const std::string &dballe_url)
 void Model::refresh(bool accurate)
 {
     // Query summary for the currently active filter
-    qDebug() << "Refresh summary started";
+    emit progress("Refreshing summary information...");
 
     // Check if the active filter is empty
     bool is_empty = active_filter.iter_keys([](dba_keyword, const wreport::Var&) { return false; });
@@ -350,9 +350,10 @@ void Model::refresh(bool accurate)
     refresh_thread.query_summary(active_filter, want_details);
 }
 
-void Model::on_have_new_summary()
+void Model::on_have_new_summary(bool with_details)
 {
-    qDebug() << "Refresh data started";
+    qDebug() << "Refresh summary results arrived";
+    emit progress("Refreshing data...");
     Record query(active_filter);
     query.set("limit", (int)limit);
     refresh_thread.query_data(query);
@@ -372,24 +373,27 @@ void Model::on_have_new_summary()
         cache_summary.insert(make_pair(
                                  SummaryKey(*refresh_thread.cur_summary),
                                  SummaryValue(*refresh_thread.cur_summary,
-                                              refresh_thread.want_details)));
+                                              with_details)));
     }
 
-    // Update dtmax and dtmax
-    bool first = true;
-    count = 0;
-    for (auto i: cache_summary)
+    if (with_details)
     {
-        if (first)
+        // Update dtmax and dtmax
+        bool first = true;
+        count = 0;
+        for (auto i: cache_summary)
         {
-            dtmin = i.second.datemin;
-            dtmax = i.second.datemax;
-            first = false;
-        } else {
-            if (i.second.datemin < dtmin) dtmin = i.second.datemin;
-            if (i.second.datemax > dtmax) dtmax = i.second.datemax;
+            if (first)
+            {
+                dtmin = i.second.datemin;
+                dtmax = i.second.datemax;
+                first = false;
+            } else {
+                if (i.second.datemin < dtmin) dtmin = i.second.datemin;
+                if (i.second.datemax > dtmax) dtmax = i.second.datemax;
+            }
+            count += i.second.count;
         }
-        count += i.second.count;
     }
 
     // Recompute the available choices
@@ -401,6 +405,8 @@ void Model::on_have_new_summary()
 
 void Model::on_have_new_data()
 {
+    emit progress("Processing data...");
+
     emit begin_data_changed();
     // Query data for the currently active filter
     while (refresh_thread.cur_data->next())
@@ -409,7 +415,7 @@ void Model::on_have_new_data()
     }
     emit end_data_changed();
 
-    qDebug() << "Refresh done";
+    emit progress("");
 }
 
 
@@ -669,18 +675,5 @@ template class FilterModelBase<std::string>;
 template class FilterModelBase<Level>;
 template class FilterModelBase<Trange>;
 template class FilterModelBase<wreport::Varcode>;
-
-void RefreshThread::query_summary(const Query &query, bool want_details)
-{
-    this->want_details = want_details;
-
-    Query q(query);
-
-    // If the active filter is empty, request all details
-    if (want_details) q.set(DBA_KEY_QUERY, "details");
-
-    cur_summary = db->query_summary(q);
-    emit have_new_summary();
-}
 
 }

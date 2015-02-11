@@ -24,7 +24,8 @@ HEADERS += provami/types.h \
            provami/stationgridmodel.h \
            provami/attrgridmodel.h \
            provami/dateedit.h \
-    provami/rawquerymodel.h
+    provami/rawquerymodel.h \
+    provami/refreshthread.h
 FORMS += provamimainwindow.ui
 SOURCES += types.cpp \
            highlight.cpp \
@@ -40,7 +41,8 @@ SOURCES += types.cpp \
            stationgridmodel.cpp \
            attrgridmodel.cpp \
            dateedit.cpp \
-    rawquerymodel.cpp
+    rawquerymodel.cpp \
+    refreshthread.cpp
 
 DISTFILES += world.dat
 
