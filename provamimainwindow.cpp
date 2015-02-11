@@ -37,6 +37,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     connect(ui->filter_lonmax, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_datemin, SIGNAL(activate(QDateTime)), this, SLOT(filter_datemin_activated(QDateTime)));
     connect(ui->filter_datemax, SIGNAL(activate(QDateTime)), this, SLOT(filter_datemax_activated(QDateTime)));
+    connect(ui->filter_limit, SIGNAL(editingFinished()), this, SLOT(filter_limit_changed()));
     //connect(ui->text_query, SIGNAL(textChanged()), this, SLOT(text_query_changed());
     connect(ui->results, SIGNAL(clicked(QModelIndex)), this, SLOT(results_clicked(QModelIndex)));
     connect(ui->station_data, SIGNAL(clicked(QModelIndex)), this, SLOT(station_data_clicked(QModelIndex)));
@@ -64,6 +65,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->filter_ana_id->set_record(model.next_filter, DBA_KEY_ANA_ID);
     ui->filter_datemin->set_model(model);
     ui->filter_datemax->set_model(model);
+    ui->filter_limit->setText(QString::number(model.limit));
 
     map_scene.load_coastlines("/usr/share/provami/world.dat");
     ui->mapview->setScene(&map_scene.scene);
@@ -160,6 +162,11 @@ void ProvamiMainWindow::filter_datemax_activated(QDateTime dt)
         model.select_datemax(dballe::Datetime(
             dt.date().year(), dt.date().month(), dt.date().day(),
                                  dt.time().hour(), dt.time().minute(), dt.time().second()));
+}
+
+void ProvamiMainWindow::filter_limit_changed()
+{
+    model.limit = ui->filter_limit->text().toUInt();
 }
 
 void ProvamiMainWindow::text_query_changed()

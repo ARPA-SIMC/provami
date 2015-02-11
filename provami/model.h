@@ -216,6 +216,9 @@ public:
     // Last known count for the data that we have
     unsigned count;
 
+    // Maximum number of results loaded on the results table
+    unsigned limit = 100;
+
     Model();
     ~Model();
 

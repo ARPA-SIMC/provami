@@ -62,6 +62,7 @@ private slots:
     void on_filter_ana_id_editingFinished();
     void filter_datemin_activated(QDateTime);
     void filter_datemax_activated(QDateTime);
+    void filter_limit_changed();
     void text_query_changed();
     void on_actionExit_triggered();
     void on_actionRefresh_triggered();

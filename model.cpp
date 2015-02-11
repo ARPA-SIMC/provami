@@ -385,7 +385,7 @@ void Model::refresh(bool accurate)
     // Query data for the currently active filter
     qDebug() << "Refresh data started";
     Record query(active_filter);
-    query.set("limit", 100);
+    query.set("limit", (int)limit);
     cur = this->db->query_data(query);
     while (cur->next())
     {
