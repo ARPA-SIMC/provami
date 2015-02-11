@@ -332,7 +332,7 @@ void Model::dballe_connect(const std::string &dballe_url)
     refresh();
 }
 
-void Model::refresh()
+void Model::refresh(bool accurate)
 {
     cache_stations.clear();
     cache_summary.clear();
@@ -348,7 +348,7 @@ void Model::refresh()
     // Check if the active filter is empty
     bool is_empty = active_filter.iter_keys([](dba_keyword, const wreport::Var&) { return false; });
 
-    bool want_details = is_empty;
+    bool want_details = is_empty || accurate;
 
     // If the active filter is empty, request all details
     if (want_details) active_filter.set(DBA_KEY_QUERY, "details");
@@ -365,6 +365,7 @@ void Model::refresh()
 
     // Update dtmax and dtmax
     bool first = true;
+    count = 0;
     for (auto i: cache_summary)
     {
         if (first)
@@ -376,7 +377,7 @@ void Model::refresh()
             if (i.second.datemin < dtmin) dtmin = i.second.datemin;
             if (i.second.datemax > dtmax) dtmax = i.second.datemax;
         }
-
+        count += i.second.count;
     }
     emit active_filter_changed();
 
@@ -399,10 +400,10 @@ void Model::refresh()
     qDebug() << "Refresh done";
 }
 
-void Model::activate_next_filter()
+void Model::activate_next_filter(bool accurate)
 {
     active_filter = next_filter;
-    refresh();
+    refresh(accurate);
 }
 
 void Model::process_summary()

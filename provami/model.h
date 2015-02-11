@@ -150,9 +150,9 @@ class Model : public QObject
 
 public slots:
     /// Reload data summary from the database
-    void refresh();
+    void refresh(bool accurate=false);
 
-    void activate_next_filter();
+    void activate_next_filter(bool accurate=false);
     void select_station_id(int id);
     void select_station_bounds(double latmin, double latmax, double lonmin, double lonmax);
     void select_ident(const std::string& val);
@@ -213,6 +213,8 @@ public:
     dballe::Datetime dtmin;
     // Last known maximum datetime for the data that we have
     dballe::Datetime dtmax;
+    // Last known count for the data that we have
+    unsigned count;
 
     Model();
     ~Model();

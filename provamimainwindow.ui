@@ -48,6 +48,9 @@
           <property name="sizeConstraint">
            <enum>QLayout::SetDefaultConstraint</enum>
           </property>
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
           <item row="0" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
@@ -88,9 +91,6 @@
           <item row="3" column="1">
            <widget class="provami::FilterComboBox" name="filter_varcode"/>
           </item>
-          <item row="4" column="1">
-           <widget class="provami::FilterComboBox" name="filter_ident"/>
-          </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_11">
             <property name="text">
@@ -98,25 +98,46 @@
             </property>
            </widget>
           </item>
+          <item row="4" column="1">
+           <widget class="provami::FilterComboBox" name="filter_ident"/>
+          </item>
           <item row="5" column="0">
            <widget class="QLabel" name="label_16">
             <property name="text">
-             <string>Date min:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="label_17">
-            <property name="text">
-             <string>Date max:</string>
+             <string>Date:</string>
             </property>
            </widget>
           </item>
           <item row="5" column="1">
-           <widget class="provami::MinDateEdit" name="filter_datemin"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="provami::MinDateEdit" name="filter_datemin"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_19">
+              <property name="text">
+               <string>to</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="provami::MaxDateEdit" name="filter_datemax"/>
+            </item>
+           </layout>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Summary:</string>
+            </property>
+           </widget>
           </item>
           <item row="6" column="1">
-           <widget class="provami::MaxDateEdit" name="filter_datemax"/>
+           <widget class="QLabel" name="filter_summary">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
@@ -419,7 +440,7 @@
      <x>0</x>
      <y>0</y>
      <width>521</width>
-     <height>24</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -439,6 +460,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionRefreshAccurate"/>
    <addaction name="actionRefresh"/>
    <addaction name="actionExit"/>
   </widget>
@@ -463,6 +485,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionRefreshAccurate">
+   <property name="text">
+    <string>Refresh with stats</string>
+   </property>
+   <property name="toolTip">
+    <string>Refresh data from the database, computing updated statistics</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
    </property>
   </action>
  </widget>
