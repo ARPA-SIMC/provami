@@ -2,6 +2,7 @@
 #include "provami/model.h"
 #include <dballe/core/record.h>
 #include <QApplication>
+#include <QDebug>
 #include <cstdlib>
 #include <cstdio>
 
@@ -14,7 +15,6 @@ int main(int argc, char *argv[])
     Model model;
     QApplication a(argc, argv);
     ProvamiMainWindow w(model);
-    w.show();
 
     // Parse initial query from command line arguments, taking those arguments
     // that contain an =
@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
     } else {
         model.dballe_connect(args[0]);
     }
-
+    w.show();
+    qDebug() << "entering event loop" << endl;
     return a.exec();
 }

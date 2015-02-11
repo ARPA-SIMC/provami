@@ -21,6 +21,7 @@ class Record;
 
 namespace provami {
 class Model;
+class RefreshThread;
 
 // Base class with common signals and slots for all subclasses
 // This allows us to use a template as a child class.
@@ -143,6 +144,34 @@ public:
     explicit FilterIdentModel(Model& model, QObject* parent=0);
 };
 
+class RefreshThread : public QObject// : public QThread
+{
+    Q_OBJECT
+
+protected:
+/*    void run()
+    {
+        model.refresh();
+    }
+*/
+public:
+    dballe::DB* db = 0;
+    bool want_details;
+    std::unique_ptr<dballe::db::Cursor> cur_summary;
+    std::unique_ptr<dballe::db::Cursor> cur_data;
+
+    void query_summary(const dballe::Query& query, bool want_details);
+
+    void query_data(const dballe::Query& query)
+    {
+        cur_data = db->query_data(query);
+        emit have_new_data();
+    }
+
+signals:
+    void have_new_summary();
+    void have_new_data();
+};
 
 class Model : public QObject
 {
@@ -171,6 +200,8 @@ public slots:
     void unselect_datemin();
     void unselect_datemax();
     void set_filter(const dballe::Record& new_filter);
+    void on_have_new_summary();
+    void on_have_new_data();
 
 signals:
     void next_filter_changed();
@@ -182,6 +213,8 @@ public:
     dballe::DB* db;
 
 protected:    
+    RefreshThread refresh_thread;
+
     // Filtering elements
     std::map<int, Station> cache_stations;
 

@@ -53,7 +53,7 @@ protected:
 public:
     explicit ProvamiMainWindow(Model& model, QWidget *parent = 0);
     ~ProvamiMainWindow();
-    
+
 private slots:
     void next_filter_changed();
     void filter_latlon_changed();

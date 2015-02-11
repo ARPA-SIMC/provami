@@ -11,6 +11,7 @@ using namespace dballe;
 
 namespace provami {
 
+
 FilterModelQObjectBase::FilterModelQObjectBase(Model& model, QObject *parent)
     : QAbstractListModel(parent), model(model)
 {
@@ -226,6 +227,8 @@ QVariant FilterIdentModel::item_to_table_cell(const std::string& val) const { re
 Model::Model()
     : db(0), reports(*this), levels(*this), tranges(*this), varcodes(*this), idents(*this)
 {
+    connect(&refresh_thread, SIGNAL(have_new_summary()), this, SLOT(on_have_new_summary()));
+    connect(&refresh_thread, SIGNAL(have_new_data()), this, SLOT(on_have_new_data()));
 }
 
 Model::~Model()
@@ -329,38 +332,47 @@ void Model::dballe_connect(const std::string &dballe_url)
 
     auto new_db = DB::connect_from_url(dballe_url.c_str());
     db = new_db.release();
+    refresh_thread.db = db;
+
     refresh();
 }
 
 void Model::refresh(bool accurate)
 {
-    cache_stations.clear();
-    cache_summary.clear();
-    cache_values.clear();
-
-    highlight.reset();
-
     // Query summary for the currently active filter
     qDebug() << "Refresh summary started";
-
-    active_filter.unset(DBA_KEY_QUERY);
 
     // Check if the active filter is empty
     bool is_empty = active_filter.iter_keys([](dba_keyword, const wreport::Var&) { return false; });
 
     bool want_details = is_empty || accurate;
 
-    // If the active filter is empty, request all details
-    if (want_details) active_filter.set(DBA_KEY_QUERY, "details");
+    refresh_thread.query_summary(active_filter, want_details);
+}
 
-    auto cur = this->db->query_summary(active_filter);
-    while (cur->next())
+void Model::on_have_new_summary()
+{
+    qDebug() << "Refresh data started";
+    Record query(active_filter);
+    query.set("limit", (int)limit);
+    refresh_thread.query_data(query);
+
+    cache_stations.clear();
+    cache_summary.clear();
+    cache_values.clear();
+
+    highlight.reset();
+
+    while (refresh_thread.cur_summary->next())
     {
-        int ana_id = cur->get_station_id();
+        int ana_id = refresh_thread.cur_summary->get_station_id();
         if (cache_stations.find(ana_id) == cache_stations.end())
-            cache_stations.insert(make_pair(ana_id, Station(*cur)));
+            cache_stations.insert(make_pair(ana_id, Station(*refresh_thread.cur_summary)));
 
-        cache_summary.insert(make_pair(SummaryKey(*cur), SummaryValue(*cur, want_details)));
+        cache_summary.insert(make_pair(
+                                 SummaryKey(*refresh_thread.cur_summary),
+                                 SummaryValue(*refresh_thread.cur_summary,
+                                              refresh_thread.want_details)));
     }
 
     // Update dtmax and dtmax
@@ -379,26 +391,27 @@ void Model::refresh(bool accurate)
         }
         count += i.second.count;
     }
-    emit active_filter_changed();
-
-    emit begin_data_changed();
-    // Query data for the currently active filter
-    qDebug() << "Refresh data started";
-    Record query(active_filter);
-    query.set("limit", (int)limit);
-    cur = this->db->query_data(query);
-    while (cur->next())
-    {
-        cache_values.push_back(Value(*cur));
-    }
-    emit end_data_changed();
 
     // Recompute the available choices
     qDebug() << "Summary collation started";
     process_summary();
 
+    emit active_filter_changed();
+}
+
+void Model::on_have_new_data()
+{
+    emit begin_data_changed();
+    // Query data for the currently active filter
+    while (refresh_thread.cur_data->next())
+    {
+        cache_values.push_back(Value(*refresh_thread.cur_data));
+    }
+    emit end_data_changed();
+
     qDebug() << "Refresh done";
 }
+
 
 void Model::activate_next_filter(bool accurate)
 {
@@ -505,7 +518,7 @@ void Model::select_varcode(wreport::Varcode val)
 
 /*
  * TODO: we will want something like this when we will implement
- * printing a minimal query equivalent for the current filter,
+* printing a minimal query equivalent for the current filter,
  * to use in command line apps and to run exporter scripts.
 static void optimize_datetime(dballe::Record& rec)
 {
@@ -656,5 +669,18 @@ template class FilterModelBase<std::string>;
 template class FilterModelBase<Level>;
 template class FilterModelBase<Trange>;
 template class FilterModelBase<wreport::Varcode>;
+
+void RefreshThread::query_summary(const Query &query, bool want_details)
+{
+    this->want_details = want_details;
+
+    Query q(query);
+
+    // If the active filter is empty, request all details
+    if (want_details) q.set(DBA_KEY_QUERY, "details");
+
+    cur_summary = db->query_summary(q);
+    emit have_new_summary();
+}
 
 }
