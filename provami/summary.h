@@ -4,37 +4,24 @@
 #include <dballe/core/record.h>
 #include <dballe/db/db.h>
 #include <QObject>
+#include <vector>
 
 namespace provami {
 
 class Summary;
 
-struct SummaryKey
+struct SummaryEntry
 {
     int ana_id;
     std::string rep_memo;
     dballe::Level level;
     dballe::Trange trange;
     wreport::Varcode varcode;
-
-    bool operator<(const SummaryKey& sk) const;
-
-protected:
-    SummaryKey(const dballe::db::Cursor& cur);
-
-    friend class Summary;
-};
-
-struct SummaryValue
-{
-    int count;
     dballe::Datetime datemin;
     dballe::Datetime datemax;
+    int count = dballe::MISSING_INT;
 
-protected:
-    SummaryValue(dballe::db::Cursor& cur, bool want_details);
-
-    friend class Summary;
+    SummaryEntry(dballe::db::Cursor& cur, bool want_details);
 };
 
 class Summary : public QObject
@@ -46,7 +33,7 @@ protected:
     dballe::Query query;
 
     // Summary of items for the currently active filter
-    std::map<SummaryKey, SummaryValue> summary;
+    std::vector<SummaryEntry> summary;
 
     // True if the summary has been filled with data
     bool valid = false;
@@ -85,7 +72,7 @@ public:
     void add_summary(dballe::db::Cursor& cur, bool with_details);
 
     /// Iterate all values in the summary
-    bool iterate(std::function<bool(const SummaryKey&, const SummaryValue)> f) const;
+    bool iterate(std::function<bool(const SummaryEntry&)> f) const;
 
 signals:
 

@@ -5,29 +5,13 @@ using namespace dballe;
 
 namespace provami {
 
-bool SummaryKey::operator <(const SummaryKey &sk) const
-{
-    if (ana_id < sk.ana_id) return true;
-    if (ana_id > sk.ana_id) return false;
-    if (rep_memo < sk.rep_memo) return true;
-    if (rep_memo > sk.rep_memo) return false;
-    if (int cmp = level.compare(sk.level)) return cmp < 0;
-    if (int cmp = trange.compare(sk.trange)) return cmp < 0;
-    return varcode < sk.varcode;
-}
-
-SummaryKey::SummaryKey(const dballe::db::Cursor &cur)
+SummaryEntry::SummaryEntry(dballe::db::Cursor &cur, bool want_details)
 {
     ana_id = cur.get_station_id();
     rep_memo = cur.get_rep_memo();
     level = cur.get_level();
     trange = cur.get_trange();
     varcode = cur.get_varcode();
-}
-
-
-SummaryValue::SummaryValue(dballe::db::Cursor &cur, bool want_details)
-{
     if (want_details)
     {
         Record rec;
@@ -103,7 +87,6 @@ int Summary::supports(const Query &query) const
     }
 
     // datetime extremes should be the same, or query should have more restrictive extremes
-    static const auto undef = { MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT };
     Datetime our_min;
     Datetime our_max;
     Datetime new_min;
@@ -133,13 +116,11 @@ void Summary::reset(const dballe::Query &query)
 
 void Summary::add_summary(dballe::db::Cursor &cur, bool with_details)
 {
-    auto inserted = summary.insert(make_pair(
-                         SummaryKey(cur),
-                         SummaryValue(cur, with_details)));
+    summary.emplace_back(cur, with_details);
 
     if (with_details)
     {
-        const SummaryValue& val = inserted.first->second;
+        const SummaryEntry& val = summary.back();
         if (!valid)
         {
             dtmin = val.datemin;
@@ -154,10 +135,10 @@ void Summary::add_summary(dballe::db::Cursor &cur, bool with_details)
     }
 }
 
-bool Summary::iterate(std::function<bool (const SummaryKey &, const SummaryValue)> f) const
+bool Summary::iterate(std::function<bool(const SummaryEntry&)> f) const
 {
     for (auto i: summary)
-        if (!f(i.first, i.second))
+        if (!f(i))
             break;
 }
 

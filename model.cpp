@@ -438,13 +438,13 @@ void Model::process_summary()
     bool has_flt_station_id = next_filter.contains(DBA_KEY_ANA_ID);
     int flt_station_id = next_filter.get(DBA_KEY_ANA_ID, 0);
 
-    std::function<bool(const SummaryKey&, const SummaryValue&)> process =
-            [&](const SummaryKey& key, const SummaryValue& val)
+    std::function<bool(const SummaryEntry&)> process =
+            [&](const SummaryEntry& val)
     {
-        if (has_flt_station_id && key.ana_id != flt_station_id)
+        if (has_flt_station_id && val.ana_id != flt_station_id)
             return true;
 
-        const Station& s = cache_stations.find(key.ana_id)->second;
+        const Station& s = cache_stations.find(val.ana_id)->second;
 
         if (has_flt_area)
         {
@@ -453,23 +453,23 @@ void Model::process_summary()
                 return true;
         }
 
-        bool match_rep_memo = !has_flt_rep_memo || flt_rep_memo == key.rep_memo;
-        bool match_level    = !has_flt_level || flt_level == key.level;
-        bool match_trange   = !has_flt_trange || flt_trange == key.trange;
-        bool match_varcode  = !has_flt_varcode || flt_varcode == key.varcode;
+        bool match_rep_memo = !has_flt_rep_memo || flt_rep_memo == val.rep_memo;
+        bool match_level    = !has_flt_level || flt_level == val.level;
+        bool match_trange   = !has_flt_trange || flt_trange == val.trange;
+        bool match_varcode  = !has_flt_varcode || flt_varcode == val.varcode;
         bool match_ident    = !has_flt_ident || flt_ident == s.ident;
 
         if (match_rep_memo && match_level && match_trange && match_varcode)
             if (!s.ident.empty())
                 set_idents.insert(s.ident);
         if (match_ident && match_level && match_trange && match_varcode)
-            set_reports.insert(key.rep_memo);
+            set_reports.insert(val.rep_memo);
         if (match_ident && match_rep_memo && match_trange && match_varcode)
-            set_levels.insert(key.level);
+            set_levels.insert(val.level);
         if (match_ident && match_rep_memo && match_level && match_varcode)
-            set_tranges.insert(key.trange);
+            set_tranges.insert(val.trange);
         if (match_ident && match_rep_memo && match_level && match_trange)
-            set_varcodes.insert(key.varcode);
+            set_varcodes.insert(val.varcode);
 
         return true;
     };
