@@ -68,6 +68,16 @@ public:
     const dballe::Datetime& datetime_max() const { return dtmax; }
     unsigned data_count() const { return count; }
 
+    /**
+     * Checks if this summary correctly generate a
+     * summary for the given query.
+     *
+     * Returns 0 if it cannot, 1 if the query may select less data
+     * than this summary can estimate, 2 if the query selects data
+     * that this summary can estimate exactly.
+     */
+    int supports(const dballe::Query& query) const;
+
     /// Reset the summary
     void reset(const dballe::Query& query);
 
