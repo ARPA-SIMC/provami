@@ -15,39 +15,6 @@ Station::Station(const dballe::db::Cursor &cur)
 }
 
 
-bool SummaryKey::operator <(const SummaryKey &sk) const
-{
-    if (ana_id < sk.ana_id) return true;
-    if (ana_id > sk.ana_id) return false;
-    if (rep_memo < sk.rep_memo) return true;
-    if (rep_memo > sk.rep_memo) return false;
-    if (int cmp = level.compare(sk.level)) return cmp < 0;
-    if (int cmp = trange.compare(sk.trange)) return cmp < 0;
-    return varcode < sk.varcode;
-}
-
-SummaryKey::SummaryKey(const dballe::db::Cursor &cur)
-{
-    ana_id = cur.get_station_id();
-    rep_memo = cur.get_rep_memo();
-    level = cur.get_level();
-    trange = cur.get_trange();
-    varcode = cur.get_varcode();
-}
-
-
-SummaryValue::SummaryValue(dballe::db::Cursor &cur, bool want_details)
-{
-    if (want_details)
-    {
-        Record rec;
-        cur.to_record(rec);
-        count = rec[DBA_KEY_CONTEXT_ID].enqi();
-        datemin = rec.get_datetimemin();
-        datemax = rec.get_datetimemax();
-    }
-}
-
 
 BaseValue::BaseValue(const db::Cursor &cur)
     : var(cur.get_var())

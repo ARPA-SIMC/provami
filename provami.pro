@@ -26,7 +26,8 @@ HEADERS += provami/types.h \
            provami/dateedit.h \
     provami/rawquerymodel.h \
     provami/refreshthread.h \
-    provami/progressindicator.h
+    provami/progressindicator.h \
+    provami/summary.h
 FORMS += provamimainwindow.ui
 SOURCES += types.cpp \
            highlight.cpp \
@@ -44,7 +45,8 @@ SOURCES += types.cpp \
            dateedit.cpp \
     rawquerymodel.cpp \
     refreshthread.cpp \
-    progressindicator.cpp
+    progressindicator.cpp \
+    summary.cpp
 
 DISTFILES += world.dat
 

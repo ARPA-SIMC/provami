@@ -158,7 +158,7 @@ void DateEdit::on_text_edited(const QString &text)
 void MinDateEdit::on_minmax_changed()
 {
     stringstream buf;
-    buf << model->dtmin;
+    buf << model->summary_datetime_min();
     setToolTip(QString::fromStdString(buf.str()));
 }
 
@@ -206,7 +206,7 @@ void MaxDateEdit::complete_datetime(int *vals) const
 void MaxDateEdit::on_minmax_changed()
 {
     stringstream buf;
-    buf << model->dtmax;
+    buf << model->summary_datetime_max();
     setToolTip(QString::fromStdString(buf.str()));
 }
 

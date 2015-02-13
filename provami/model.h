@@ -2,6 +2,7 @@
 #define PROVAMI_MODEL_H
 
 #include <provami/types.h>
+#include <provami/summary.h>
 #include <provami/highlight.h>
 #include <provami/refreshthread.h>
 #include <QObject>
@@ -189,8 +190,12 @@ protected:
     // Filtering elements
     std::map<int, Station> cache_stations;
 
-    // Summary of items for the currently active filter
-    std::map<SummaryKey, SummaryValue> cache_summary;
+    // Summary of the whole database
+    Summary global_summary;
+
+    // Summary related to the most recent summary request
+    Summary current_summary;
+
     // Sample values for the currently active filter
     std::vector<Value> cache_values;
 
@@ -213,22 +218,19 @@ public:
     FilterVarcodeModel varcodes;
     FilterIdentModel idents;
 
-    // Last known minimum datetime for the data that we have
-    dballe::Datetime dtmin;
-    // Last known maximum datetime for the data that we have
-    dballe::Datetime dtmax;
-    // Last known count for the data that we have
-    unsigned count;
-
     // Maximum number of results loaded on the results table
     unsigned limit = 100;
 
     Model();
     ~Model();
 
+    const dballe::Datetime& summary_datetime_min() const { return global_summary.datetime_min(); }
+    const dballe::Datetime& summary_datetime_max() const { return global_summary.datetime_max(); }
+    unsigned summary_count() const { return global_summary.data_count(); }
+
     const std::map<int, Station>& stations() const;
     const Station* station(int id) const;
-    const std::map<SummaryKey, SummaryValue>& summaries() const;
+//    const std::map<SummaryKey, SummaryValue>& summaries() const;
     const std::vector<Value>& values() const;
     std::vector<Value>& values();
 

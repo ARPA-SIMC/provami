@@ -231,7 +231,7 @@ void ProvamiMainWindow::on_actionRefreshAccurate_triggered()
 void ProvamiMainWindow::on_stats_changed()
 {
     stringstream buf;
-    buf << model.dtmin << " to " << model.dtmax << ": " << model.count;
+    buf << model.summary_datetime_min() << " to " << model.summary_datetime_max() << ": " << model.summary_count();
     ui->filter_summary->setText(QString::fromStdString(buf.str()));
 }
 

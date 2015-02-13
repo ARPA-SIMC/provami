@@ -249,10 +249,12 @@ const Station *Model::station(int id) const
     return &(i->second);
 }
 
+/*
 const std::map<SummaryKey, SummaryValue> &Model::summaries() const
 {
     return cache_summary;
 }
+*/
 
 const std::vector<Value> &Model::values() const
 {
@@ -359,8 +361,12 @@ void Model::on_have_new_summary(bool with_details)
     query.set("limit", (int)limit);
     refresh_thread.query_data(query);
 
+    bool is_empty = active_filter.iter_keys([](dba_keyword, const wreport::Var&) { return false; });
+    Summary& summary = is_empty ? global_summary : current_summary;
+
+    summary.reset(active_filter);
+
     cache_stations.clear();
-    cache_summary.clear();
     cache_values.clear();
 
     highlight.reset();
@@ -371,30 +377,7 @@ void Model::on_have_new_summary(bool with_details)
         if (cache_stations.find(ana_id) == cache_stations.end())
             cache_stations.insert(make_pair(ana_id, Station(*refresh_thread.cur_summary)));
 
-        cache_summary.insert(make_pair(
-                                 SummaryKey(*refresh_thread.cur_summary),
-                                 SummaryValue(*refresh_thread.cur_summary,
-                                              with_details)));
-    }
-
-    if (with_details)
-    {
-        // Update dtmax and dtmax
-        bool first = true;
-        count = 0;
-        for (auto i: cache_summary)
-        {
-            if (first)
-            {
-                dtmin = i.second.datemin;
-                dtmax = i.second.datemax;
-                first = false;
-            } else {
-                if (i.second.datemin < dtmin) dtmin = i.second.datemin;
-                if (i.second.datemax > dtmax) dtmax = i.second.datemax;
-            }
-            count += i.second.count;
-        }
+        summary.add_summary(*refresh_thread.cur_summary, with_details);
     }
 
     // Recompute the available choices
@@ -427,7 +410,7 @@ void Model::activate_next_filter(bool accurate)
 }
 
 void Model::process_summary()
-{
+ {
     set<std::string> set_reports;
     set<dballe::Level> set_levels;
     set<dballe::Trange> set_tranges;
@@ -455,39 +438,43 @@ void Model::process_summary()
     bool has_flt_station_id = next_filter.contains(DBA_KEY_ANA_ID);
     int flt_station_id = next_filter.get(DBA_KEY_ANA_ID, 0);
 
-    for (map<SummaryKey, SummaryValue>::const_iterator i = cache_summary.begin();
-         i != cache_summary.end(); ++i)
+    std::function<bool(const SummaryKey&, const SummaryValue&)> process =
+            [&](const SummaryKey& key, const SummaryValue& val)
     {
-        if (has_flt_station_id && i->first.ana_id != flt_station_id)
-            continue;
+        if (has_flt_station_id && key.ana_id != flt_station_id)
+            return true;
 
-        const Station& s = cache_stations.find(i->first.ana_id)->second;
+        const Station& s = cache_stations.find(key.ana_id)->second;
 
         if (has_flt_area)
         {
             if (s.lat < flt_area_latmin || s.lat > flt_area_latmax
              || s.lon < flt_area_lonmin || s.lon > flt_area_lonmax)
-                continue;
+                return true;
         }
 
-        bool match_rep_memo = !has_flt_rep_memo || flt_rep_memo == i->first.rep_memo;
-        bool match_level    = !has_flt_level || flt_level == i->first.level;
-        bool match_trange   = !has_flt_trange || flt_trange == i->first.trange;
-        bool match_varcode  = !has_flt_varcode || flt_varcode == i->first.varcode;
+        bool match_rep_memo = !has_flt_rep_memo || flt_rep_memo == key.rep_memo;
+        bool match_level    = !has_flt_level || flt_level == key.level;
+        bool match_trange   = !has_flt_trange || flt_trange == key.trange;
+        bool match_varcode  = !has_flt_varcode || flt_varcode == key.varcode;
         bool match_ident    = !has_flt_ident || flt_ident == s.ident;
 
         if (match_rep_memo && match_level && match_trange && match_varcode)
             if (!s.ident.empty())
                 set_idents.insert(s.ident);
         if (match_ident && match_level && match_trange && match_varcode)
-            set_reports.insert(i->first.rep_memo);
+            set_reports.insert(key.rep_memo);
         if (match_ident && match_rep_memo && match_trange && match_varcode)
-            set_levels.insert(i->first.level);
+            set_levels.insert(key.level);
         if (match_ident && match_rep_memo && match_level && match_varcode)
-            set_tranges.insert(i->first.trange);
+            set_tranges.insert(key.trange);
         if (match_ident && match_rep_memo && match_level && match_trange)
-            set_varcodes.insert(i->first.varcode);
-    }
+            set_varcodes.insert(key.varcode);
+
+        return true;
+    };
+
+    global_summary.iterate(process);
 
     reports.set_items(set_reports);
     levels.set_items(set_levels);

@@ -25,34 +25,6 @@ protected:
     friend class Model;
 };
 
-struct SummaryKey
-{
-    int ana_id;
-    std::string rep_memo;
-    dballe::Level level;
-    dballe::Trange trange;
-    wreport::Varcode varcode;
-
-    bool operator<(const SummaryKey& sk) const;
-
-protected:
-    SummaryKey(const dballe::db::Cursor& cur);
-
-    friend class Model;
-};
-
-struct SummaryValue
-{
-    int count;
-    dballe::Datetime datemin;
-    dballe::Datetime datemax;
-
-protected:
-    SummaryValue(dballe::db::Cursor& cur, bool want_details);
-
-    friend class Model;
-};
-
 struct BaseValue
 {
     int ana_id;
