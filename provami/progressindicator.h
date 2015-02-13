@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QStatusBar>
+#include <QLabel>
 #include <map>
 
 namespace provami {
@@ -15,14 +16,25 @@ public:
     struct Task
     {
         QString name;
+        QStatusBar& sb;
+        QLabel* label = 0;
+        bool visible = false;
+
+        Task(QStatusBar& sb) : sb(sb) {}
+        Task(const Task&) = delete;
+        Task& operator=(const Task&) = delete;
+
+        void update(const QString& progress);
+        void clear();
     };
 
 protected:
     QStatusBar* status_bar = 0;
-    std::map<QString, Task> tasks;
+    std::map<QString, Task*> tasks;
 
 public:
     explicit ProgressIndicator(QObject *parent = 0);
+    ~ProgressIndicator();
 
     void set_statusbar(QStatusBar& sb)
     {
