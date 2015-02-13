@@ -340,7 +340,7 @@ void Model::dballe_connect(const std::string &dballe_url)
 void Model::refresh(bool accurate)
 {
     // Query summary for the currently active filter
-    emit progress("Refreshing summary information...");
+    emit progress("summary", "Loading summary...");
 
     // Check if the active filter is empty
     bool is_empty = active_filter.iter_keys([](dba_keyword, const wreport::Var&) { return false; });
@@ -352,8 +352,9 @@ void Model::refresh(bool accurate)
 
 void Model::on_have_new_summary(bool with_details)
 {
+    emit progress("summary", "Processing summary...");
     qDebug() << "Refresh summary results arrived";
-    emit progress("Refreshing data...");
+    emit progress("data", "Loading data...");
     Record query(active_filter);
     query.set("limit", (int)limit);
     refresh_thread.query_data(query);
@@ -399,13 +400,13 @@ void Model::on_have_new_summary(bool with_details)
     // Recompute the available choices
     qDebug() << "Summary collation started";
     process_summary();
-
+    emit progress("summary");
     emit active_filter_changed();
 }
 
 void Model::on_have_new_data()
 {
-    emit progress("Processing data...");
+    emit progress("data", "Processing data...");
 
     emit begin_data_changed();
     // Query data for the currently active filter
@@ -415,7 +416,7 @@ void Model::on_have_new_data()
     }
     emit end_data_changed();
 
-    emit progress("");
+    emit progress("data");
 }
 
 

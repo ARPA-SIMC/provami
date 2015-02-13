@@ -11,6 +11,7 @@
 #include <provami/attrgridmodel.h>
 #include <provami/rawquerymodel.h>
 #include <provami/mapscene.h>
+#include <provami/progressindicator.h>
 
 namespace Ui {
 class ProvamiMainWindow;
@@ -48,6 +49,7 @@ protected:
     QOptionalDoubleValidator lat_validator;
     QOptionalDoubleValidator lon_validator;
     QOptionalIntValidator id_validator;
+    ProgressIndicator progress_indicator;
 
 
 public:
@@ -69,7 +71,6 @@ private slots:
     void on_stats_changed();
     void highlight_changed();
     void export_go();
-    void on_progress(QString progress);
 
     void on_actionRefreshAccurate_triggered();
 

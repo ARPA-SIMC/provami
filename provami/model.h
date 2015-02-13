@@ -179,7 +179,7 @@ signals:
     void active_filter_changed();
     void begin_data_changed();
     void end_data_changed();
-    void progress(QString);
+    void progress(QString task, QString progress=QString());
 
 public:
     dballe::DB* db;

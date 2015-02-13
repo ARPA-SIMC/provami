@@ -29,9 +29,10 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui(new Ui::ProvamiMainWindow)
 {
     ui->setupUi(this);
+    progress_indicator.set_statusbar(*statusBar());
     connect(&model, SIGNAL(next_filter_changed()), this, SLOT(next_filter_changed()));
     connect(&model.highlight, SIGNAL(changed()), this, SLOT(highlight_changed()));
-    connect(&model, SIGNAL(progress(QString)), this, SLOT(on_progress(QString)));
+    connect(&model, SIGNAL(progress(QString, QString)), &progress_indicator, SLOT(update_progress(QString, QString)));
     connect(ui->filter_latmin, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_latmax, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
     connect(ui->filter_lonmin, SIGNAL(editingFinished()), this, SLOT(filter_latlon_changed()));
@@ -294,14 +295,6 @@ void ProvamiMainWindow::export_go()
         QMessageBox::warning(this, "Export failed", "Export failed: dbaexport returned an error code.");
     else
         qDebug() << "dbaexport ran successfully";
-}
-
-void ProvamiMainWindow::on_progress(QString progress)
-{
-    if (progress.isNull() || progress.isEmpty())
-        statusBar()->clearMessage();
-    else
-        statusBar()->showMessage(progress);
 }
 
 }

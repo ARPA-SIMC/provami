@@ -25,7 +25,8 @@ HEADERS += provami/types.h \
            provami/attrgridmodel.h \
            provami/dateedit.h \
     provami/rawquerymodel.h \
-    provami/refreshthread.h
+    provami/refreshthread.h \
+    provami/progressindicator.h
 FORMS += provamimainwindow.ui
 SOURCES += types.cpp \
            highlight.cpp \
@@ -42,7 +43,8 @@ SOURCES += types.cpp \
            attrgridmodel.cpp \
            dateedit.cpp \
     rawquerymodel.cpp \
-    refreshthread.cpp
+    refreshthread.cpp \
+    progressindicator.cpp
 
 DISTFILES += world.dat
 
