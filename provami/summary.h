@@ -5,9 +5,10 @@
 #include <dballe/db/db.h>
 #include <QObject>
 #include <vector>
+#include <set>
 
 namespace provami {
-
+class Matcher;
 class Summary;
 
 struct SummaryEntry
@@ -22,6 +23,8 @@ struct SummaryEntry
     int count = dballe::MISSING_INT;
 
     SummaryEntry(dballe::db::Cursor& cur, bool want_details);
+
+    bool match(const Matcher& matcher) const;
 };
 
 class Summary : public QObject
@@ -35,8 +38,18 @@ protected:
     // Summary of items for the currently active filter
     std::vector<SummaryEntry> summary;
 
+    void aggregate(const SummaryEntry& entry);
+
+public:
     // True if the summary has been filled with data
     bool valid = false;
+
+    std::set<int> all_stations;
+    std::set<std::string> all_reports;
+    std::set<dballe::Level> all_levels;
+    std::set<dballe::Trange> all_tranges;
+    std::set<wreport::Varcode> all_varcodes;
+    std::set<std::string> all_idents;
 
     // Last known minimum datetime for the data that we have
     dballe::Datetime dtmin;
@@ -45,7 +58,6 @@ protected:
     // Last known count for the data that we have
     unsigned count;
 
-public:
     explicit Summary(QObject *parent = 0);
 
     /// Return true if the summary has been filled with data
@@ -70,6 +82,9 @@ public:
 
     /// Add an entry to the summary taken from the current status of \a cur
     void add_summary(dballe::db::Cursor& cur, bool with_details);
+
+    /// Add a copy of an existing entry
+    void add_entry(const SummaryEntry& entry);
 
     /// Iterate all values in the summary
     bool iterate(std::function<bool(const SummaryEntry&)> f) const;

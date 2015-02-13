@@ -1,4 +1,5 @@
 #include "provami/summary.h"
+#include "provami/types.h"
 
 using namespace std;
 using namespace dballe;
@@ -20,6 +21,30 @@ SummaryEntry::SummaryEntry(dballe::db::Cursor &cur, bool want_details)
         datemin = rec.get_datetimemin();
         datemax = rec.get_datetimemax();
     }
+}
+
+bool SummaryEntry::match(const Matcher &matcher) const
+{
+    if (matcher.has_flt_station && matcher.wanted_stations.find(ana_id) == matcher.wanted_stations.end())
+        return false;
+
+    if (matcher.has_flt_rep_memo && matcher.wanted_rep_memo != rep_memo)
+        return false;
+
+    if (matcher.has_flt_level && matcher.wanted_level != level)
+        return false;
+
+    if (matcher.has_flt_trange && matcher.wanted_trange != trange)
+        return false;
+
+    if (matcher.has_flt_varcode && matcher.wanted_varcode != varcode)
+        return false;
+
+    if (!Datetime::range_contains(matcher.wanted_dtmin, matcher.wanted_dtmax,
+                                  datemin, datemax))
+        return false;
+
+    return true;
 }
 
 Summary::Summary(QObject *parent) :
@@ -108,31 +133,53 @@ void Summary::reset(const dballe::Query &query)
 {
     this->query = query;
     summary.clear();
+    all_stations.clear();
+    all_reports.clear();
+    all_levels.clear();
+    all_tranges.clear();
+    all_varcodes.clear();
+    all_idents.clear();
     dtmin = Datetime();
     dtmax = Datetime();
     count = MISSING_INT;
     valid = false;
 }
 
-void Summary::add_summary(dballe::db::Cursor &cur, bool with_details)
+void Summary::aggregate(const SummaryEntry &val)
 {
-    summary.emplace_back(cur, with_details);
+    all_stations.insert(val.ana_id);
+    all_reports.insert(val.rep_memo);
+    all_levels.insert(val.level);
+    all_tranges.insert(val.trange);
+    all_varcodes.insert(val.varcode);
 
-    if (with_details)
+    if (val.count != MISSING_INT)
     {
-        const SummaryEntry& val = summary.back();
-        if (!valid)
+        if (count == MISSING_INT)
         {
             dtmin = val.datemin;
             dtmax = val.datemax;
             count = val.count;
-            valid = true;
         } else {
             if (val.datemin < dtmin) dtmin = val.datemin;
             if (val.datemax > dtmax) dtmax = val.datemax;
             count += val.count;
         }
     }
+
+    valid = true;
+}
+
+void Summary::add_summary(dballe::db::Cursor &cur, bool with_details)
+{
+    summary.emplace_back(cur, with_details);
+    aggregate(summary.back());
+}
+
+void Summary::add_entry(const SummaryEntry &entry)
+{
+    summary.push_back(entry);
+    aggregate(summary.back());
 }
 
 bool Summary::iterate(std::function<bool(const SummaryEntry&)> f) const

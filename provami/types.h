@@ -3,6 +3,9 @@
 
 #include <wreport/var.h>
 #include <dballe/core/defs.h>
+#include <dballe/core/record.h>
+#include <set>
+#include <map>
 
 namespace dballe {
 namespace db {
@@ -69,6 +72,24 @@ protected:
     Value(const dballe::db::Cursor& cur);
 
     friend class Model;
+};
+
+struct Matcher
+{
+    bool has_flt_station = false;
+    std::set<int> wanted_stations;
+    bool has_flt_rep_memo = false;
+    std::string wanted_rep_memo;
+    bool has_flt_level = false;
+    dballe::Level wanted_level;
+    bool has_flt_trange = false;
+    dballe::Trange wanted_trange;
+    bool has_flt_varcode = false;
+    wreport::Varcode wanted_varcode;
+    dballe::Datetime wanted_dtmin;
+    dballe::Datetime wanted_dtmax;
+
+    Matcher(const dballe::Query& query, const std::map<int, Station>& all_stations);
 };
 
 }

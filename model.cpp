@@ -410,77 +410,20 @@ void Model::activate_next_filter(bool accurate)
 }
 
 void Model::process_summary()
- {
-    set<std::string> set_reports;
-    set<dballe::Level> set_levels;
-    set<dballe::Trange> set_tranges;
-    set<wreport::Varcode> set_varcodes;
-    set<std::string> set_idents;
-
-
-    // Scan the filter building a todo list of things to match
-    bool has_flt_ident = next_filter.contains(DBA_KEY_IDENT);
-    string flt_ident = next_filter.get(DBA_KEY_IDENT, "");
-    bool has_flt_rep_memo = next_filter.contains(DBA_KEY_REP_MEMO);
-    string flt_rep_memo = next_filter.get(DBA_KEY_REP_MEMO, "");
-    bool has_flt_level = next_filter.contains_level();
-    Level flt_level = next_filter.get_level();
-    bool has_flt_trange = next_filter.contains_trange();
-    Trange flt_trange = next_filter.get_trange();
-    bool has_flt_varcode = next_filter.contains(DBA_KEY_VAR);
-    wreport::Varcode flt_varcode = wreport::descriptor_code(next_filter.get(DBA_KEY_VAR, "B00000"));
-    bool has_flt_area = next_filter.contains(DBA_KEY_LATMIN) && next_filter.contains(DBA_KEY_LATMAX)
-            && next_filter.contains(DBA_KEY_LONMIN) && next_filter.contains(DBA_KEY_LONMAX);
-    double flt_area_latmin = next_filter.get(DBA_KEY_LATMIN, 0.0);
-    double flt_area_latmax = next_filter.get(DBA_KEY_LATMAX, 0.0);
-    double flt_area_lonmin = next_filter.get(DBA_KEY_LONMIN, 0.0);
-    double flt_area_lonmax = next_filter.get(DBA_KEY_LONMAX, 0.0);
-    bool has_flt_station_id = next_filter.contains(DBA_KEY_ANA_ID);
-    int flt_station_id = next_filter.get(DBA_KEY_ANA_ID, 0);
-
-    std::function<bool(const SummaryEntry&)> process =
-            [&](const SummaryEntry& val)
-    {
-        if (has_flt_station_id && val.ana_id != flt_station_id)
-            return true;
-
-        const Station& s = cache_stations.find(val.ana_id)->second;
-
-        if (has_flt_area)
-        {
-            if (s.lat < flt_area_latmin || s.lat > flt_area_latmax
-             || s.lon < flt_area_lonmin || s.lon > flt_area_lonmax)
-                return true;
-        }
-
-        bool match_rep_memo = !has_flt_rep_memo || flt_rep_memo == val.rep_memo;
-        bool match_level    = !has_flt_level || flt_level == val.level;
-        bool match_trange   = !has_flt_trange || flt_trange == val.trange;
-        bool match_varcode  = !has_flt_varcode || flt_varcode == val.varcode;
-        bool match_ident    = !has_flt_ident || flt_ident == s.ident;
-
-        if (match_rep_memo && match_level && match_trange && match_varcode)
-            if (!s.ident.empty())
-                set_idents.insert(s.ident);
-        if (match_ident && match_level && match_trange && match_varcode)
-            set_reports.insert(val.rep_memo);
-        if (match_ident && match_rep_memo && match_trange && match_varcode)
-            set_levels.insert(val.level);
-        if (match_ident && match_rep_memo && match_level && match_varcode)
-            set_tranges.insert(val.trange);
-        if (match_ident && match_rep_memo && match_level && match_trange)
-            set_varcodes.insert(val.varcode);
-
+{
+    Matcher matcher(next_filter, cache_stations);
+    Summary temp;
+    global_summary.iterate([&](const SummaryEntry& entry) {
+        if (entry.match(matcher))
+            temp.add_entry(entry);
         return true;
-    };
+    });
 
-    global_summary.iterate(process);
-
-    reports.set_items(set_reports);
-    levels.set_items(set_levels);
-    tranges.set_items(set_tranges);
-    varcodes.set_items(set_varcodes);
-    idents.set_items(set_idents);
+    reports.set_items(temp.all_reports);
+    levels.set_items(temp.all_levels);
+    tranges.set_items(temp.all_tranges);
+    varcodes.set_items(temp.all_varcodes);
+    idents.set_items(temp.all_idents);
 
     emit next_filter_changed();
 }
