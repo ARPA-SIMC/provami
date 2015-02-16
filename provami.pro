@@ -27,7 +27,8 @@ HEADERS += provami/types.h \
     provami/rawquerymodel.h \
     provami/refreshthread.h \
     provami/progressindicator.h \
-    provami/summary.h
+    provami/summary.h \
+    provami/filters.h
 FORMS += provamimainwindow.ui
 SOURCES += types.cpp \
            highlight.cpp \
@@ -46,7 +47,8 @@ SOURCES += types.cpp \
     rawquerymodel.cpp \
     refreshthread.cpp \
     progressindicator.cpp \
-    summary.cpp
+    summary.cpp \
+    filters.cpp
 
 DISTFILES += world.dat
 
