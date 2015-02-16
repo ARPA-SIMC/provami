@@ -81,7 +81,7 @@ void RefreshThread::run()
                 cur_summary = move(cur);
             }
             qDebug() << "worker: notifying summary query";
-            emit have_new_summary(with_details);
+            emit have_new_summary(*sum_query, with_details);
             qDebug() << "worker: done summary query";
         }
 

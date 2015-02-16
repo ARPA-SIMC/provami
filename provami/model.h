@@ -2,7 +2,6 @@
 #define PROVAMI_MODEL_H
 
 #include <provami/types.h>
-#include <provami/summary.h>
 #include <provami/highlight.h>
 #include <provami/refreshthread.h>
 #include <provami/filters.h>
@@ -10,6 +9,7 @@
 #include <dballe/core/defs.h>
 #include <dballe/core/record.h>
 #include <dballe/db/db.h>
+#include <dballe/db/summary.h>
 #include <string>
 #include <map>
 #include <vector>
@@ -47,7 +47,7 @@ public slots:
     void unselect_datemin();
     void unselect_datemax();
     void set_filter(const dballe::Record& new_filter);
-    void on_have_new_summary(bool with_details);
+    void on_have_new_summary(dballe::Query query, bool with_details);
     void on_have_new_data();
 
 signals:
@@ -65,11 +65,8 @@ protected:
     // Filtering elements
     std::map<int, Station> cache_stations;
 
-    // Summary of the whole database
-    Summary global_summary;
-
-    // Summary related to the most recent summary request
-    Summary current_summary;
+    /// Cached summary data
+    dballe::db::summary::Stack summaries;
 
     // Sample values for the currently active filter
     std::vector<Value> cache_values;
@@ -78,6 +75,12 @@ protected:
 
     /// Reload data summary from the database
     void refresh(bool accurate=false);
+
+    /// Refresh the data selected by active_filter
+    void refresh_data();
+
+    /// Refresh the summary information selected by active_filter
+    void refresh_summary(bool accurate=false);
 
     /// Process the summary value regenerating the filtering elements lists
     void process_summary();
@@ -102,13 +105,12 @@ public:
     Model();
     ~Model();
 
-    const dballe::Datetime& summary_datetime_min() const { return global_summary.datetime_min(); }
-    const dballe::Datetime& summary_datetime_max() const { return global_summary.datetime_max(); }
-    unsigned summary_count() const { return global_summary.data_count(); }
+    const dballe::Datetime& summary_datetime_min() const;
+    const dballe::Datetime& summary_datetime_max() const;
+    unsigned summary_count() const;
 
     const std::map<int, Station>& stations() const;
     const Station* station(int id) const;
-//    const std::map<SummaryKey, SummaryValue>& summaries() const;
     const std::vector<Value>& values() const;
     std::vector<Value>& values();
 

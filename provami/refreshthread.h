@@ -48,7 +48,7 @@ public:
     void query_data(const dballe::Query& query);
 
 signals:
-    void have_new_summary(bool with_details);
+    void have_new_summary(dballe::Query query, bool with_details);
     void have_new_data();
 };
 

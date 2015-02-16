@@ -14,13 +14,33 @@ namespace provami {
 Model::Model()
     : db(0), reports(*this), levels(*this), tranges(*this), varcodes(*this), idents(*this)
 {
-    connect(&refresh_thread, SIGNAL(have_new_summary(bool)), this, SLOT(on_have_new_summary(bool)));
+    connect(&refresh_thread, SIGNAL(have_new_summary(dballe::Query, bool)), this, SLOT(on_have_new_summary(dballe::Query, bool)));
     connect(&refresh_thread, SIGNAL(have_new_data()), this, SLOT(on_have_new_data()));
 }
 
 Model::~Model()
 {
     if (db) delete db;
+}
+
+static const dballe::Datetime missing_datetime;
+
+const Datetime &Model::summary_datetime_min() const
+{
+    if (summaries.empty()) return missing_datetime;
+    return summaries.top().datetime_min();
+}
+
+const Datetime &Model::summary_datetime_max() const
+{
+    if (summaries.empty()) return missing_datetime;
+    return summaries.top().datetime_max();
+}
+
+unsigned Model::summary_count() const
+{
+    if (summaries.empty()) return dballe::MISSING_INT;
+    return summaries.top().data_count();
 }
 
 const std::map<int, Station> &Model::stations() const
@@ -35,13 +55,6 @@ const Station *Model::station(int id) const
         return 0;
     return &(i->second);
 }
-
-/*
-const std::map<SummaryKey, SummaryValue> &Model::summaries() const
-{
-    return cache_summary;
-}
-*/
 
 const std::vector<Value> &Model::values() const
 {
@@ -128,50 +141,16 @@ void Model::dballe_connect(const std::string &dballe_url)
 
 void Model::refresh(bool accurate)
 {
-    // Query summary for the currently active filter
-    emit progress("summary", "Loading summary...");
-
-    // Check if the active filter is empty
-    bool is_empty = active_filter.iter_keys([](dba_keyword, const wreport::Var&) { return false; });
-
-    bool want_details = is_empty || accurate;
-
-    refresh_thread.query_summary(active_filter, want_details);
+    refresh_data();
+    refresh_summary(accurate);
 }
 
-void Model::on_have_new_summary(bool with_details)
+void Model::refresh_data()
 {
-    emit progress("summary", "Processing summary...");
-    qDebug() << "Refresh summary results arrived";
     emit progress("data", "Loading data...");
     Record query(active_filter);
     query.set("limit", (int)limit);
     refresh_thread.query_data(query);
-
-    bool is_empty = active_filter.iter_keys([](dba_keyword, const wreport::Var&) { return false; });
-    Summary& summary = is_empty ? global_summary : current_summary;
-
-    summary.reset(active_filter);
-
-    cache_stations.clear();
-    cache_values.clear();
-
-    highlight.reset();
-
-    while (refresh_thread.cur_summary->next())
-    {
-        int ana_id = refresh_thread.cur_summary->get_station_id();
-        if (cache_stations.find(ana_id) == cache_stations.end())
-            cache_stations.insert(make_pair(ana_id, Station(*refresh_thread.cur_summary)));
-
-        summary.add_summary(*refresh_thread.cur_summary, with_details);
-    }
-
-    // Recompute the available choices
-    qDebug() << "Summary collation started";
-    process_summary();
-    emit progress("summary");
-    emit active_filter_changed();
 }
 
 void Model::on_have_new_data()
@@ -189,6 +168,68 @@ void Model::on_have_new_data()
     emit progress("data");
 }
 
+void Model::refresh_summary(bool accurate)
+{
+    using namespace dballe::db::summary;
+
+    emit progress("summary", "Loading summary...");
+
+    if (summaries.empty())
+    {
+        emit progress("summary", "Loading initial summary from db...");
+        refresh_thread.query_summary(Query(), true);
+        return;
+    }
+
+    Matcher matcher(active_filter, cache_stations);
+    auto supported = summaries.query(active_filter, accurate, [&](const Entry& entry) {
+        return matcher.match(entry);
+    });
+
+    if (supported == UNSUPPORTED || (supported == OVERESTIMATED && accurate))
+    {
+        emit progress("summary", "Loading summary from db...");
+        // The best summary that we have do not support what we need: hit the database
+        refresh_thread.query_summary(active_filter, accurate);
+    }
+    else
+    {
+        // Recompute the available choices
+        qDebug() << "No need to hit the database, summary collation started";
+        process_summary();
+        emit progress("summary");
+        emit active_filter_changed();
+    }
+
+}
+
+void Model::on_have_new_summary(Query query, bool with_details)
+{
+    emit progress("summary", "Processing summary...");
+    qDebug() << "Refresh summary results arrived";
+
+    db::Summary& s = summaries.push(query);
+
+    cache_stations.clear();
+    cache_values.clear();
+
+    highlight.reset();
+
+    while (refresh_thread.cur_summary->next())
+    {
+        int ana_id = refresh_thread.cur_summary->get_station_id();
+        if (cache_stations.find(ana_id) == cache_stations.end())
+            cache_stations.insert(make_pair(ana_id, Station(*refresh_thread.cur_summary)));
+
+        s.add_summary(*refresh_thread.cur_summary, with_details);
+    }
+
+    // Recompute the available choices
+    qDebug() << "Summary collation started";
+    process_summary();
+    emit progress("summary");
+    emit active_filter_changed();
+}
 
 void Model::activate_next_filter(bool accurate)
 {
@@ -198,10 +239,11 @@ void Model::activate_next_filter(bool accurate)
 
 void Model::process_summary()
 {
+    if (summaries.empty()) return;
     Matcher matcher(next_filter, cache_stations);
-    Summary temp;
-    global_summary.iterate([&](const SummaryEntry& entry) {
-        if (entry.match(matcher))
+    db::Summary temp(next_filter);
+    summaries.top().iterate([&](const db::summary::Entry& entry) {
+        if (matcher.match(entry))
             temp.add_entry(entry);
         return true;
     });

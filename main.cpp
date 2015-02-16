@@ -1,6 +1,7 @@
 #include "provami/provamimainwindow.h"
 #include "provami/model.h"
 #include <dballe/core/record.h>
+#include <QMetaType>
 #include <QApplication>
 #include <QDebug>
 #include <cstdlib>
@@ -12,6 +13,8 @@ using namespace provami;
 
 int main(int argc, char *argv[])
 {
+    qRegisterMetaType<dballe::Query>("dballe::Query");
+
     Model model;
     QApplication a(argc, argv);
     ProvamiMainWindow w(model);

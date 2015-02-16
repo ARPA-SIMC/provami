@@ -31,7 +31,7 @@ public slots:
 
 protected slots:
     void on_editing_finished();
-    void on_text_edited(const QString& text);
+    void on_text_edited(const QString&);
 };
 
 }

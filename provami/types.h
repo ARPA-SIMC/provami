@@ -10,6 +10,9 @@
 namespace dballe {
 namespace db {
 class Cursor;
+namespace summary {
+class Entry;
+}
 }
 }
 
@@ -90,6 +93,8 @@ struct Matcher
     dballe::Datetime wanted_dtmax;
 
     Matcher(const dballe::Query& query, const std::map<int, Station>& all_stations);
+
+    bool match(const dballe::db::summary::Entry& entry) const;
 };
 
 }

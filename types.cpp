@@ -1,5 +1,6 @@
 #include "provami/types.h"
 #include <dballe/db/db.h>
+#include <dballe/db/summary.h>
 #include <dballe/core/record.h>
 
 using namespace dballe;
@@ -89,6 +90,30 @@ Matcher::Matcher(const dballe::Query &query, const std::map<int, Station> &all_s
     wanted_varcode = wreport::descriptor_code(query.get(DBA_KEY_VAR, "B00000"));
 
     query.parse_date_extremes(wanted_dtmin, wanted_dtmax);
+}
+
+bool Matcher::match(const dballe::db::summary::Entry& entry) const
+{
+    if (has_flt_station && wanted_stations.find(entry.ana_id) == wanted_stations.end())
+        return false;
+
+    if (has_flt_rep_memo && wanted_rep_memo != entry.rep_memo)
+        return false;
+
+    if (has_flt_level && wanted_level != entry.level)
+        return false;
+
+    if (has_flt_trange && wanted_trange != entry.trange)
+        return false;
+
+    if (has_flt_varcode && wanted_varcode != entry.varcode)
+        return false;
+
+    if (!Datetime::range_contains(wanted_dtmin, wanted_dtmax,
+                                  entry.datemin, entry.datemax))
+        return false;
+
+    return true;
 }
 
 }

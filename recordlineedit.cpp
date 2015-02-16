@@ -39,7 +39,7 @@ void RecordLineEdit::on_editing_finished()
     setStyleSheet("");
 }
 
-void RecordLineEdit::on_text_edited(const QString &text)
+void RecordLineEdit::on_text_edited(const QString &)
 {
     setStyleSheet("QLineEdit{background: #fcc;}");
 }
