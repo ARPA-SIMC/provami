@@ -446,6 +446,11 @@ L.LocationFilter = L.Class.extend({
 
         this._enabled = false;
 
+	delete this._nw;
+	delete this._sw;
+	delete this._ne;
+	delete this._se;
+
         // Fire the disabled event
         this.fire("disabled");
     },
