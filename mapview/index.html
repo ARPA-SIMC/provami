@@ -5,9 +5,11 @@
   <link rel="stylesheet" href="MarkerCluster.css" />
   <link rel="stylesheet" href="MarkerCluster.Default.css" />
   <link rel="stylesheet" href="locationfilter.css" />
-  <script src="leaflet.js"></script>
+  <link rel="stylesheet" href="L.Control.MousePosition.css" />
+  <script src="leaflet-src.js"></script>
 	<script src="leaflet.markercluster.js"></script>
 	<script src="locationfilter.js"></script>
+  <script src="L.Control.MousePosition.js"></script>
   <style>
     body { padding: 0; margin: 0; }
     html, body, #map { height: 100%; }
@@ -21,67 +23,109 @@
 
 console.log("STaRted");
 
+// Set a selected icon
+L.Icon.Selected = L.Icon.Default.extend({
+	_getIconUrl: function (name) {
+		var key = name + 'Url';
+
+		if (this.options[key]) {
+			return this.options[key];
+		}
+
+		if (L.Browser.retina && name === 'icon') {
+			name += '-2x';
+		}
+
+		var path = L.Icon.Default.imagePath;
+
+		if (!path) {
+			throw new Error('Couldn\'t autodetect L.Icon.Default.imagePath, set it manually.');
+		}
+
+		return path + '/marker-selected-' + name + '.png';
+	}
+});
+
 // Map
 var map = L.map('map');
 // Markers layer
 var markers = null;
+// Maps station IDs to Marker objects
+var markers_by_id = {}
 
 //.setView([51.505, -0.09], 13);
 
 // OSM base layer
 var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
+var osmAttrib='Map data © OpenStreetMap contributors';
 var osm = new L.TileLayer(osmUrl, {minZoom: 1, maxZoom: 12, attribution: osmAttrib});		
 map.addLayer(osm);
+
+// Show the mouse position in the map
+L.control.mousePosition({ position: "bottomright" }).addTo(map);
 
 // Add the rectangle selection facility
 var locationFilter = new L.LocationFilter({ buttonPosition: "bottomleft", adjustButton: null }).addTo(map);
 locationFilter.on("change", function(e) {
-  window.provami.area_selected(e.bounds.getWest(), e.bounds.getEast(), e.bounds.getNorth(), e.bounds.getSouth());
+  window.provami.js_area_selected(e.bounds.getNorth(), e.bounds.getSouth(), e.bounds.getWest(), e.bounds.getEast());
 });
 locationFilter.on("enabled", function(e) {
-  window.provami.area_selected(e.bounds.getWest(), e.bounds.getEast(), e.bounds.getNorth(), e.bounds.getSouth());
+  window.provami.js_area_selected(e.bounds.getNorth(), e.bounds.getSouth(), e.bounds.getWest(), e.bounds.getEast());
 });
 locationFilter.on("disabled", function(e) {
-  window.provami.area_unselected();
+  window.provami.js_area_unselected();
 });
 
 // start the map in South-East England
 map.setView([51.3, 0.7], 5);
 
-/*
-var addressPoints = [
-  [45, 11, "foo"],
-  [46, 12, "bar"],
-  [47, 13, "baz"],
-];
-for (var i = 0; i < addressPoints.length; i++) {
-  var a = addressPoints[i];
-  var title = a[2];
-  var marker = L.marker(new L.LatLng(a[0], a[1]), { title: title });
-  marker.bindPopup(title);
-  markers.addLayer(marker);
+function select_marker(id)
+{
+  locationFilter.disable();
+  window.provami.js_station_selected(id);
 }
-*/
+
+function set_selected_stations(ids)
+{
+  var selected = {};
+  for (var i = 0; i < ids.length; ++i)
+    selected[ids[i]] = true;
+
+  for (var id in markers_by_id)
+  {
+    if (selected[id])
+    {
+      console.log("ISSEL" + id);
+      markers_by_id[id].setIcon(new L.Icon.Selected);
+    }
+    else
+      markers_by_id[id].setIcon(new L.Icon.Default);
+  }
+}
 
 function set_stations(data)
 {
   if (markers != null)
     map.removeLayer(markers);
   markers = null;
+  markers_by_id = {};
 
   if (!data.length) return;
 
-  markers = L.markerClusterGroup();
+  markers = L.markerClusterGroup({ maxClusterRadius: 30 });
+  //markers = L.featureGroup();
   var points = [];
 
   // Compute the bounding box of the points
   for (var i = 0; i < data.length; ++i)
   {
+    var id = data[i][0];
     var lat = data[i][1];
     var lon = data[i][2];
     points.push([lat, lon]);
-    var marker = L.marker(new L.LatLng(lat, lon), { title: data[i][0] });
+    var marker = L.marker(new L.LatLng(lat, lon), { title: id });
+    markers_by_id[id] = marker;
+    marker.on("click", function(evt) { select_marker(id); });
     markers.addLayer(marker);
   }
 

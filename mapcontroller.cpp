@@ -1,17 +1,29 @@
 #include "provami/mapcontroller.h"
+#include <algorithm>
 #include <QDebug>
+
+using namespace std;
 
 MapController::MapController(QObject *parent) :
     QObject(parent)
 {
 }
 
-void MapController::area_selected(double latmin, double latmax, double lonmin, double lonmax)
+void MapController::js_station_selected(int id)
 {
-    qDebug() << "area selected" << latmin << latmax << lonmin << lonmax;
+    emit station_selected(id);
 }
 
-void MapController::area_unselected()
+void MapController::js_area_selected(double latmin, double latmax, double lonmin, double lonmax)
 {
-    qDebug() << "area unselected";
+    emit area_selected(
+                min(latmin, latmax),
+                max(latmin, latmax),
+                min(lonmin, lonmax),
+                max(lonmin, lonmax));
+}
+
+void MapController::js_area_unselected()
+{
+    emit area_unselected();
 }

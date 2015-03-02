@@ -1,18 +1,19 @@
 #include "provami/mapview.h"
 #include "provami/mapcontroller.h"
 #include "provami/config.h"
+#include <dballe/core/defs.h>
 #include <QDebug>
 #include <QWebFrame>
-//#include <QWheelEvent>
+
+using namespace dballe;
 
 namespace provami {
 
 class MapPage : public QWebPage
 {
-protected:
+public:
     MapController controller;
 
-public:
     MapPage(QObject* parent=0)
         : QWebPage(parent)
     {
@@ -31,6 +32,10 @@ MapView::MapView(QWidget *parent) :
 {
     MapPage* page = new MapPage(this);
     setPage(page);
+
+    connect(&page->controller, SIGNAL(station_selected(int)), this, SLOT(station_selected(int)));
+    connect(&page->controller, SIGNAL(area_selected(double,double,double,double)), this, SLOT(area_selected(double, double, double, double)));
+    connect(&page->controller, SIGNAL(area_unselected()), this, SLOT(area_unselected()));
 
     /*
     setInteractive(true);
@@ -128,6 +133,70 @@ void MapView::update_stations()
     }
     */
 }
+
+void MapView::station_selected(int id)
+{
+    qDebug() << "station selected" << id;
+    model->select_station_id(id);
+
+    QString select_stations = QString("set_selected_stations([%1]);").arg(id);
+    qDebug() << "JSRUN" << select_stations;
+    QWebFrame* frame = page()->mainFrame();
+    frame->evaluateJavaScript(select_stations);
+}
+
+void MapView::area_selected(double latmin, double latmax, double lonmin, double lonmax)
+{
+    qDebug() << "area selected" << latmin << latmax << lonmin << lonmax;
+
+    QString select_stations("set_selected_stations([");
+
+    unsigned count = 0;
+    int selected_id = MISSING_INT;
+    const std::map<int, Station>& new_stations = model->stations();
+    for (const auto& si : new_stations)
+    {
+        if (si.second.lat < latmin || si.second.lat > latmax) continue;
+        if (si.second.lon < lonmin || si.second.lon > lonmax) continue;
+        qDebug() << "Found" << si.first << si.second.lat << si.second.lon;
+        selected_id = si.first;
+
+        if (count)
+            select_stations += ",";
+        select_stations += QString::number(si.first);
+
+        ++count;
+    }
+
+    switch (count)
+    {
+        case 0:
+            // FIXME: rather than unselect (i.e. select all), select none
+            qDebug() << "Unselect stations";
+            model->unselect_station();
+            break;
+        case 1:
+            qDebug() << "Select station" << selected_id;
+            model->select_station_id(selected_id);
+            break;
+        default:
+            qDebug() << "Select bounds" << latmin << latmax << lonmin << lonmax;
+            model->select_station_bounds(latmin, latmax, lonmin, lonmax);
+            break;
+    }
+
+    select_stations += "]);";
+    qDebug() << "JSRUN" << select_stations;
+    QWebFrame* frame = page()->mainFrame();
+    frame->evaluateJavaScript(select_stations);
+}
+
+void MapView::area_unselected()
+{
+    qDebug() << "Unselect stations";
+    model->unselect_station();
+}
+
 
 #if 0
 // From http://www.qtcentre.org/wiki/index.php?title=QGraphicsView:_Smooth_Panning_and_Zooming

@@ -31,6 +31,9 @@ signals:
     
 public slots:
     void update_stations();
+    void station_selected(int id);
+    void area_selected(double latmin, double latmax, double lonmin, double lonmax);
+    void area_unselected();
 };
 
 #if 0
