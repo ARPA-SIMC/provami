@@ -20,9 +20,6 @@
 </body>
 <script type="text/javascript">
 
-
-console.log("STaRted");
-
 // Set a selected icon
 L.Icon.Selected = L.Icon.Default.extend({
 	_getIconUrl: function (name) {
@@ -95,12 +92,18 @@ function set_selected_stations(ids)
   {
     if (selected[id])
     {
-      console.log("ISSEL" + id);
       markers_by_id[id].setIcon(new L.Icon.Selected);
     }
     else
+    {
       markers_by_id[id].setIcon(new L.Icon.Default);
+    }
   }
+}
+
+function station_clicked(evt)
+{
+  select_marker(evt.target.options.id);
 }
 
 function set_stations(data)
@@ -123,9 +126,9 @@ function set_stations(data)
     var lat = data[i][1];
     var lon = data[i][2];
     points.push([lat, lon]);
-    var marker = L.marker(new L.LatLng(lat, lon), { title: id });
+    var marker = L.marker(new L.LatLng(lat, lon), { title: id, id: id });
     markers_by_id[id] = marker;
-    marker.on("click", function(evt) { select_marker(id); });
+    marker.on("click", station_clicked);
     markers.addLayer(marker);
   }
 
