@@ -10,7 +10,6 @@
 #include <provami/stationgridmodel.h>
 #include <provami/attrgridmodel.h>
 #include <provami/rawquerymodel.h>
-#include <provami/mapscene.h>
 #include <provami/progressindicator.h>
 
 namespace Ui {
@@ -45,7 +44,6 @@ protected:
     StationGridModel stationgrid_model;
     AttrGridModel attrgrid_model;
     RawQueryModel rawquery_model;
-    MapScene map_scene;
     QOptionalDoubleValidator lat_validator;
     QOptionalDoubleValidator lon_validator;
     QOptionalIntValidator id_validator;

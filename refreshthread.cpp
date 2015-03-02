@@ -36,7 +36,7 @@ struct MutexLock
 
 void RefreshThread::run()
 {
-    qDebug() << "worker: start thread";
+    //qDebug() << "worker: start thread";
     while (true)
     {
         unique_ptr<dballe::Query> sum_query;
@@ -61,18 +61,18 @@ void RefreshThread::run()
 
             if (!has_work)
             {
-                qDebug() << "worker: no more work, wait for some";
+                //qDebug() << "worker: no more work, wait for some";
                 checkQueue.wait(condition);
                 continue;
             }
         }
 
-        qDebug() << "worker: Wakeup refresh thread: summary: " << (sum_query.get() != 0)
-                 << " data: " << (data_query.get() != 0);
+        //qDebug() << "worker: Wakeup refresh thread: summary: " << (sum_query.get() != 0)
+        //         << " data: " << (data_query.get() != 0);
 
         if (sum_query)
         {
-            qDebug() << "worker: starting summary query";
+            //qDebug() << "worker: starting summary query";
             const char* query_request = sum_query->key_peek_value(DBA_KEY_QUERY);
             bool with_details = query_request ? strcmp(query_request, "details") == 0 : false;
             auto cur = db->query_summary(*sum_query);
@@ -80,30 +80,30 @@ void RefreshThread::run()
                 MutexLock lock(mutex);
                 cur_summary = move(cur);
             }
-            qDebug() << "worker: notifying summary query";
+            //qDebug() << "worker: notifying summary query";
             emit have_new_summary(*sum_query, with_details);
-            qDebug() << "worker: done summary query";
+            //qDebug() << "worker: done summary query";
         }
 
         if (data_query)
         {
-            qDebug() << "worker: starting data query";
+            //qDebug() << "worker: starting data query";
             auto cur = db->query_data(*data_query);
             {
                 MutexLock lock(mutex);
                 cur_data = move(cur);
             }
-            qDebug() << "worker: notifying data query";
+            //qDebug() << "worker: notifying data query";
             emit have_new_data();
-            qDebug() << "worker: done data query";
+            //qDebug() << "worker: done data query";
         }
     }
-    qDebug() << "worker: end thread";
+    //qDebug() << "worker: end thread";
 }
 
 void RefreshThread::query_summary(const Query &query, bool want_details)
 {
-    qDebug("query summary requested");
+    //qDebug("query summary requested");
     // Make a copy to pass to pending_summary_query
     unique_ptr<Query> q(new Query(query));
 
@@ -119,7 +119,7 @@ void RefreshThread::query_summary(const Query &query, bool want_details)
 
 void RefreshThread::query_data(const Query &query)
 {
-    qDebug("query data requested");
+    //qDebug("query data requested");
     // Make a copy to pass to pending_data_query
     unique_ptr<Query> q(new Query(query));
 

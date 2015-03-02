@@ -1,4 +1,5 @@
 #include "provami/provamimainwindow.h"
+#include "provami/config.h"
 #include "ui_provamimainwindow.h"
 #include <set>
 #include <map>
@@ -10,9 +11,10 @@
 #include <QFileDialog>
 #include <QProcess>
 #include <QMessageBox>
+#include <QUrl>
 #include <QDebug>
 #include "provami/model.h"
-#include "provami/mapscene.h"
+#include <provami/mapview.h>
 
 using namespace std;
 using namespace dballe;
@@ -22,13 +24,14 @@ namespace provami {
 ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     QMainWindow(parent),
     model(model), datagrid_model(model), stationgrid_model(model), attrgrid_model(model),
-    rawquery_model(model), map_scene(model),
+    rawquery_model(model),
     lat_validator(-90, 90, 5),
     lon_validator(-180, 180, 5),
     id_validator(0, std::numeric_limits<int>::max()),
     ui(new Ui::ProvamiMainWindow)
 {
     ui->setupUi(this);
+    ui->mapview->set_model(model),
     progress_indicator.set_statusbar(*statusBar());
     connect(&model, SIGNAL(next_filter_changed()), this, SLOT(next_filter_changed()));
     connect(&model.highlight, SIGNAL(changed()), this, SLOT(highlight_changed()));
@@ -69,8 +72,8 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->filter_datemax->set_model(model);
     ui->filter_limit->setText(QString::number(model.limit));
 
-    map_scene.load_coastlines("/usr/share/provami/world.dat");
-    ui->mapview->setScene(&map_scene.scene);
+    //map_scene.load_coastlines("/usr/share/provami/world.dat");
+    //ui->mapview->setScene(&map_scene.scene);
     //qDebug() << "Scene rect: " << map_scene.scene.sceneRect();
 
     ui->export_format->addItem("BUFR", "bufr");
