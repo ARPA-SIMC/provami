@@ -36,6 +36,15 @@ map.addLayer(osm);
 
 // Add the rectangle selection facility
 var locationFilter = new L.LocationFilter({ buttonPosition: "bottomleft", adjustButton: null }).addTo(map);
+locationFilter.on("change", function(e) {
+  window.provami.area_selected(e.bounds.getWest(), e.bounds.getEast(), e.bounds.getNorth(), e.bounds.getSouth());
+});
+locationFilter.on("enabled", function(e) {
+  window.provami.area_selected(e.bounds.getWest(), e.bounds.getEast(), e.bounds.getNorth(), e.bounds.getSouth());
+});
+locationFilter.on("disabled", function(e) {
+  window.provami.area_unselected();
+});
 
 // start the map in South-East England
 map.setView([51.3, 0.7], 5);

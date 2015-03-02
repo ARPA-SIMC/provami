@@ -27,7 +27,8 @@ HEADERS += provami/types.h \
     provami/refreshthread.h \
     provami/progressindicator.h \
     provami/filters.h \
-    provami/config.h
+    provami/config.h \
+    provami/mapcontroller.h
 FORMS += provamimainwindow.ui
 SOURCES += types.cpp \
            highlight.cpp \
@@ -46,7 +47,8 @@ SOURCES += types.cpp \
     refreshthread.cpp \
     progressindicator.cpp \
     filters.cpp \
-    config.cpp
+    config.cpp \
+    mapcontroller.cpp
 
 DISTFILES += world.dat
 

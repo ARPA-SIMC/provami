@@ -1,4 +1,5 @@
 #include "provami/mapview.h"
+#include "provami/mapcontroller.h"
 #include "provami/config.h"
 #include <QDebug>
 #include <QWebFrame>
@@ -8,10 +9,15 @@ namespace provami {
 
 class MapPage : public QWebPage
 {
+protected:
+    MapController controller;
+
 public:
     MapPage(QObject* parent=0)
         : QWebPage(parent)
     {
+        QWebFrame* frame = mainFrame();
+        frame->addToJavaScriptWindowObject("provami", &controller);
     }
 
     virtual void javaScriptConsoleMessage(const QString& message, int lineNumber, const QString& sourceID)

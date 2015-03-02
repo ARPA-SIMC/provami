@@ -377,7 +377,7 @@ L.LocationFilter = L.Class.extend({
         this._ne = bounds.getNorthEast();
         this._sw = bounds.getSouthWest();
         this._se = bounds.getSouthEast();
-            
+        var selectedBounds = bounds;
 
         // Update buttons
         if (this._buttonContainer) {
@@ -416,7 +416,7 @@ L.LocationFilter = L.Class.extend({
         this._enabled = true;
         
         // Fire the enabled event
-        this.fire("enabled");
+        this.fire("enabled", {bounds: selectedBounds});
     },
 
     /* Disable the location filter */
