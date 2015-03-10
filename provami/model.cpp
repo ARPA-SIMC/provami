@@ -5,6 +5,7 @@
 #include <set>
 #include <algorithm>
 #include <QDebug>
+#include <QEventLoop>
 
 using namespace std;
 using namespace dballe;
@@ -155,6 +156,16 @@ void Model::set_db(std::unique_ptr<DB> &&_db, const std::string& url)
     refresh();
 }
 
+void Model::test_wait_for_refresh()
+{
+    // Wait for the model to get refreshed
+    QEventLoop loop;
+    QObject::connect(this, SIGNAL(active_filter_changed()), &loop, SLOT(quit()));
+    QObject::connect(this, SIGNAL(end_data_changed()), &loop, SLOT(quit()));
+    while (refreshing_stations || refreshing_data)
+        loop.exec();
+}
+
 void Model::refresh(bool accurate)
 {
     refresh_data();
@@ -166,6 +177,7 @@ void Model::refresh_data()
     emit progress("data", "Loading data...");
     Record query(active_filter);
     query.set("limit", (int)limit);
+    refreshing_data = true;
     refresh_thread.query_data(query);
 }
 
@@ -173,8 +185,11 @@ void Model::on_have_new_data()
 {
     emit progress("data", "Processing data...");
 
+    refreshing_data = false;
+
     emit begin_data_changed();
     // Query data for the currently active filter
+    cache_values.clear();
     while (refresh_thread.cur_data->next())
     {
         cache_values.push_back(Value(*refresh_thread.cur_data));
@@ -193,6 +208,7 @@ void Model::refresh_summary(bool accurate)
     if (summaries.empty())
     {
         emit progress("summary", "Loading initial summary from db...");
+        refreshing_stations = true;
         refresh_thread.query_summary(Query(), true);
         return;
     }
@@ -205,6 +221,7 @@ void Model::refresh_summary(bool accurate)
     if (supported == UNSUPPORTED || (supported == OVERESTIMATED && accurate))
     {
         emit progress("summary", "Loading summary from db...");
+        refreshing_stations = true;
         // The best summary that we have do not support what we need: hit the database
         refresh_thread.query_summary(active_filter, accurate);
     }
@@ -223,6 +240,8 @@ void Model::on_have_new_summary(Query query, bool with_details)
 {
     emit progress("summary", "Processing summary...");
     qDebug() << "Refresh summary results arrived";
+
+    refreshing_stations = false;
 
     db::Summary& s = summaries.push(query);
 

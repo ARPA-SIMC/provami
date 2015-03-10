@@ -2,7 +2,6 @@
 #include "provami/model.h"
 #include <wibble/string.h>
 #include <dballe/core/defs.h>
-#include <QEventLoop>
 #include <QDebug>
 
 using namespace std;
@@ -84,24 +83,27 @@ void to::test<1>()
 
     qDebug() << "have db";
 
-    // Wait for the model to get refreshed
-    QEventLoop loop;
-    QObject::connect(&model, SIGNAL(active_filter_changed()), &loop, SLOT(quit()));
-    loop.exec();
+    model.test_wait_for_refresh();
 
     qDebug() << "populated";
 
     wassert(actual(model.summary_datetime_min()) == Datetime(2015, 1, 1));
     wassert(actual(model.summary_datetime_max()) == Datetime(2015, 2, 1));
     wassert(actual(model.summary_count()) == 16);
+    wassert(actual(model.stations().size()) == 4);
+    wassert(actual(model.values().size()) == 16);
 
-    /*
-    const std::map<int, Station>& stations() const;
-    const Station* station(int id) const;
-    const std::vector<Value>& values() const;
-    std::vector<Value>& values();
-    */
+    qDebug() << "filter";
 
+    model.select_report("temp");
+    model.activate_next_filter(true);
+    model.test_wait_for_refresh();
+
+    wassert(actual(model.summary_datetime_min()) == Datetime(2015, 1, 1));
+    wassert(actual(model.summary_datetime_max()) == Datetime(2015, 2, 1));
+    wassert(actual(model.summary_count()) == 8);
+    wassert(actual(model.values().size()) == 8);
+    wassert(actual(model.stations().size()) == 4);
 
 #if 0
     public slots:

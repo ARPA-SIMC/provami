@@ -61,7 +61,12 @@ public:
     dballe::DB* db;
     RefreshThread refresh_thread;
 
-protected:    
+protected:
+    // True if there is a pending station refresh request
+    bool refreshing_stations = false;
+    // True if there is a pending data refresh request
+    bool refreshing_data = false;
+
     // Filtering elements
     std::map<int, Station> cache_stations;
 
@@ -148,6 +153,9 @@ public:
 
     /// Take over an existing db
     void set_db(std::unique_ptr<dballe::DB>&& db, const std::string &url);
+
+    /// Synchronously wait for the refresh to finish. Uses only for tests.
+    void test_wait_for_refresh();
 };
 
 class ModelAction : public QAction
