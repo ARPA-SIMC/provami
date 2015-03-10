@@ -145,6 +145,9 @@ public:
 
     /// Connect to a new database, possibly disconnecting from the previous one
     void dballe_connect(const std::string& dballe_url);
+
+    /// Take over an existing db
+    void set_db(std::unique_ptr<dballe::DB>&& db, const std::string &url);
 };
 
 class ModelAction : public QAction

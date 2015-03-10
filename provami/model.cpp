@@ -139,6 +139,22 @@ void Model::dballe_connect(const std::string &dballe_url)
     refresh();
 }
 
+void Model::set_db(std::unique_ptr<DB> &&_db, const std::string& url)
+{
+    if (db)
+    {
+        delete db;
+        db = 0;
+    }
+
+    m_dballe_url = url;
+
+    db = _db.release();
+    refresh_thread.db = db;
+
+    refresh();
+}
+
 void Model::refresh(bool accurate)
 {
     refresh_data();

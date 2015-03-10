@@ -1,7 +1,9 @@
 #include <wibble/tests.h>
+#include <dballe/core/record.h>
 #include <signal.h>
 #include <cstring>
 #include <cstdlib>
+#include <QApplication>
 
 namespace tut {
   test_runner_singleton runner;
@@ -14,9 +16,12 @@ void signal_to_exception(int)
 	  throw std::runtime_error("killing signal catched");
 }
 
-int main(int argc,const char* argv[])
+int main(int argc, char* argv[])
 {
   tut::reporter visi;
+
+  qRegisterMetaType<dballe::Query>("dballe::Query");
+  QApplication a(argc, argv);
 
   signal(SIGSEGV,signal_to_exception);         
   signal(SIGILL,signal_to_exception);
