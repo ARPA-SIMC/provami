@@ -7,6 +7,9 @@
 
 namespace provami {
 
+/**
+ * Keep track of the currently selected station and value
+ */
 class Highlight : public QObject
 {
     Q_OBJECT

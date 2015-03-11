@@ -13,6 +13,26 @@
   <style>
     body { padding: 0; margin: 0; }
     html, body, #map { height: 100%; }
+    .marker-cluster-highlighted {
+            background-color: rgba(181, 226, 140, 0.6);
+            }
+    .marker-cluster-highlighted div {
+            background-color: rgba(110, 204, 57, 0.6);
+            }
+
+    .marker-cluster-normal {
+            background-color: rgba( 96, 166, 215, 0.6);
+            }
+    .marker-cluster-normal div {
+            background-color: rgba( 38, 127, 202, 0.6);
+            }
+
+    .marker-cluster-selected {
+            background-color: rgba(122, 238, 228, 0.6);
+            }
+    .marker-cluster-selected div {
+            background-color: rgba( 56, 246, 239, 0.6);
+            }
   </style>
 </head>
 <body>
@@ -20,35 +40,92 @@
 </body>
 <script type="text/javascript">
 
-// Set a selected icon
-L.Icon.Selected = L.Icon.Default.extend({
-	_getIconUrl: function (name) {
-		var key = name + 'Url';
+function make_alt_icon(type)
+{
+  return L.Icon.Default.extend({
+    _getIconUrl: function (name) {
+      var key = name + 'Url';
 
-		if (this.options[key]) {
-			return this.options[key];
-		}
+      if (this.options[key]) {
+        return this.options[key];
+      }
 
-		if (L.Browser.retina && name === 'icon') {
-			name += '-2x';
-		}
+      if (L.Browser.retina && name === 'icon') {
+        name += '-2x';
+      }
 
-		var path = L.Icon.Default.imagePath;
+      var path = L.Icon.Default.imagePath;
 
-		if (!path) {
-			throw new Error('Couldn\'t autodetect L.Icon.Default.imagePath, set it manually.');
-		}
+      if (!path) {
+        throw new Error('Couldn\'t autodetect L.Icon.Default.imagePath, set it manually.');
+      }
 
-		return path + '/marker-selected-' + name + '.png';
-	}
-});
+      return path + '/marker-' + type + '-' + name + '.png';
+    }
+  });
+}
+
+function make_markers_layer()
+{
+  return new L.markerClusterGroup({
+    maxClusterRadius: 30,
+    iconCreateFunction: function(cluster) {
+      var children = cluster.getAllChildMarkers();
+      var has_selected = false;
+      var has_highlighted = false;
+      for (var i in children)
+      {
+        var id = children[i].options.id;
+        has_selected |= !!markers_selected[id];
+        has_highlighted |= (marker_highlighted && marker_highlighted.options.id == id);
+      }
+
+      //return new L.DivIcon({ html: '<b>' + cluster.getChildCount() + '</b>' });
+      var childCount = cluster.getChildCount();
+
+      var c = ' marker-cluster-';
+      if (has_highlighted)
+        c += "highlighted";
+      else if (has_selected)
+        c += "selected";
+      else
+        c += "normal";
+      /*
+      if (childCount < 10) {
+        c += 'small';
+      } else if (childCount < 100) {
+        c += 'medium';
+      } else {
+        c += 'large';
+      }
+      */
+
+      return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
+    }
+  });
+  //return L.featureGroup();
+}
+
+function update_marker(marker)
+{
+  markers.removeLayer(marker);
+  markers.addLayer(marker);
+}
+
+// Alternative icon styles
+L.Icon.Selected = make_alt_icon("selected");
+L.Icon.Highlighted = make_alt_icon("highlighted");
 
 // Map
 var map = L.map('map');
 // Markers layer
 var markers = null;
 // Maps station IDs to Marker objects
-var markers_by_id = {}
+var markers_by_id = {};
+// Markers currently selected
+var markers_selected = {};
+// Currently highlighted marker
+var marker_highlighted = null;
 
 //.setView([51.505, -0.09], 13);
 
@@ -73,8 +150,8 @@ locationFilter.on("disabled", function(e) {
   window.provami.js_area_unselected();
 });
 
-// start the map in South-East England
-map.setView([51.3, 0.7], 5);
+// Start the map, arbitrarily, in Bologna
+map.setView([44.50088, 11.32855], 5);
 
 function select_marker(id)
 {
@@ -88,16 +165,23 @@ function set_selected_stations(ids)
   for (var i = 0; i < ids.length; ++i)
     selected[ids[i]] = true;
 
+  markers_selected = {}
   for (var id in markers_by_id)
   {
     if (selected[id])
     {
-      markers_by_id[id].setIcon(new L.Icon.Selected);
+      var marker = markers_by_id[id];
+      if (marker)
+      {
+        marker.setIcon(new L.Icon.Selected);
+        markers_selected[id] = marker
+      }
     }
     else
     {
       markers_by_id[id].setIcon(new L.Icon.Default);
     }
+    update_marker(markers_by_id[id]);
   }
 }
 
@@ -112,11 +196,12 @@ function set_stations(data)
     map.removeLayer(markers);
   markers = null;
   markers_by_id = {};
+  markers_selected = {};
+  marker_highlighted = null;
 
   if (!data.length) return;
 
-  markers = L.markerClusterGroup({ maxClusterRadius: 30 });
-  //markers = L.featureGroup();
+  markers = make_markers_layer();
   var points = [];
 
   // Compute the bounding box of the points
@@ -136,6 +221,42 @@ function set_stations(data)
 
   var bounds = L.latLngBounds(points);
   map.fitBounds(bounds);
+}
+
+function set_highlighted_station(id)
+{
+  var marker = markers_by_id[id];
+  console.log("SHS " + marker_highlighted + " to " + marker);
+  if (marker_highlighted == marker)
+  {
+    // No change
+    console.log("SHS no change");
+    return;
+  }
+
+  // Set the old marker to normal
+  if (marker_highlighted)
+  {
+    if (markers_selected[marker_highlighted.options.id])
+      marker_highlighted.setIcon(new L.Icon.Selected);
+    else
+      marker_highlighted.setIcon(new L.Icon.Default);
+    var old_highlight = marker_highlighted;
+    marker_highlighted = null;
+    if (old_highlight) update_marker(old_highlight);
+  }
+
+  if (!marker)
+  {
+    console.log("SHS not found");
+    // Nothing else to highlight
+  } else {
+    console.log("SHS found");
+    // Set marker
+    marker.setIcon(new L.Icon.Highlighted);
+    marker_highlighted = marker;
+    if (marker_highlighted) update_marker(marker_highlighted);
+  }
 }
 
 /*

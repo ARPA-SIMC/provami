@@ -21,6 +21,9 @@ protected:
     virtual void mouseReleaseEvent(QMouseEvent* event);
     */
 
+    // Run this javascript code in the current page
+    void run_javascript(QString code);
+
 public:
     explicit MapView(QWidget *parent = 0);
 
@@ -34,6 +37,7 @@ public slots:
     void station_selected(int id);
     void area_selected(double latmin, double latmax, double lonmin, double lonmax);
     void area_unselected();
+    void update_highlight();
 };
 
 #if 0

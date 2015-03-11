@@ -47,6 +47,13 @@ MapView::MapView(QWidget *parent) :
     load(QUrl("file:" + cfg.data_dir.absoluteFilePath("mapview/index.html")));
 }
 
+void MapView::run_javascript(QString code)
+{
+    qDebug() << "JSRUN" << code;
+    QWebFrame* frame = page()->mainFrame();
+    frame->evaluateJavaScript(code);
+}
+
 void MapView::set_model(Model &model)
 {
     if (this->model)
@@ -60,8 +67,8 @@ void MapView::set_model(Model &model)
     {
     */
     connect(&model, SIGNAL(active_filter_changed()), this, SLOT(update_stations()));
-    /*
     connect(&model.highlight, SIGNAL(changed()), this, SLOT(update_highlight()));
+    /*
     connect(&scene, SIGNAL(selectionChanged()), this, SLOT(on_selection_changed()));
     */
 /*
@@ -70,7 +77,6 @@ void MapView::set_model(Model &model)
         coastline_pen.setColor(Qt::gray);
     }
     */
-
 }
 
 QSize MapView::sizeHint() const
@@ -90,48 +96,11 @@ void MapView::update_stations()
         set_stations += QString("[%1,%2,%3],").arg(si.first).arg(si.second.lat).arg(si.second.lon);
     }
     set_stations += "]);";
-    //qDebug() << "JSRUN" << f;
-    frame->evaluateJavaScript(set_stations);
-    /*
-    // Save the current highlighted station id
-    int highlighted_station_id = highlighted ? highlighted->station_id : dballe::MISSING_INT;
-    highlighted = 0;
+    run_javascript(set_stations);
 
-    // Initialize the removed list with all known IDs
-    set<int> removed;
-    for (const auto& i : stations)
-        removed.insert(i.first);
+    // TODO: update selection
 
-        removed.erase(si.first);
-    const std::map<int, Station>& new_stations = model.stations();
-    for (const auto& si : new_stations)
-    {
-
-        QPointF center(si.second.lon, si.second.lat);
-        to_proj(center);
-
-        auto old = stations.find(si.first);
-        if (old == stations.end())
-        {
-            StationItem* i = new StationItem(si.second, center);
-            scene.addItem(i);
-            stations.insert(make_pair(i->station_id, i));
-            if (si.first == highlighted_station_id) highlighted = i;
-        } else {
-            old->second->set_coords(center);
-            if (si.first == highlighted_station_id) highlighted = old->second;
-        }
-    }
-
-    for (auto i: removed)
-    {
-        auto old = stations.find(i);
-        if (old == stations.end()) continue;
-        scene.removeItem(old->second);
-        delete old->second;
-        stations.erase(i);
-    }
-    */
+    update_highlight();
 }
 
 void MapView::station_selected(int id)
@@ -140,9 +109,7 @@ void MapView::station_selected(int id)
     model->select_station_id(id);
 
     QString select_stations = QString("set_selected_stations([%1]);").arg(id);
-    qDebug() << "JSRUN" << select_stations;
-    QWebFrame* frame = page()->mainFrame();
-    frame->evaluateJavaScript(select_stations);
+    run_javascript(select_stations);
 }
 
 void MapView::area_selected(double latmin, double latmax, double lonmin, double lonmax)
@@ -186,53 +153,22 @@ void MapView::area_selected(double latmin, double latmax, double lonmin, double 
     }
 
     select_stations += "]);";
-    qDebug() << "JSRUN" << select_stations;
-    QWebFrame* frame = page()->mainFrame();
-    frame->evaluateJavaScript(select_stations);
+    run_javascript(select_stations);
 }
 
 void MapView::area_unselected()
 {
     qDebug() << "Unselect stations";
     model->unselect_station();
+    run_javascript("set_selected_stations([]);");
 }
 
 
-#if 0
-// From http://www.qtcentre.org/wiki/index.php?title=QGraphicsView:_Smooth_Panning_and_Zooming
-void MapView::wheelEvent(QWheelEvent* event) {
-
-    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-
-    // Scale the view / do the zoom
-    double scaleFactor = 1.15;
-    if(event->delta() > 0) {
-        // Zoom in
-        scale(scaleFactor, scaleFactor);
-    } else {
-        // Zooming out
-        scale(1.0 / scaleFactor, 1.0 / scaleFactor);
-    }
-
-    // Don't call superclass handler here
-    // as wheel is normally used for moving scrollbars
-}
-
-void MapView::mousePressEvent(QMouseEvent *event)
+void MapView::update_highlight()
 {
-    if (event->modifiers() & Qt::ShiftModifier)
-    {
-        setDragMode(QGraphicsView::RubberBandDrag);
-    }
-    QGraphicsView::mousePressEvent(event);
+    QString highlight_station = QString("set_highlighted_station(%1);").arg(model->highlight.station_id());
+    run_javascript(highlight_station);
 }
-
-void MapView::mouseReleaseEvent(QMouseEvent *event)
-{
-    QGraphicsView::mouseReleaseEvent(event);
-    setDragMode(QGraphicsView::ScrollHandDrag);
-}
-#endif
 
 #if 0
 class StationItem : public QGraphicsRectItem
@@ -433,22 +369,6 @@ void MapScene::on_selection_changed()
         model.select_station_bounds(area.bottom(), area.top(), area.left(), area.right());
     } else if (items.length() == 0) {
         model.unselect_station();
-    }
-}
-
-void MapScene::update_highlight()
-{
-    if (highlighted)
-    {
-        if (highlighted->station_id == model.highlight.station_id())
-            return;
-        highlighted->set_highlighted(false);
-    }
-    auto s = stations.find(model.highlight.station_id());
-    if (s != stations.end())
-    {
-        s->second->set_highlighted(true);
-        highlighted = s->second;
     }
 }
 
