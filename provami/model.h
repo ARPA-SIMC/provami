@@ -70,6 +70,9 @@ protected:
     // Filtering elements
     std::map<int, Station> cache_stations;
 
+    // Currently selected stations
+    std::set<int> _selected_stations;
+
     /// Cached summary data
     dballe::db::summary::Stack summaries;
 
@@ -121,6 +124,7 @@ public:
     unsigned summary_count() const;
 
     const std::map<int, Station>& stations() const;
+    const std::set<int>& selected_stations() const;
     const Station* station(int id) const;
     const std::vector<Value>& values() const;
     std::vector<Value>& values();

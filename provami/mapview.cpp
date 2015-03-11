@@ -82,9 +82,13 @@ void MapView::update_stations()
     QString set_stations("set_stations([");
     QWebFrame* frame = page()->mainFrame();
     const std::map<int, Station>& new_stations = model->stations();
+    const std::set<int> selected_stations = model->selected_stations();
     for (const auto& si : new_stations)
     {
-        set_stations += QString("[%1,%2,%3,%4],").arg(si.first).arg(si.second.lat).arg(si.second.lon).arg(si.second.hidden ? "true" : "false");
+        set_stations += QString("[%1,%2,%3,%4,%5],")
+                .arg(si.first).arg(si.second.lat).arg(si.second.lon)
+                .arg(selected_stations.find(si.first) != selected_stations.end() ? "true" : "false")
+                .arg(si.second.hidden ? "true" : "false");
     }
     set_stations += "]);";
     run_javascript(set_stations);

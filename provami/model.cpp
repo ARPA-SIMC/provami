@@ -49,6 +49,11 @@ const std::map<int, Station> &Model::stations() const
     return cache_stations;
 }
 
+const std::set<int> &Model::selected_stations() const
+{
+    return _selected_stations;
+}
+
 const Station *Model::station(int id) const
 {
     std::map<int, Station>::const_iterator i = cache_stations.find(id);
@@ -316,6 +321,8 @@ void Model::process_summary()
             if (s != cache_stations.end() && !s->second.ident.empty())
                 all_idents.insert(s->second.ident);
         }
+
+        _selected_stations = temp.all_stations;
     } else {
         mark_hidden_stations(temp);
         for (int s_id : temp.all_stations)
