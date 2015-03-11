@@ -300,6 +300,7 @@ void Model::process_summary()
     });
 
     // Mark disappeared stations as hidden
+    set<string> all_idents;
     if (matcher.has_flt_station)
     {
         Record subrec(next_filter);
@@ -309,14 +310,67 @@ void Model::process_summary()
         db::Summary sub(subrec);
         filter_top_summary(submatcher, sub);
         mark_hidden_stations(sub);
-    } else
+        for (int s_id : sub.all_stations)
+        {
+            auto s = cache_stations.find(s_id);
+            if (s != cache_stations.end() && !s->second.ident.empty())
+                all_idents.insert(s->second.ident);
+        }
+    } else {
         mark_hidden_stations(temp);
+        for (int s_id : temp.all_stations)
+        {
+            auto s = cache_stations.find(s_id);
+            if (s != cache_stations.end() && !s->second.ident.empty())
+                all_idents.insert(s->second.ident);
+        }
+    }
+    idents.set_items(all_idents);
 
-    reports.set_items(temp.all_reports);
-    levels.set_items(temp.all_levels);
-    tranges.set_items(temp.all_tranges);
-    varcodes.set_items(temp.all_varcodes);
-    idents.set_items(temp.all_idents);
+    if (matcher.has_flt_rep_memo)
+    {
+        Record subrec(next_filter);
+        subrec.unset(DBA_KEY_REP_MEMO);
+        Matcher submatcher(subrec, cache_stations);
+        db::Summary sub(subrec);
+        filter_top_summary(submatcher, sub);
+        reports.set_items(sub.all_reports);
+    }
+    else
+        reports.set_items(temp.all_reports);
+
+    if (matcher.has_flt_level)
+    {
+        Record subrec(next_filter);
+        subrec.set(Level());
+        Matcher submatcher(subrec, cache_stations);
+        db::Summary sub(subrec);
+        filter_top_summary(submatcher, sub);
+        levels.set_items(sub.all_levels);
+    } else
+        levels.set_items(temp.all_levels);
+
+    if (matcher.has_flt_trange)
+    {
+        Record subrec(next_filter);
+        subrec.set(Trange());
+        Matcher submatcher(subrec, cache_stations);
+        db::Summary sub(subrec);
+        filter_top_summary(submatcher, sub);
+        tranges.set_items(sub.all_tranges);
+    } else
+        tranges.set_items(temp.all_tranges);
+
+    if (matcher.has_flt_varcode)
+    {
+        Record subrec(next_filter);
+        subrec.unset(DBA_KEY_VAR);
+        Matcher submatcher(subrec, cache_stations);
+        db::Summary sub(subrec);
+        filter_top_summary(submatcher, sub);
+        varcodes.set_items(sub.all_varcodes);
+    } else
+        varcodes.set_items(temp.all_varcodes);
 
     emit next_filter_changed();
 }

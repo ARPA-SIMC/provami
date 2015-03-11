@@ -70,7 +70,6 @@ Matcher::Matcher(const dballe::Query &query, const std::map<int, Station> &all_s
                  || station.lon < flt_area_lonmin || station.lon > flt_area_lonmax)
                     continue;
             }
-
             if (has_flt_ident && flt_ident != station.ident)
                 continue;
 
