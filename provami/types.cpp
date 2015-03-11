@@ -2,6 +2,7 @@
 #include <dballe/db/db.h>
 #include <dballe/db/summary.h>
 #include <dballe/core/record.h>
+#include <QDebug>
 
 using namespace dballe;
 using namespace std;
@@ -52,10 +53,10 @@ Matcher::Matcher(const dballe::Query &query, const std::map<int, Station> &all_s
     {
         int flt_station_id = query.get(DBA_KEY_ANA_ID, 0);
         string flt_ident = query.get(DBA_KEY_IDENT, "");
-        double flt_area_latmin = query.get(DBA_KEY_LATMIN, -100000);
-        double flt_area_latmax = query.get(DBA_KEY_LATMAX,  100000);
-        double flt_area_lonmin = query.get(DBA_KEY_LONMIN, -100000);
-        double flt_area_lonmax = query.get(DBA_KEY_LONMAX,  100000);
+        double flt_area_latmin = query.get(DBA_KEY_LATMIN, -100000.0);
+        double flt_area_latmax = query.get(DBA_KEY_LATMAX,  100000.0);
+        double flt_area_lonmin = query.get(DBA_KEY_LONMIN, -100000.0);
+        double flt_area_lonmax = query.get(DBA_KEY_LONMAX,  100000.0);
         has_flt_station = true;
         for (auto s: all_stations)
         {
