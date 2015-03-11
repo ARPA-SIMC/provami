@@ -33,6 +33,13 @@
     .marker-cluster-selected div {
             background-color: rgba( 56, 246, 239, 0.6);
             }
+
+    .marker-cluster-hidden {
+            background-color: rgba(180, 180, 180, 0.6);
+            }
+    .marker-cluster-hidden div {
+            background-color: rgba(150, 150, 150, 0.6);
+            }
   </style>
 </head>
 <body>
@@ -71,11 +78,13 @@ function make_markers_layer()
     maxClusterRadius: 30,
     iconCreateFunction: function(cluster) {
       var children = cluster.getAllChildMarkers();
+      var is_hidden = true;
       var has_selected = false;
       var has_highlighted = false;
       for (var i in children)
       {
         var id = children[i].options.id;
+        is_hidden &= children[i].options.hidden;
         has_selected |= !!markers_selected[id];
         has_highlighted |= (marker_highlighted && marker_highlighted.options.id == id);
       }
@@ -86,6 +95,8 @@ function make_markers_layer()
       var c = ' marker-cluster-';
       if (has_highlighted)
         c += "highlighted";
+      else if (is_hidden)
+        c += "hidden";
       else if (has_selected)
         c += "selected";
       else
@@ -109,12 +120,21 @@ function make_markers_layer()
 function update_marker(marker)
 {
   markers.removeLayer(marker);
+  if (marker.options.hidden)
+    marker.setIcon(new L.Icon.Hidden);
+  else if (marker == marker_highlighted)
+    marker.setIcon(new L.Icon.Highlighted);
+  else if (markers_selected[marker.options.id])
+    marker.setIcon(new L.Icon.Selected);
+  else
+    marker.setIcon(new L.Icon.Default);
   markers.addLayer(marker);
 }
 
 // Alternative icon styles
 L.Icon.Selected = make_alt_icon("selected");
 L.Icon.Highlighted = make_alt_icon("highlighted");
+L.Icon.Hidden = make_alt_icon("hidden");
 
 // Map
 var map = L.map('map');
@@ -187,6 +207,7 @@ function set_selected_stations(ids)
 
 function station_clicked(evt)
 {
+  if (evt.target.options.hidden) return;
   select_marker(evt.target.options.id);
 }
 
@@ -210,11 +231,15 @@ function set_stations(data)
     var id = data[i][0];
     var lat = data[i][1];
     var lon = data[i][2];
+    var hidden = data[i][3];
     points.push([lat, lon]);
-    var marker = L.marker(new L.LatLng(lat, lon), { title: id, id: id });
+    var marker = L.marker(new L.LatLng(lat, lon), { title: id, id: id, hidden: hidden });
     markers_by_id[id] = marker;
     marker.on("click", station_clicked);
     markers.addLayer(marker);
+    // This will remove and add it again to cause an update; it seems to cause
+    // no harm at the moment, so I'll go for code reuse instead of optimization
+    update_marker(marker);
   }
 
   map.addLayer(markers);
@@ -237,25 +262,16 @@ function set_highlighted_station(id)
   // Set the old marker to normal
   if (marker_highlighted)
   {
-    if (markers_selected[marker_highlighted.options.id])
-      marker_highlighted.setIcon(new L.Icon.Selected);
-    else
-      marker_highlighted.setIcon(new L.Icon.Default);
     var old_highlight = marker_highlighted;
     marker_highlighted = null;
     if (old_highlight) update_marker(old_highlight);
   }
 
-  if (!marker)
+  if (marker)
   {
-    console.log("SHS not found");
-    // Nothing else to highlight
-  } else {
-    console.log("SHS found");
     // Set marker
-    marker.setIcon(new L.Icon.Highlighted);
     marker_highlighted = marker;
-    if (marker_highlighted) update_marker(marker_highlighted);
+    update_marker(marker);
   }
 }
 

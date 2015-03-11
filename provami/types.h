@@ -24,6 +24,7 @@ struct Station
     double lat;
     double lon;
     std::string ident;
+    bool hidden = false;
 
 protected:
     Station(const dballe::db::Cursor& cur);

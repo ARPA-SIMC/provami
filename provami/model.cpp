@@ -283,6 +283,13 @@ void Model::process_summary()
         return true;
     });
 
+    // Mark disappeared stations as hidden
+    for (auto& s: cache_stations)
+    {
+        s.second.hidden = temp.all_stations.find(s.first) == temp.all_stations.end();
+        qDebug() << "hidden" << s.first << s.second.hidden;
+    }
+
     reports.set_items(temp.all_reports);
     levels.set_items(temp.all_levels);
     tranges.set_items(temp.all_tranges);
