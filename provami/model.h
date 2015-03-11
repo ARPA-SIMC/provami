@@ -90,6 +90,12 @@ protected:
     /// Process the summary value regenerating the filtering elements lists
     void process_summary();
 
+    /// Filter the toplevel summary using a matcher, sending the results to out
+    void filter_top_summary(const Matcher& matcher, dballe::db::Summary& out) const;
+
+    /// Mark as hidden all the stations not present in summary
+    void mark_hidden_stations(const dballe::db::Summary& summary);
+
 public:
     // Current highlight
     Highlight highlight;

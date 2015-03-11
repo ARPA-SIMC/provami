@@ -49,7 +49,7 @@ MapView::MapView(QWidget *parent) :
 
 void MapView::run_javascript(QString code)
 {
-    qDebug() << "JSRUN" << code;
+    //qDebug() << "JSRUN" << code;
     QWebFrame* frame = page()->mainFrame();
     frame->evaluateJavaScript(code);
 }

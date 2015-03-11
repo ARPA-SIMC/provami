@@ -272,8 +272,24 @@ void Model::activate_next_filter(bool accurate)
     refresh(accurate);
 }
 
+void Model::filter_top_summary(const Matcher &matcher, db::Summary &out) const
+{
+    summaries.top().iterate([&](const db::summary::Entry& entry) {
+        if (matcher.match(entry))
+            out.add_entry(entry);
+        return true;
+    });
+}
+
+void Model::mark_hidden_stations(const db::Summary &summary)
+{
+    for (auto& s: cache_stations)
+        s.second.hidden = summary.all_stations.find(s.first) == summary.all_stations.end();
+}
+
 void Model::process_summary()
 {
+    qDebug() << "process_summary" << QString::fromStdString(next_filter.to_string());
     if (summaries.empty()) return;
     Matcher matcher(next_filter, cache_stations);
     db::Summary temp(next_filter);
@@ -284,11 +300,17 @@ void Model::process_summary()
     });
 
     // Mark disappeared stations as hidden
-    for (auto& s: cache_stations)
+    if (matcher.has_flt_station)
     {
-        s.second.hidden = temp.all_stations.find(s.first) == temp.all_stations.end();
-        qDebug() << "hidden" << s.first << s.second.hidden;
-    }
+        Record subrec(next_filter);
+        for (int i = DBA_KEY_ANA_ID; i <= DBA_KEY_LONMIN; ++i)
+            subrec.unset((dba_keyword)i);
+        Matcher submatcher(subrec, cache_stations);
+        db::Summary sub(subrec);
+        filter_top_summary(submatcher, sub);
+        mark_hidden_stations(sub);
+    } else
+        mark_hidden_stations(temp);
 
     reports.set_items(temp.all_reports);
     levels.set_items(temp.all_levels);

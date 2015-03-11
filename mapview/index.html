@@ -251,11 +251,9 @@ function set_stations(data)
 function set_highlighted_station(id)
 {
   var marker = markers_by_id[id];
-  console.log("SHS " + marker_highlighted + " to " + marker);
   if (marker_highlighted == marker)
   {
     // No change
-    console.log("SHS no change");
     return;
   }
 
