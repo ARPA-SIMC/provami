@@ -11,5 +11,5 @@ include(defines.inc)
 data.path = $$PREFIX/share/provami
 data.files = mapview
 
-INSTALLS += target data
+INSTALLS += data
 
