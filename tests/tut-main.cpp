@@ -10,6 +10,7 @@ namespace tut {
 }
 
 using namespace wibble;
+using namespace std;
 
 void signal_to_exception(int)          
 {
@@ -72,5 +73,5 @@ int main(int argc, char* argv[])
     std::cerr << "tut raised exception: " << ex.what() << std::endl;
   }
 
-  return 0;
+  return min(visi.failures_count, 120);
 }
