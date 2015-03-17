@@ -1,6 +1,10 @@
-$ qmake-qt5 provami.pro
+$ qmake-qt5 -nocache PREFIX=/usr
 $ make
+$ make check LD_LIBRARY_PATH="$LD_LIBRARY_PATH:`pwd`/provami"
+$ make install DESTDIR=/tmp/provami-qt INSTALL_ROOT=/tmp/provami-qt
 
-# patching make dist:
-$ make dist
-$ tar xzvf provami-qt1.0.0.tar.gz ; mv provami-qt1.0.0 provami-qt-1.0.0 ; tar czvf provami-qt-1.0.0.tar.gz provami-qt-1.0.0
+# patching build:
+# - pass LD_LIBRARY_PATH="$$LD_LIBRARY_PATH:`pwd`/provami" to the make check
+# (see also debian/rules file)
+# - remove /usr/test from installation dir after make install
+# - (fedora only) mv /lib to /usr/lib64 and /bin to /usr/bin
