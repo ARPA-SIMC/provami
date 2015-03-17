@@ -3,6 +3,7 @@
 #include <dballe/core/record.h>
 #include <QMetaType>
 #include <QApplication>
+#include <QNetworkProxyFactory>
 #include <QDebug>
 #include <cstdlib>
 #include <cstdio>
@@ -14,6 +15,8 @@ using namespace provami;
 int main(int argc, char *argv[])
 {
     qRegisterMetaType<dballe::Query>("dballe::Query");
+
+    QNetworkProxyFactory::setUseSystemConfiguration(true);
 
     Model model;
     QApplication a(argc, argv);
