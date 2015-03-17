@@ -73,5 +73,5 @@ int main(int argc, char* argv[])
     std::cerr << "tut raised exception: " << ex.what() << std::endl;
   }
 
-  return min(visi.failures_count, 120);
+  return min(visi.failures_count + visi.exceptions_count, 120);
 }
