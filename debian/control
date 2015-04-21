@@ -2,7 +2,7 @@ Source: provami-qt
 Section: science
 Priority: extra
 Maintainer: Enrico Zini <enrico@enricozini.org>
-Build-Depends: debhelper (>= 9), libqt5-dev, libqt5webkit5-dev, libdballe-dev
+Build-Depends: debhelper (>= 9), cmake, libqt5-dev, libqt5webkit5-dev, libdballe-dev
 Standards-Version: 3.9.2
 Vcs-Svn: https://svn.smr.arpa.emr.it/dballe/provami/trunk
 
