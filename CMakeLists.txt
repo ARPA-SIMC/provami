@@ -29,6 +29,9 @@ file(GLOB provami_libsrc provami/*.cpp)
 file(GLOB provami_cmdsrc src/*.cpp)
 file(GLOB provami_testsrc tests/*.cpp)
 
+# This seems to only be needed only on Fedora 20
+QT5_WRAP_UI(provami_uis_HEADERS ${provami_uis})
+
 add_executable(provami-qt ${provami_libsrc} ${provami_cmdsrc} ${provami_uis})
 add_executable(test-provami ${provami_libsrc} ${provami_testsrc})
 
