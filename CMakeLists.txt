@@ -21,7 +21,6 @@ add_definitions(${DBALLE_CFLAGS_OTHER})
 
 set(DATADIR "${CMAKE_INSTALL_PREFIX}/share/provami")
 
-#add_definitions(${QT_DEFINITIONS})
 add_definitions(-DDATADIR="${DATADIR}")
 
 #file(GLOB provami_headers provami/*.h)
@@ -47,9 +46,3 @@ add_test(NAME test-provami COMMAND test-provami)
 
 install(TARGETS provami-qt DESTINATION bin)
 install(DIRECTORY mapview DESTINATION ${DATADIR})
-
-# DISTFILES += mapview
-# include(defines.inc)
-# data.path = $$PREFIX/share/provami
-# data.files = mapview
-# INSTALLS += data
