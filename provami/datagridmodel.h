@@ -1,5 +1,5 @@
 #ifndef PROVAMI_DATAGRIDMODEL_H
-#define PROVMAI_DATAGRIDMODEL_H
+#define PROVAMI_DATAGRIDMODEL_H
 
 #include <QAbstractTableModel>
 #include <provami/model.h>
