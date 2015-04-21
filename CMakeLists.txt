@@ -25,12 +25,12 @@ set(DATADIR "${CMAKE_INSTALL_PREFIX}/share/provami")
 add_definitions(-DDATADIR="${DATADIR}")
 
 #file(GLOB provami_headers provami/*.h)
-#file(GLOB provami_uis provami/*.ui)
+file(GLOB provami_uis provami/*.ui)
 file(GLOB provami_libsrc provami/*.cpp)
 file(GLOB provami_cmdsrc src/*.cpp)
 file(GLOB provami_testsrc tests/*.cpp)
 
-add_executable(provami-qt ${provami_libsrc} ${provami_cmdsrc})
+add_executable(provami-qt ${provami_libsrc} ${provami_cmdsrc} ${provami_uis})
 add_executable(test-provami ${provami_libsrc} ${provami_testsrc})
 
 target_link_libraries(provami-qt Qt5::Widgets Qt5::WebKitWidgets)
