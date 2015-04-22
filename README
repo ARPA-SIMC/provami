@@ -1,10 +1,9 @@
-$ qmake-qt5 -nocache PREFIX=/usr
-$ make
-$ make check LD_LIBRARY_PATH="$LD_LIBRARY_PATH:`pwd`/provami"
-$ make install DESTDIR=/tmp/provami-qt INSTALL_ROOT=/tmp/provami-qt
+make dist assente
+maccherone #1
+svn export https://svn.smr.arpa.emr.it/dballe/provami/trunk provami-qt-1.0.0 ; tar czvf provami-qt-1.0.0.tar.gz provami-qt-1.0.0
 
-# patching build:
-# - pass LD_LIBRARY_PATH="$$LD_LIBRARY_PATH:`pwd`/provami" to the make check
-# (see also debian/rules file)
-# - remove /usr/test from installation dir after make install
-# - (fedora only) mv /lib to /usr/lib64 and /bin to /usr/bin
+eventuale maccherone #2 (da valutare)
+http://agateau.com/2009/cmake-and-make-dist-the-simple-version/
+
+cmake + spec fedora:
+https://fedoraproject.org/wiki/Packaging:Cmake
