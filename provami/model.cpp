@@ -517,11 +517,9 @@ void Model::set_filter(const Query &new_filter)
 
 void Model::unselect_station()
 {
-    next_filter.unset(DBA_KEY_LATMIN);
-    next_filter.unset(DBA_KEY_LATMAX);
-    next_filter.unset(DBA_KEY_LONMIN);
-    next_filter.unset(DBA_KEY_LONMAX);
-    next_filter.unset(DBA_KEY_ANA_ID);
+    next_filter.coords_min = Coords();
+    next_filter.coords_max = Coords();
+    next_filter.ana_id = MISSING_INT;
     process_summary();
 }
 
