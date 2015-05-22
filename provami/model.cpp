@@ -106,13 +106,13 @@ void Model::update(int var_id, wreport::Varcode var_related, const wreport::Var 
 void Model::remove(const Value &val)
 {
     emit begin_data_changed();
-    Record change;
-    change.set(DBA_KEY_ANA_ID, val.ana_id);
-    change.set(DBA_KEY_REP_MEMO, val.rep_memo.c_str());
-    change.set(val.level);
-    change.set(val.trange);
-    change.set_datetime(val.date);
-    change.set(DBA_KEY_VAR, format_code(val.var.code()));
+    Query change;
+    change.ana_id = val.ana_id;
+    change.rep_memo = val.rep_memo;
+    change.level = val.level;
+    change.trange = val.trange;
+    change.datetime_min = change.datetime_max = val.date;
+    change.varcodes.insert(val.var.code());
     db->remove(change);
     vector<Value>::iterator i = std::find(cache_values.begin(), cache_values.end(), val);
     if (i != cache_values.end())
@@ -122,7 +122,7 @@ void Model::remove(const Value &val)
     emit end_data_changed();
 }
 
-void Model::set_initial_filter(const Record &rec)
+void Model::set_initial_filter(const Query& rec)
 {
     active_filter = rec;
     next_filter = rec;
@@ -180,8 +180,8 @@ void Model::refresh(bool accurate)
 void Model::refresh_data()
 {
     emit progress("data", "Loading data...");
-    Record query(active_filter);
-    query.set("limit", (int)limit);
+    Query query(active_filter);
+    query.limit = limit;
     refreshing_data = true;
     refresh_thread.query_data(query);
 }
@@ -294,7 +294,7 @@ void Model::mark_hidden_stations(const db::Summary &summary)
 
 void Model::process_summary()
 {
-    qDebug() << "process_summary" << QString::fromStdString(next_filter.to_string());
+    //qDebug() << "process_summary" << QString::fromStdString(next_filter.to_string());
     if (summaries.empty()) return;
     Matcher matcher(next_filter, cache_stations);
     db::Summary temp(next_filter);
@@ -308,7 +308,7 @@ void Model::process_summary()
     set<string> all_idents;
     if (matcher.has_flt_station)
     {
-        Record subrec(next_filter);
+        Query subrec(next_filter);
         for (int i = DBA_KEY_ANA_ID; i <= DBA_KEY_LONMIN; ++i)
             subrec.unset((dba_keyword)i);
         Matcher submatcher(subrec, cache_stations);
@@ -336,7 +336,7 @@ void Model::process_summary()
 
     if (matcher.has_flt_rep_memo)
     {
-        Record subrec(next_filter);
+        Query subrec(next_filter);
         subrec.unset(DBA_KEY_REP_MEMO);
         Matcher submatcher(subrec, cache_stations);
         db::Summary sub(subrec);
@@ -348,8 +348,8 @@ void Model::process_summary()
 
     if (matcher.has_flt_level)
     {
-        Record subrec(next_filter);
-        subrec.set(Level());
+        Query subrec(next_filter);
+        subrec.level = Level();
         Matcher submatcher(subrec, cache_stations);
         db::Summary sub(subrec);
         filter_top_summary(submatcher, sub);
@@ -359,8 +359,8 @@ void Model::process_summary()
 
     if (matcher.has_flt_trange)
     {
-        Record subrec(next_filter);
-        subrec.set(Trange());
+        Query subrec(next_filter);
+        subrec.trange = Trange();
         Matcher submatcher(subrec, cache_stations);
         db::Summary sub(subrec);
         filter_top_summary(submatcher, sub);
@@ -370,7 +370,7 @@ void Model::process_summary()
 
     if (matcher.has_flt_varcode)
     {
-        Record subrec(next_filter);
+        Query subrec(next_filter);
         subrec.unset(DBA_KEY_VAR);
         Matcher submatcher(subrec, cache_stations);
         db::Summary sub(subrec);
@@ -390,20 +390,20 @@ void Model::select_report(const string &val)
 
 void Model::select_level(const Level &val)
 {
-    next_filter.set(val);
+    next_filter.level = val;
     process_summary();
 }
 
 void Model::select_trange(const Trange &val)
 {
-    next_filter.set(val);
+    next_filter.trange = val;
     process_summary();
 }
 
 void Model::select_varcode(wreport::Varcode val)
 {
-    std::string code = wreport::varcode_format(val);
-    next_filter.set(DBA_KEY_VAR, code.c_str());
+    next_filter.varcodes.clear();
+    next_filter.varcodes.insert(val);
     process_summary();
 }
 
@@ -431,29 +431,23 @@ static void optimize_datetime(dballe::Record& rec)
 
 void Model::select_datemin(const dballe::Datetime& val)
 {
-    int old[6];
-    next_filter.get_datetimemin(old);
-    if (val == dballe::Datetime(old)) return;
-    next_filter.setmin(val);
+    if (next_filter.datetime_min == val) return;
+    next_filter.datetime_min = val;
     process_summary();
 }
 
 void Model::select_datemax(const dballe::Datetime& val)
 {
-    int old[6];
-    next_filter.get_datetimemax(old);
-    if (val == dballe::Datetime(old)) return;
-    next_filter.setmax(val);
+    if (next_filter.datetime_max == val) return;
+    next_filter.datetime_max = val;
     process_summary();
 }
 
 void Model::select_station_id(int id)
 {
-    next_filter.unset(DBA_KEY_LATMIN);
-    next_filter.unset(DBA_KEY_LATMAX);
-    next_filter.unset(DBA_KEY_LONMIN);
-    next_filter.unset(DBA_KEY_LONMAX);
-    next_filter.set(DBA_KEY_ANA_ID, id);
+    next_filter.coords_min = Coords();
+    next_filter.coords_max = Coords();
+    next_filter.ana_id = id;
     process_summary();
 }
 
@@ -480,54 +474,43 @@ void Model::select_ident(const string &val)
 
 void Model::unselect_report()
 {
-    next_filter.unset(DBA_KEY_REP_MEMO);
+    next_filter.rep_memo.clear();
     process_summary();
 }
 
 void Model::unselect_level()
 {
-    next_filter.unset(DBA_KEY_LEVELTYPE1);
-    next_filter.unset(DBA_KEY_L1);
-    next_filter.unset(DBA_KEY_LEVELTYPE2);
-    next_filter.unset(DBA_KEY_L2);
+    next_filter.level = Level();
     process_summary();
 }
 
 void Model::unselect_trange()
 {
-    next_filter.unset(DBA_KEY_PINDICATOR);
-    next_filter.unset(DBA_KEY_P1);
-    next_filter.unset(DBA_KEY_P2);
+    next_filter.trange = Trange();
     process_summary();
 }
 
 void Model::unselect_varcode()
 {
-    next_filter.unset(DBA_KEY_VAR);
+    next_filter.varcodes.clear();
     process_summary();
 }
 
 void Model::unselect_datemin()
 {
-    int old[6];
-    next_filter.get_datetimemin(old);
-    if (old[0] == MISSING_INT) return;
-
-    next_filter.unset_datetimemin();
+    if (next_filter.datetime_min.is_missing()) return;
+    next_filter.datetime_min = Datetime();
     process_summary();
 }
 
 void Model::unselect_datemax()
 {
-    int old[6];
-    next_filter.get_datetimemax(old);
-    if (old[0] == MISSING_INT) return;
-
-    next_filter.unset_datetimemax();
+    if (next_filter.datetime_max.is_missing()) return;
+    next_filter.datetime_max = Datetime();
     process_summary();
 }
 
-void Model::set_filter(const Record &new_filter)
+void Model::set_filter(const Query &new_filter)
 {
     next_filter = new_filter;
     process_summary();}

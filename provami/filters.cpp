@@ -143,9 +143,9 @@ FilterReportModel::FilterReportModel(Model &model, QObject *parent)
     : FilterModelBase<std::string>(model, parent)
 {
 }
-string FilterReportModel::from_record(const dballe::Record& rec) const
+std::string FilterReportModel::from_record(const dballe::Query& rec) const
 {
-    return rec.get(DBA_KEY_REP_MEMO, "");
+    return rec.rep_memo;
 }
 void FilterReportModel::filter_select(const string &val) { model.select_report(val); }
 void FilterReportModel::filter_unselect() { model.unselect_report(); }
@@ -156,9 +156,9 @@ FilterLevelModel::FilterLevelModel(Model &model, QObject *parent)
     : FilterModelBase<dballe::Level>(model, parent)
 {
 }
-Level FilterLevelModel::from_record(const dballe::Record& rec) const
+Level FilterLevelModel::from_record(const dballe::Query& rec) const
 {
-    return rec.get_level();
+    return rec.level;
 }
 void FilterLevelModel::filter_select(const Level &val) { model.select_level(val); }
 void FilterLevelModel::filter_unselect() { model.unselect_level(); }
@@ -172,9 +172,9 @@ FilterTrangeModel::FilterTrangeModel(Model &model, QObject *parent)
     : FilterModelBase<dballe::Trange>(model, parent)
 {
 }
-Trange FilterTrangeModel::from_record(const dballe::Record& rec) const
+Trange FilterTrangeModel::from_record(const dballe::Query& rec) const
 {
-    return rec.get_trange();
+    return rec.trange;
 }
 void FilterTrangeModel::filter_select(const Trange &val) { model.select_trange(val); }
 void FilterTrangeModel::filter_unselect() { model.unselect_trange(); }
@@ -187,10 +187,12 @@ FilterVarcodeModel::FilterVarcodeModel(Model &model, QObject *parent)
     : FilterModelBase<wreport::Varcode>(model, parent)
 {
 }
-wreport::Varcode FilterVarcodeModel::from_record(const dballe::Record& rec) const
+wreport::Varcode FilterVarcodeModel::from_record(const dballe::Query& rec) const
 {
-    const char* scode = rec.get(DBA_KEY_VAR, "");
-    return wreport::descriptor_code(scode);
+    if (rec.varcodes.empty())
+        return 0;
+    else
+        return *rec.varcodes.begin();
 }
 void FilterVarcodeModel::filter_select(const wreport::Varcode &val) { model.select_varcode(val); }
 void FilterVarcodeModel::filter_unselect() { model.unselect_varcode(); }
@@ -210,9 +212,16 @@ FilterIdentModel::FilterIdentModel(Model &model, QObject *parent)
     : FilterModelBase<std::string>(model, parent)
 {
 }
-string FilterIdentModel::from_record(const dballe::Record& rec) const
+string FilterIdentModel::from_record(const dballe::Query& rec) const
 {
-    return rec.get(DBA_KEY_IDENT, "");
+    if (rec.has_ident)
+        return rec.ident;
+    else
+        // FIXME: it could be possible that a station has an empty string as
+        // ident. To support that, we need to return a QString instead of a
+        // std::string, since QString allows a null value different from the
+        // empty string
+        return string();
 }
 void FilterIdentModel::filter_select(const string &val) { model.select_ident(val); }
 void FilterIdentModel::filter_unselect() { model.unselect_ident(); }

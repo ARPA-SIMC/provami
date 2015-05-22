@@ -2,7 +2,7 @@
 #include "provami/model.h"
 #include <QKeyEvent>
 #include <dballe/core/defs.h>
-#include <dballe/core/record.h>
+#include <dballe/core/query.h>
 #include <sstream>
 
 using namespace std;
@@ -22,23 +22,23 @@ DateEdit::DateEdit(QWidget *parent) :
 void DateEdit::set_model(Model &model)
 {
     this->model = &model;
-    this->rec = &model.next_filter;
+    this->query = &model.next_filter;
     connect(this->model, SIGNAL(active_filter_changed()), this, SLOT(on_minmax_changed()));
 }
 
-QDateTime DateEdit::set_value(int* vals)
+QDateTime DateEdit::set_value(const Datetime& dt)
 {
     setStyleSheet("");
-    if (vals[0] == MISSING_INT)
+    if (dt.is_missing())
     {
         setText("");
         return QDateTime();
     }
     else
     {
-        QDateTime dt(QDate(vals[0], vals[1], vals[2]), QTime(vals[3], vals[4], vals[5]));
-        setText(dt.toString("yyyy-MM-dd hh:mm:ss"));
-        return dt;
+        QDateTime res(QDate(dt.date.year, dt.date.month, dt.date.day), QTime(dt.time.hour, dt.time.minute, dt.time.second));
+        setText(res.toString("yyyy-MM-dd hh:mm:ss"));
+        return res;
     }
 }
 
@@ -169,13 +169,7 @@ MinDateEdit::MinDateEdit(QWidget *parent)
 
 void MinDateEdit::reset()
 {
-    int dt[6] = { MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT };
-    if (rec)
-    {
-        int dt_max[6];
-        rec->parse_date_extremes(dt, dt_max);
-    }
-    emit(activate(set_value(dt)));
+    emit(activate(set_value(query->datetime_min)));
 }
 
 MaxDateEdit::MaxDateEdit(QWidget *parent)
@@ -185,13 +179,7 @@ MaxDateEdit::MaxDateEdit(QWidget *parent)
 
 void MaxDateEdit::reset()
 {
-    int dt[6] = { MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT, MISSING_INT };
-    if (rec)
-    {
-        int dt_min[6];
-        rec->parse_date_extremes(dt_min, dt);
-    }
-    emit(activate(set_value(dt)));
+    emit(activate(set_value(query->datetime_max)));
 }
 
 void MaxDateEdit::complete_datetime(int *vals) const

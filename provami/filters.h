@@ -7,7 +7,7 @@
 #include <set>
 
 namespace dballe {
-class Record;
+class Query;
 }
 
 namespace provami {
@@ -43,7 +43,7 @@ protected:
     std::vector<ITEM> items;
 
     /// Read this filter item from a filter record
-    virtual ITEM from_record(const dballe::Record& rec) const = 0;
+    virtual ITEM from_record(const dballe::Query& rec) const = 0;
     /// Read the currently selected ITEM from the model
     virtual ITEM from_model() const;
     /// Read the currently active ITEM from the model
@@ -72,7 +72,7 @@ public:
 class FilterReportModel : public FilterModelBase<std::string>
 {
 protected:
-    virtual std::string from_record(const dballe::Record& rec) const;
+    std::string from_record(const dballe::Query& rec) const override;
     virtual void filter_select(const std::string& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const std::string& val) const;
@@ -85,7 +85,7 @@ public:
 class FilterLevelModel : public FilterModelBase<dballe::Level>
 {
 protected:
-    virtual dballe::Level from_record(const dballe::Record& rec) const;
+    dballe::Level from_record(const dballe::Query& rec) const override;
     virtual void filter_select(const dballe::Level& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const dballe::Level &val) const;
@@ -99,7 +99,7 @@ public:
 class FilterTrangeModel : public FilterModelBase<dballe::Trange>
 {
 protected:
-    virtual dballe::Trange from_record(const dballe::Record& rec) const;
+    dballe::Trange from_record(const dballe::Query& rec) const override;
     virtual void filter_select(const dballe::Trange& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const dballe::Trange &val) const;
@@ -112,7 +112,7 @@ public:
 class FilterVarcodeModel : public FilterModelBase<wreport::Varcode>
 {
 protected:
-    virtual wreport::Varcode from_record(const dballe::Record& rec) const;
+    wreport::Varcode from_record(const dballe::Query& rec) const override;
     virtual void filter_select(const wreport::Varcode& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const wreport::Varcode &val) const;
@@ -125,7 +125,7 @@ public:
 class FilterIdentModel : public FilterModelBase<std::string>
 {
 protected:
-    virtual std::string from_record(const dballe::Record& rec) const;
+    std::string from_record(const dballe::Query& rec) const override;
     virtual void filter_select(const std::string& val);
     virtual void filter_unselect();
     virtual QVariant item_to_table_cell(const std::string& val) const;

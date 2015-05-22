@@ -160,10 +160,10 @@ void StationGridModel::on_highlight_changed()
     beginResetModel();
     station_id = model.highlight.station_id();
     values.clear();
-    dballe::Record rec;
-    rec.set(DBA_KEY_ANA_ID, station_id);
-    rec.set_ana_context();
-    auto cur = model.db->query_data(rec);
+    dballe::Query query;
+    query.ana_id = station_id;
+    query.query_station_vars = true;
+    auto cur = model.db->query_data(query);
     while (cur->next())
         values.emplace_back(*cur);
     endResetModel();

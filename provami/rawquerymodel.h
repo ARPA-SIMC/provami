@@ -22,8 +22,8 @@ protected:
     Model& model;
     std::vector<rawquery::Item> values;
 
-    /// Build a record with the current contents
-    dballe::Record build_record() const;
+    /// Build a query with the current contents
+    dballe::Query build_record() const;
 
 public:
     enum ColumnType {

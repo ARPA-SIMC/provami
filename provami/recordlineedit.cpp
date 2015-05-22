@@ -1,36 +1,66 @@
 #include "provami/recordlineedit.h"
+#include <dballe/core/query.h>
 
 using namespace dballe;
+using namespace wreport;
 using namespace std;
 
 namespace provami {
 
 RecordLineEdit::RecordLineEdit(QWidget *parent) :
-    QLineEdit(parent), rec(0), key(DBA_KEY_ERROR)
+    QLineEdit(parent), key(DBA_KEY_ERROR)
 {
     connect(this, SIGNAL(editingFinished()), this, SLOT(on_editing_finished()));
     connect(this, SIGNAL(textEdited(QString)), this, SLOT(on_text_edited(QString)));
 }
 
-void RecordLineEdit::set_record(Record &rec, dba_keyword key)
+void RecordLineEdit::set_record(Query& query, dba_keyword key)
 {
-    this->rec = &rec;
+    this->query = &query;
+    switch (key)
+    {
+        case DBA_KEY_ANA_ID:
+            query_to_string = [](const Query& q) {
+                if (q.ana_id == MISSING_INT) return QString();
+                return QString::number(q.ana_id);
+            };
+            break;
+        case DBA_KEY_LATMIN:
+            query_to_string = [](const Query& q) {
+                if (q.coords_min.lat == MISSING_INT) return QString();
+                return QString::number(q.coords_min.dlat(), 'f', 5);
+            };
+            break;
+        case DBA_KEY_LATMAX:
+            query_to_string = [](const Query& q) {
+                if (q.coords_max.lat == MISSING_INT) return QString();
+                return QString::number(q.coords_max.dlat(), 'f', 5);
+            };
+            break;
+        case DBA_KEY_LONMIN:
+            query_to_string = [](const Query& q) {
+                if (q.coords_min.lon == MISSING_INT) return QString();
+                return QString::number(q.coords_min.dlon(), 'f', 5);
+            };
+            break;
+        case DBA_KEY_LONMAX:
+            query_to_string = [](const Query& q) {
+                if (q.coords_max.lon == MISSING_INT) return QString();
+                return QString::number(q.coords_max.dlon(), 'f', 5);
+            };
+            break;
+        default:
+            throw error_unimplemented("RecordLineEdit not implemented for this key");
+    }
+
     this->key = key;
 }
 
 void RecordLineEdit::reset()
 {
-    if (!rec) return;
+    if (!query) return;
 
-    if (rec->contains(key))
-    {
-        string val = rec->get(key).format();
-        setText(QString::fromStdString(val));
-    }
-    else
-    {
-        setText("");
-    }
+    setText(query_to_string(*query));
     setStyleSheet("");
 }
 

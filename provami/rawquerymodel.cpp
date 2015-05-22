@@ -1,8 +1,10 @@
 #include "provami/rawquerymodel.h"
-#include <dballe/core/record.h>
+#include <dballe/core/query.h>
 #include <QDebug>
 
 using namespace dballe;
+using namespace wreport;
+using namespace std;
 
 namespace provami {
 
@@ -137,21 +139,15 @@ const rawquery::Item* RawQueryModel::valueAt(const QModelIndex &index) const
     return &item;
 }
 
-static std::vector<rawquery::Item> record_to_items(const dballe::Record& rec)
+static std::vector<rawquery::Item> record_to_items(const dballe::Query& q)
 {
     std::vector<rawquery::Item> new_items;
+    q.to_vars([&](dba_keyword key, unique_ptr<Var> var) {
+        new_items.emplace_back(rawquery::Item{ Record::keyword_name(key), var->format("") });
+    });
 
-    for (int k = 0; k < (int)DBA_KEY_COUNT; ++k)
-        if (auto var = rec.key_peek((dba_keyword)k))
-        {
-            if (!var->isset()) continue;
-            new_items.emplace_back(rawquery::Item{ Record::keyword_name((dba_keyword)k), var->format("") });
-        }
-    for (auto var: rec.vars())
-    {
-        if (!var->isset()) continue;
-        new_items.emplace_back(rawquery::Item{ wreport::varcode_format(var->code()), var->format("") });
-    }
+    if (q.block != MISSING_INT) new_items.emplace_back(rawquery::Item{ "block", to_string(q.block) });
+    if (q.station != MISSING_INT) new_items.emplace_back(rawquery::Item{ "station", to_string(q.station) });
 
     return new_items;
 }
@@ -172,9 +168,9 @@ void RawQueryModel::next_filter_changed()
     endResetModel();
 }
 
-Record RawQueryModel::build_record() const
+Query RawQueryModel::build_record() const
 {
-    Record new_rec;
+    Query new_rec;
     for (const auto& item: values)
     {
         if (item.key.empty() || item.val.empty()) continue;

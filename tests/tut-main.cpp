@@ -1,5 +1,5 @@
 #include <wibble/tests.h>
-#include <dballe/core/record.h>
+#include <dballe/core/query.h>
 #include <signal.h>
 #include <cstring>
 #include <cstdlib>

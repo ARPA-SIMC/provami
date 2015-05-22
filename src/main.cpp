@@ -1,6 +1,6 @@
 #include "provami/provamimainwindow.h"
 #include "provami/model.h"
-#include <dballe/core/record.h>
+#include <dballe/core/query.h>
 #include <QMetaType>
 #include <QApplication>
 #include <QNetworkProxyFactory>
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
     // Parse initial query from command line arguments, taking those arguments
     // that contain an =
-    Record initial_query;
+    Query initial_query;
     vector<string> args;
     for (int i = 1; i < argc; ++i)
     {

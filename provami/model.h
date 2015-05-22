@@ -46,7 +46,7 @@ public slots:
     void unselect_varcode();
     void unselect_datemin();
     void unselect_datemax();
-    void set_filter(const dballe::Record& new_filter);
+    void set_filter(const dballe::Query& new_filter);
     void on_have_new_summary(dballe::Query query, bool with_details);
     void on_have_new_data();
 
@@ -103,9 +103,9 @@ public:
     // Current highlight
     Highlight highlight;
     // Filter corresponding to the data currently shown
-    dballe::Record active_filter;
+    dballe::Query active_filter;
     // Filter that is being edited
-    dballe::Record next_filter;
+    dballe::Query next_filter;
 
     FilterReportModel reports;
     FilterLevelModel levels;
@@ -156,7 +156,7 @@ public:
     void remove(const Value& val);
 
     /// Set a filter before the initial connect
-    void set_initial_filter(const dballe::Record& rec);
+    void set_initial_filter(const dballe::Query& rec);
 
     /// Connect to a new database, possibly disconnecting from the previous one
     void dballe_connect(const std::string& dballe_url);

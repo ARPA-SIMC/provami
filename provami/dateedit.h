@@ -5,7 +5,8 @@
 #include <QDateTime>
 
 namespace dballe {
-struct Record;
+struct Datetime;
+struct Query;
 }
 
 namespace provami {
@@ -19,18 +20,17 @@ protected:
     Model* model = 0;
     QRegExp fmt1;
     QRegExp fmt2;
-    dballe::Record* rec = 0;
+    dballe::Query* query = 0;
 
     // To reset on ESC
     void keyPressEvent(QKeyEvent* event) override;
 
     /**
-     * Set the string value from a date in an int array as may come
-     * from dballe::Record::parse_date_extremes.
+     * Set the string value from a Datetime.
      *
-     * Return the QDateTime equivalent of vals.
+     * Return the QDateTime equivalent of dt.
      */
-    QDateTime set_value(int* vals);
+    QDateTime set_value(const dballe::Datetime& dt);
 
     /**
      * Check if the date entered is a valid date, and return it parsed.
@@ -48,7 +48,7 @@ public:
     void set_model(Model& model);
 
 
-    void set_record(dballe::Record& rec);
+    void set_record(dballe::Query& query);
 
     /// Reset using the original value
     virtual void reset() = 0;

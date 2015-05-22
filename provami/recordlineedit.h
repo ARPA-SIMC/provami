@@ -12,7 +12,8 @@ class RecordLineEdit : public QLineEdit
     Q_OBJECT
 
 protected:
-    dballe::Record* rec;
+    dballe::Query* query = 0;
+    std::function<QString(const dballe::Query&)> query_to_string = nullptr;
     dballe::dba_keyword key;
 
     // To reset on ESC
@@ -20,13 +21,13 @@ protected:
 
 public:
     explicit RecordLineEdit(QWidget *parent = 0);
-    void set_record(dballe::Record& rec, dballe::dba_keyword key);
+    void set_record(dballe::Query& query, dballe::dba_keyword key);
     /// Reset using the value from the record
     void reset();
 
 signals:
     void canceled();
-    
+
 public slots:
 
 protected slots:

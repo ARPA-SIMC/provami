@@ -1,4 +1,5 @@
 #include "provami/refreshthread.h"
+#include <dballe/core/query.h>
 #include <dballe/db/db.h>
 #include <QDebug>
 
@@ -73,8 +74,7 @@ void RefreshThread::run()
         if (sum_query)
         {
             //qDebug() << "worker: starting summary query";
-            const char* query_request = sum_query->key_peek_value(DBA_KEY_QUERY);
-            bool with_details = query_request ? strcmp(query_request, "details") == 0 : false;
+            bool with_details = sum_query->query.find("details") != string::npos;
             auto cur = db->query_summary(*sum_query);
             {
                 MutexLock lock(mutex);

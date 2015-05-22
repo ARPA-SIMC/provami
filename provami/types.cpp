@@ -45,18 +45,18 @@ Matcher::Matcher(const dballe::Query &query, const std::map<int, Station> &all_s
     // Scan the filter building a todo list of things to match
 
     // If there is any filtering on the station, build a whitelist of matching stations
-    bool has_flt_ident = query.contains(DBA_KEY_IDENT);
-    bool has_flt_area = query.contains(DBA_KEY_LATMIN) && query.contains(DBA_KEY_LATMAX)
-            && query.contains(DBA_KEY_LONMIN) && query.contains(DBA_KEY_LONMAX);
-    bool has_flt_station_id = query.contains(DBA_KEY_ANA_ID);
+    bool has_flt_ident = query.has_ident;
+    bool has_flt_area = !query.coords_min.is_missing() && !query.coords_max.is_missing();
+    bool has_flt_station_id = query.ana_id != MISSING_INT;
     if (has_flt_ident || has_flt_area || has_flt_station_id)
     {
-        int flt_station_id = query.get(DBA_KEY_ANA_ID, 0);
-        string flt_ident = query.get(DBA_KEY_IDENT, "");
-        double flt_area_latmin = query.get(DBA_KEY_LATMIN, -100000.0);
-        double flt_area_latmax = query.get(DBA_KEY_LATMAX,  100000.0);
-        double flt_area_lonmin = query.get(DBA_KEY_LONMIN, -100000.0);
-        double flt_area_lonmax = query.get(DBA_KEY_LONMAX,  100000.0);
+        int flt_station_id = query.ana_id;
+        string flt_ident = query.has_ident ? query.ident : string();
+        // FIXME: this only supports longitude filters that do not cross the date change line
+        double flt_area_latmin = query.coords_min.lat != MISSING_INT ? query.coords_min.dlat() : -90.0;
+        double flt_area_latmax = query.coords_max.lat != MISSING_INT ? query.coords_max.dlat() : 90.0;
+        double flt_area_lonmin = query.coords_min.lon != MISSING_INT ? query.coords_min.dlon() : -1000.0;
+        double flt_area_lonmax = query.coords_max.lon != MISSING_INT ? query.coords_max.dlon() : 1000.0;
         has_flt_station = true;
         for (auto s: all_stations)
         {
@@ -77,19 +77,20 @@ Matcher::Matcher(const dballe::Query &query, const std::map<int, Station> &all_s
         }
     }
 
-    has_flt_rep_memo = query.contains(DBA_KEY_REP_MEMO);
-    wanted_rep_memo = query.get(DBA_KEY_REP_MEMO, "");
+    has_flt_rep_memo = !query.rep_memo.empty();
+    wanted_rep_memo = query.rep_memo;
 
-    has_flt_level = query.contains_level();
-    wanted_level = query.get_level();
+    has_flt_level = !query.level.is_missing();
+    wanted_level = query.level;
 
-    has_flt_trange = query.contains_trange();
-    wanted_trange = query.get_trange();
+    has_flt_trange = !query.trange.is_missing();
+    wanted_trange = query.trange;
 
-    has_flt_varcode = query.contains(DBA_KEY_VAR);
-    wanted_varcode = wreport::descriptor_code(query.get(DBA_KEY_VAR, "B00000"));
+    has_flt_varcode = !query.varcodes.empty();
+    wanted_varcode = has_flt_varcode ? *query.varcodes.begin() : 0;
 
-    query.parse_date_extremes(wanted_dtmin, wanted_dtmax);
+    wanted_dtmin = query.datetime_min;
+    wanted_dtmax = query.datetime_max;
 }
 
 bool Matcher::match(const dballe::db::summary::Entry& entry) const
