@@ -3,7 +3,7 @@
 
 #include <QLineEdit>
 #include <QKeyEvent>
-#include <dballe/core/record.h>
+#include <provami/model.h>
 
 namespace provami {
 
@@ -12,16 +12,16 @@ class RecordLineEdit : public QLineEdit
     Q_OBJECT
 
 protected:
-    dballe::Query* query = 0;
-    std::function<QString(const dballe::Query&)> query_to_string = nullptr;
-    dballe::dba_keyword key;
+    Model* model = nullptr;
+    std::string key;
+    std::function<QString(const Model&)> query_to_string = nullptr;
 
     // To reset on ESC
     void keyPressEvent(QKeyEvent* event);
 
 public:
     explicit RecordLineEdit(QWidget *parent = 0);
-    void set_record(dballe::Query& query, dballe::dba_keyword key);
+    void set_record(Model& model, const std::string& key);
     /// Reset using the value from the record
     void reset();
 

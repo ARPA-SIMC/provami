@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 {
   tut::reporter visi;
 
-  qRegisterMetaType<dballe::Query>("dballe::Query");
+  qRegisterMetaType<dballe::core::Query>("dballe::core::Query");
   QCoreApplication a(argc, argv);
 
   signal(SIGSEGV,signal_to_exception);         

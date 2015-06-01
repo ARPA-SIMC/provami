@@ -1,8 +1,6 @@
 #include "provami/dateedit.h"
 #include "provami/model.h"
 #include <QKeyEvent>
-#include <dballe/core/defs.h>
-#include <dballe/core/query.h>
 #include <sstream>
 
 using namespace std;
@@ -22,7 +20,6 @@ DateEdit::DateEdit(QWidget *parent) :
 void DateEdit::set_model(Model &model)
 {
     this->model = &model;
-    this->query = &model.next_filter;
     connect(this->model, SIGNAL(active_filter_changed()), this, SLOT(on_minmax_changed()));
 }
 
@@ -36,7 +33,7 @@ QDateTime DateEdit::set_value(const Datetime& dt)
     }
     else
     {
-        QDateTime res(QDate(dt.date.year, dt.date.month, dt.date.day), QTime(dt.time.hour, dt.time.minute, dt.time.second));
+        QDateTime res(QDate(dt.year, dt.month, dt.day), QTime(dt.hour, dt.minute, dt.second));
         setText(res.toString("yyyy-MM-dd hh:mm:ss"));
         return res;
     }
@@ -169,7 +166,9 @@ MinDateEdit::MinDateEdit(QWidget *parent)
 
 void MinDateEdit::reset()
 {
-    emit(activate(set_value(query->datetime_min)));
+    Datetime dtmin, dtmax;
+    model->next_filter->get_datetime_bounds(dtmin, dtmax);
+    emit(activate(set_value(dtmin)));
 }
 
 MaxDateEdit::MaxDateEdit(QWidget *parent)
@@ -179,7 +178,9 @@ MaxDateEdit::MaxDateEdit(QWidget *parent)
 
 void MaxDateEdit::reset()
 {
-    emit(activate(set_value(query->datetime_max)));
+    Datetime dtmin, dtmax;
+    model->next_filter->get_datetime_bounds(dtmin, dtmax);
+    emit(activate(set_value(dtmax)));
 }
 
 void MaxDateEdit::complete_datetime(int *vals) const

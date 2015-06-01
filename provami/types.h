@@ -2,12 +2,12 @@
 #define PROVAMI_TYPES_H
 
 #include <wreport/var.h>
-#include <dballe/core/defs.h>
-#include <dballe/core/record.h>
+#include <dballe/types.h>
 #include <set>
 #include <map>
 
 namespace dballe {
+struct Query;
 namespace db {
 class Cursor;
 namespace summary {
@@ -60,15 +60,14 @@ struct Value : public BaseValue
 {
     dballe::Level level;
     dballe::Trange trange;
-    int date[6];
+    dballe::Datetime date;
 
     bool operator==(const Value& val) const
     {
         if (!BaseValue::operator==(val)) return false;
         if (level != val.level) return false;
         if (trange != val.trange) return false;
-        for (unsigned i = 0; i < 6; ++i)
-            if (date[i] != val.date[i]) return false;
+        if (date != val.date) return false;
         return true;
     }
 

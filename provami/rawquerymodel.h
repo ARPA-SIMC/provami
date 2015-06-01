@@ -23,7 +23,7 @@ protected:
     std::vector<rawquery::Item> values;
 
     /// Build a query with the current contents
-    dballe::Query build_record() const;
+    std::unique_ptr<dballe::Query> build_record() const;
 
 public:
     enum ColumnType {

@@ -1,6 +1,5 @@
 #include "provami/model.h"
 #include <memory>
-#include <dballe/core/record.h>
 #include <dballe/db/db.h>
 #include <set>
 #include <algorithm>
@@ -13,9 +12,10 @@ using namespace dballe;
 namespace provami {
 
 Model::Model()
-    : db(0), reports(*this), levels(*this), tranges(*this), varcodes(*this), idents(*this)
+    : db(0), active_filter(Query::create()), next_filter(Query::create()),
+      reports(*this), levels(*this), tranges(*this), varcodes(*this), idents(*this)
 {
-    connect(&refresh_thread, SIGNAL(have_new_summary(dballe::Query, bool)), this, SLOT(on_have_new_summary(dballe::Query, bool)));
+    connect(&refresh_thread, SIGNAL(have_new_summary(dballe::core::Query, bool)), this, SLOT(on_have_new_summary(dballe::core::Query, bool)));
     connect(&refresh_thread, SIGNAL(have_new_data()), this, SLOT(on_have_new_data()));
 }
 
@@ -79,7 +79,7 @@ void Model::update(Value &val, const wreport::Var &new_val)
     change.set(DBA_KEY_REP_MEMO, val.rep_memo.c_str());
     change.set(val.level);
     change.set(val.trange);
-    change.set_datetime(val.date);
+    change.set(val.date);
     change.set(new_val);
     db->insert(change, true, false);
     val.var = new_val;
@@ -106,14 +106,14 @@ void Model::update(int var_id, wreport::Varcode var_related, const wreport::Var 
 void Model::remove(const Value &val)
 {
     emit begin_data_changed();
-    Query change;
-    change.ana_id = val.ana_id;
-    change.rep_memo = val.rep_memo;
-    change.level = val.level;
-    change.trange = val.trange;
-    change.datetime_min = change.datetime_max = val.date;
-    change.varcodes.insert(val.var.code());
-    db->remove(change);
+    auto change = Query::create();
+    change->set("ana_id", val.ana_id);
+    change->set("rep_memo", val.rep_memo);
+    change->set_level(val.level);
+    change->set_trange(val.trange);
+    change->set_datetime_exact(val.date);
+    change->set("var", format_code(val.var.code()));
+    db->remove(*change);
     vector<Value>::iterator i = std::find(cache_values.begin(), cache_values.end(), val);
     if (i != cache_values.end())
     {
@@ -124,8 +124,8 @@ void Model::remove(const Value &val)
 
 void Model::set_initial_filter(const Query& rec)
 {
-    active_filter = rec;
-    next_filter = rec;
+    active_filter = rec.clone();
+    next_filter = rec.clone();
 }
 
 void Model::dballe_connect(const std::string &dballe_url)
@@ -180,10 +180,10 @@ void Model::refresh(bool accurate)
 void Model::refresh_data()
 {
     emit progress("data", "Loading data...");
-    Query query(active_filter);
-    query.limit = limit;
+    auto query = active_filter->clone();
+    query->seti("limit", limit);
     refreshing_data = true;
-    refresh_thread.query_data(query);
+    refresh_thread.query_data(*query);
 }
 
 void Model::on_have_new_data()
@@ -214,12 +214,12 @@ void Model::refresh_summary(bool accurate)
     {
         emit progress("summary", "Loading initial summary from db...");
         refreshing_stations = true;
-        refresh_thread.query_summary(Query(), true);
+        refresh_thread.query_summary(*Query::create(), true);
         return;
     }
 
-    Matcher matcher(active_filter, cache_stations);
-    auto supported = summaries.query(active_filter, accurate, [&](const Entry& entry) {
+    Matcher matcher(*active_filter, cache_stations);
+    auto supported = summaries.query(*active_filter, accurate, [&](const Entry& entry) {
         return matcher.match(entry);
     });
 
@@ -228,7 +228,7 @@ void Model::refresh_summary(bool accurate)
         emit progress("summary", "Loading summary from db...");
         refreshing_stations = true;
         // The best summary that we have do not support what we need: hit the database
-        refresh_thread.query_summary(active_filter, accurate);
+        refresh_thread.query_summary(*active_filter, accurate);
     }
     else
     {
@@ -241,7 +241,7 @@ void Model::refresh_summary(bool accurate)
 
 }
 
-void Model::on_have_new_summary(Query query, bool with_details)
+void Model::on_have_new_summary(core::Query query, bool with_details)
 {
     emit progress("summary", "Processing summary...");
     qDebug() << "Refresh summary results arrived";
@@ -273,7 +273,7 @@ void Model::on_have_new_summary(Query query, bool with_details)
 
 void Model::activate_next_filter(bool accurate)
 {
-    active_filter = next_filter;
+    active_filter = next_filter->clone();
     refresh(accurate);
 }
 
@@ -294,10 +294,11 @@ void Model::mark_hidden_stations(const db::Summary &summary)
 
 void Model::process_summary()
 {
+    next_filter->print(stderr);
     //qDebug() << "process_summary" << QString::fromStdString(next_filter.to_string());
     if (summaries.empty()) return;
-    Matcher matcher(next_filter, cache_stations);
-    db::Summary temp(next_filter);
+    Matcher matcher(*next_filter, cache_stations);
+    db::Summary temp(*next_filter);
     summaries.top().iterate([&](const db::summary::Entry& entry) {
         if (matcher.match(entry))
             temp.add_entry(entry);
@@ -308,11 +309,18 @@ void Model::process_summary()
     set<string> all_idents;
     if (matcher.has_flt_station)
     {
-        Query subrec(next_filter);
-        for (int i = DBA_KEY_ANA_ID; i <= DBA_KEY_LONMIN; ++i)
-            subrec.unset((dba_keyword)i);
-        Matcher submatcher(subrec, cache_stations);
-        db::Summary sub(subrec);
+        auto subrec = next_filter->clone();
+        subrec->unset("ana_id");
+        subrec->unset("mobile");
+        subrec->unset("ident");
+        subrec->unset("lat");
+        subrec->unset("lon");
+        subrec->unset("latmax");
+        subrec->unset("latmin");
+        subrec->unset("lonmax");
+        subrec->unset("lonmin");
+        Matcher submatcher(*subrec, cache_stations);
+        db::Summary sub(*subrec);
         filter_top_summary(submatcher, sub);
         mark_hidden_stations(sub);
         for (int s_id : sub.all_stations)
@@ -336,10 +344,10 @@ void Model::process_summary()
 
     if (matcher.has_flt_rep_memo)
     {
-        Query subrec(next_filter);
-        subrec.unset(DBA_KEY_REP_MEMO);
-        Matcher submatcher(subrec, cache_stations);
-        db::Summary sub(subrec);
+        auto subrec = next_filter->clone();
+        subrec->unset("rep_memo");
+        Matcher submatcher(*subrec, cache_stations);
+        db::Summary sub(*subrec);
         filter_top_summary(submatcher, sub);
         reports.set_items(sub.all_reports);
     }
@@ -348,10 +356,10 @@ void Model::process_summary()
 
     if (matcher.has_flt_level)
     {
-        Query subrec(next_filter);
-        subrec.level = Level();
-        Matcher submatcher(subrec, cache_stations);
-        db::Summary sub(subrec);
+        auto subrec = next_filter->clone();
+        subrec->set_level(Level());
+        Matcher submatcher(*subrec, cache_stations);
+        db::Summary sub(*subrec);
         filter_top_summary(submatcher, sub);
         levels.set_items(sub.all_levels);
     } else
@@ -359,10 +367,10 @@ void Model::process_summary()
 
     if (matcher.has_flt_trange)
     {
-        Query subrec(next_filter);
-        subrec.trange = Trange();
-        Matcher submatcher(subrec, cache_stations);
-        db::Summary sub(subrec);
+        auto subrec = next_filter->clone();
+        subrec->set_trange(Trange());
+        Matcher submatcher(*subrec, cache_stations);
+        db::Summary sub(*subrec);
         filter_top_summary(submatcher, sub);
         tranges.set_items(sub.all_tranges);
     } else
@@ -370,10 +378,10 @@ void Model::process_summary()
 
     if (matcher.has_flt_varcode)
     {
-        Query subrec(next_filter);
-        subrec.unset(DBA_KEY_VAR);
-        Matcher submatcher(subrec, cache_stations);
-        db::Summary sub(subrec);
+        auto subrec = next_filter->clone();;
+        subrec->unset("var");
+        Matcher submatcher(*subrec, cache_stations);
+        db::Summary sub(*subrec);
         filter_top_summary(submatcher, sub);
         varcodes.set_items(sub.all_varcodes);
     } else
@@ -384,70 +392,54 @@ void Model::process_summary()
 
 void Model::select_report(const string &val)
 {
-    next_filter.set(DBA_KEY_REP_MEMO, val.c_str());
+    next_filter->set("rep_memo", val.c_str());
     process_summary();
 }
 
 void Model::select_level(const Level &val)
 {
-    next_filter.level = val;
+    next_filter->set_level(val);
     process_summary();
 }
 
 void Model::select_trange(const Trange &val)
 {
-    next_filter.trange = val;
+    next_filter->set_trange(val);
     process_summary();
 }
 
 void Model::select_varcode(wreport::Varcode val)
 {
-    next_filter.varcodes.clear();
-    next_filter.varcodes.insert(val);
+    next_filter->set("var", wreport::varcode_format(val));
     process_summary();
 }
 
-/*
- * TODO: we will want something like this when we will implement
-* printing a minimal query equivalent for the current filter,
- * to use in command line apps and to run exporter scripts.
-static void optimize_datetime(dballe::Record& rec)
-{
-    int dtmin[6];
-    int dtmax[6];
-    rec.parse_date_extremes(dtmin, dtmax);
-    if (dtmin == dtmax)
-    {
-        rec.unset_datetimemin();
-        rec.unset_datetimemax();
-        rec.set_datetime(dtmin);
-    } else {
-        rec.unset_datetime();
-        rec.set_datetimemin(dtmin);
-        rec.set_datetimemax(dtmax);
-    }
-}
-*/
-
 void Model::select_datemin(const dballe::Datetime& val)
 {
-    if (next_filter.datetime_min == val) return;
-    next_filter.datetime_min = val;
+    Datetime dtmin, dtmax;
+    next_filter->get_datetime_bounds(dtmin, dtmax);
+    if (dtmin == val) return;
+    next_filter->set_datetime_bounds(val, dtmax);
     process_summary();
 }
 
 void Model::select_datemax(const dballe::Datetime& val)
 {
-    if (next_filter.datetime_max == val) return;
-    next_filter.datetime_max = val;
+    Datetime dtmin, dtmax;
+    next_filter->get_datetime_bounds(dtmin, dtmax);
+    if (dtmax == val) return;
+    next_filter->set_datetime_bounds(dtmin, val);
     process_summary();
 }
 
 void Model::select_station_id(int id)
 {
-    next_filter.coords_min = Coords();
-    next_filter.coords_max = Coords();
-    next_filter.ana_id = id;
+    next_filter->unset("latmin");
+    next_filter->unset("latmax");
+    next_filter->unset("lonmin");
+    next_filter->unset("lonmax");
+    next_filter->unset("ident");
+    next_filter->set("ana_id", id);
     process_summary();
 }
 
@@ -458,74 +450,81 @@ void Model::select_station_bounds(double latmin, double latmax, double lonmin, d
     if (lonmin < -180) lonmin = -180;
     if (lonmax > 180) lonmax = 180;
 
-    next_filter.set(DBA_KEY_LATMIN, latmin);
-    next_filter.set(DBA_KEY_LATMAX, latmax);
-    next_filter.set(DBA_KEY_LONMIN, lonmin);
-    next_filter.set(DBA_KEY_LONMAX, lonmax);
-    next_filter.unset(DBA_KEY_ANA_ID);
+    next_filter->set("latmin", latmin);
+    next_filter->set("latmax", latmax);
+    next_filter->set("lonmin", lonmin);
+    next_filter->set("lonmax", lonmax);
+    next_filter->unset("ana_id");
     process_summary();
 }
 
 void Model::select_ident(const string &val)
 {
-    next_filter.set(DBA_KEY_IDENT, val.c_str());
+    next_filter->set("ident", val.c_str());
     process_summary();
 }
 
 void Model::unselect_report()
 {
-    next_filter.rep_memo.clear();
+    next_filter->unset("rep_memo");
     process_summary();
 }
 
 void Model::unselect_level()
 {
-    next_filter.level = Level();
+    next_filter->set_level(Level());
     process_summary();
 }
 
 void Model::unselect_trange()
 {
-    next_filter.trange = Trange();
+    next_filter->set_trange(Trange());
     process_summary();
 }
 
 void Model::unselect_varcode()
 {
-    next_filter.varcodes.clear();
+    next_filter->unset("var");
     process_summary();
 }
 
 void Model::unselect_datemin()
 {
-    if (next_filter.datetime_min.is_missing()) return;
-    next_filter.datetime_min = Datetime();
+    Datetime dtmin, dtmax;
+    next_filter->get_datetime_bounds(dtmin, dtmax);
+    if (dtmin.is_missing()) return;
+    next_filter->set_datetime_bounds(Datetime(), dtmax);
     process_summary();
 }
 
 void Model::unselect_datemax()
 {
-    if (next_filter.datetime_max.is_missing()) return;
-    next_filter.datetime_max = Datetime();
+    Datetime dtmin, dtmax;
+    next_filter->get_datetime_bounds(dtmin, dtmax);
+    if (dtmax.is_missing()) return;
+    next_filter->set_datetime_bounds(dtmin, Datetime());
     process_summary();
 }
 
-void Model::set_filter(const Query &new_filter)
+void Model::set_filter(const Query& new_filter)
 {
-    next_filter = new_filter;
+    next_filter = new_filter.clone();
     process_summary();}
 
 void Model::unselect_station()
 {
-    next_filter.coords_min = Coords();
-    next_filter.coords_max = Coords();
-    next_filter.ana_id = MISSING_INT;
+    next_filter->unset("latmin");
+    next_filter->unset("latmax");
+    next_filter->unset("lonmin");
+    next_filter->unset("lonmax");
+    next_filter->unset("ident");
+    next_filter->unset("ana_id");
     process_summary();
 }
 
 void Model::unselect_ident()
 {
-    next_filter.unset(DBA_KEY_IDENT);
+    next_filter->unset("ident");
     process_summary();
 }
 

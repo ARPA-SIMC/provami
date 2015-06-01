@@ -2,7 +2,6 @@
 #define PROVAMI_HIGHLIGHT_H
 
 #include <QObject>
-#include <dballe/core/defs.h>
 #include <provami/types.h>
 
 namespace provami {

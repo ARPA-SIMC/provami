@@ -6,18 +6,14 @@
 #include <provami/refreshthread.h>
 #include <provami/filters.h>
 #include <QObject>
-#include <dballe/core/defs.h>
-#include <dballe/core/record.h>
+#include <dballe/types.h>
+#include <dballe/query.h>
 #include <dballe/db/db.h>
 #include <dballe/db/summary.h>
 #include <string>
 #include <map>
 #include <vector>
 #include <QAction>
-
-namespace dballe {
-class Record;
-}
 
 namespace provami {
 class Model;
@@ -47,7 +43,7 @@ public slots:
     void unselect_datemin();
     void unselect_datemax();
     void set_filter(const dballe::Query& new_filter);
-    void on_have_new_summary(dballe::Query query, bool with_details);
+    void on_have_new_summary(dballe::core::Query query, bool with_details);
     void on_have_new_data();
 
 signals:
@@ -103,9 +99,9 @@ public:
     // Current highlight
     Highlight highlight;
     // Filter corresponding to the data currently shown
-    dballe::Query active_filter;
+    std::unique_ptr<dballe::Query> active_filter;
     // Filter that is being edited
-    dballe::Query next_filter;
+    std::unique_ptr<dballe::Query> next_filter;
 
     FilterReportModel reports;
     FilterLevelModel levels;
@@ -117,7 +113,11 @@ public:
     unsigned limit = 100;
 
     Model();
+    Model(const Model&) = delete;
+    Model(const Model&&) = delete;
     ~Model();
+    Model& operator=(const Model&) = delete;
+    Model& operator=(const Model&&) = delete;
 
     const dballe::Datetime& summary_datetime_min() const;
     const dballe::Datetime& summary_datetime_max() const;

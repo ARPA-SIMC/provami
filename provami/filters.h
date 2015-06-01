@@ -2,7 +2,7 @@
 #define FILTERS_H
 
 #include <QAbstractListModel>
-#include <dballe/core/defs.h>
+#include <dballe/types.h>
 #include <wreport/varinfo.h>
 #include <set>
 

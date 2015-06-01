@@ -2,7 +2,6 @@
 #define PROVAMI_STATIONGRIDMODEL_H
 
 #include <QAbstractTableModel>
-#include <dballe/core/defs.h>
 #include <provami/model.h>
 
 namespace provami {

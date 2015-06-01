@@ -20,7 +20,6 @@ protected:
     Model* model = 0;
     QRegExp fmt1;
     QRegExp fmt2;
-    dballe::Query* query = 0;
 
     // To reset on ESC
     void keyPressEvent(QKeyEvent* event) override;
@@ -46,9 +45,6 @@ public:
     explicit DateEdit(QWidget *parent = 0);
 
     void set_model(Model& model);
-
-
-    void set_record(dballe::Query& query);
 
     /// Reset using the original value
     virtual void reset() = 0;

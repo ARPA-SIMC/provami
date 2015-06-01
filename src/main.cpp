@@ -14,7 +14,7 @@ using namespace provami;
 
 int main(int argc, char *argv[])
 {
-    qRegisterMetaType<dballe::Query>("dballe::Query");
+    qRegisterMetaType<dballe::core::Query>("dballe::core::Query");
 
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
 
     // Parse initial query from command line arguments, taking those arguments
     // that contain an =
-    Query initial_query;
+    core::Query initial_query;
     vector<string> args;
     for (int i = 1; i < argc; ++i)
     {

@@ -1,5 +1,4 @@
 #include "provami/attrgridmodel.h"
-#include <dballe/core/var.h>
 #include <QDebug>
 
 using namespace dballe;

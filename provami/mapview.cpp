@@ -1,7 +1,6 @@
 #include "provami/mapview.h"
 #include "provami/mapcontroller.h"
 #include "provami/config.h"
-#include <dballe/core/defs.h>
 #include <QDebug>
 #include <QWebFrame>
 

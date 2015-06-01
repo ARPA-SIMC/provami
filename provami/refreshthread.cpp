@@ -74,14 +74,14 @@ void RefreshThread::run()
         if (sum_query)
         {
             //qDebug() << "worker: starting summary query";
-            bool with_details = sum_query->query.find("details") != string::npos;
+            bool with_details = core::Query::downcast(*sum_query).query.find("details") != string::npos;
             auto cur = db->query_summary(*sum_query);
             {
                 MutexLock lock(mutex);
                 cur_summary = move(cur);
             }
             //qDebug() << "worker: notifying summary query";
-            emit have_new_summary(*sum_query, with_details);
+            emit have_new_summary(core::Query::downcast(*sum_query), with_details);
             //qDebug() << "worker: done summary query";
         }
 
@@ -105,10 +105,10 @@ void RefreshThread::query_summary(const Query &query, bool want_details)
 {
     //qDebug("query summary requested");
     // Make a copy to pass to pending_summary_query
-    unique_ptr<Query> q(new Query(query));
+    auto q = query.clone();
 
     // If the active filter is empty, request all details
-    if (want_details) q->set(DBA_KEY_QUERY, "details");
+    if (want_details) q->set("query", "details");
 
     // Enqueue the job for the worker thread
     MutexLock lock(mutex);
@@ -121,7 +121,7 @@ void RefreshThread::query_data(const Query &query)
 {
     //qDebug("query data requested");
     // Make a copy to pass to pending_data_query
-    unique_ptr<Query> q(new Query(query));
+    auto q = query.clone();
 
     // Enqueue the job for the worker thread
     MutexLock lock(mutex);

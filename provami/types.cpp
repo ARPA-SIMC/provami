@@ -1,7 +1,6 @@
 #include "provami/types.h"
 #include <dballe/db/db.h>
 #include <dballe/db/summary.h>
-#include <dballe/core/record.h>
 #include <QDebug>
 
 using namespace dballe;
@@ -37,11 +36,13 @@ Value::Value(const dballe::db::Cursor &cur)
 {
     level = cur.get_level();
     trange = cur.get_trange();
-    cur.get_datetime(date);
+    date = cur.get_datetime();
 }
 
-Matcher::Matcher(const dballe::Query &query, const std::map<int, Station> &all_stations)
+Matcher::Matcher(const dballe::Query& query_gen, const std::map<int, Station> &all_stations)
 {
+    const core::Query& query = core::Query::downcast(query_gen);
+
     // Scan the filter building a todo list of things to match
 
     // If there is any filtering on the station, build a whitelist of matching stations

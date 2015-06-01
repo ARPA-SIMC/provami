@@ -63,11 +63,11 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->filter_lonmin->setValidator(&lon_validator);
     ui->filter_lonmax->setValidator(&lon_validator);
     ui->filter_ana_id->setValidator(&id_validator);
-    ui->filter_latmin->set_record(model.next_filter, DBA_KEY_LATMIN);
-    ui->filter_latmax->set_record(model.next_filter, DBA_KEY_LATMAX);
-    ui->filter_lonmin->set_record(model.next_filter, DBA_KEY_LONMIN);
-    ui->filter_lonmax->set_record(model.next_filter, DBA_KEY_LONMAX);
-    ui->filter_ana_id->set_record(model.next_filter, DBA_KEY_ANA_ID);
+    ui->filter_latmin->set_record(model, "latmin");
+    ui->filter_latmax->set_record(model, "latmax");
+    ui->filter_lonmin->set_record(model, "lonmin");
+    ui->filter_lonmax->set_record(model, "lonmax");
+    ui->filter_ana_id->set_record(model, "ana_id");
     ui->filter_datemin->set_model(model);
     ui->filter_datemax->set_model(model);
     ui->filter_limit->setText(QString::number(model.limit));

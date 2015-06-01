@@ -6,6 +6,7 @@
 #include <QWaitCondition>
 #include <memory>
 #include <dballe/core/record.h>
+#include <dballe/core/query.h>
 
 namespace dballe {
 struct DB;
@@ -48,7 +49,7 @@ public:
     void query_data(const dballe::Query& query);
 
 signals:
-    void have_new_summary(dballe::Query query, bool with_details);
+    void have_new_summary(dballe::core::Query query, bool with_details);
     void have_new_data();
 };
 

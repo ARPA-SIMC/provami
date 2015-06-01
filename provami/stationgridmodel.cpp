@@ -1,5 +1,4 @@
 #include "provami/stationgridmodel.h"
-#include <dballe/core/var.h>
 #include <QDebug>
 
 using namespace dballe;
@@ -160,7 +159,7 @@ void StationGridModel::on_highlight_changed()
     beginResetModel();
     station_id = model.highlight.station_id();
     values.clear();
-    dballe::Query query;
+    dballe::core::Query query;
     query.ana_id = station_id;
     query.query_station_vars = true;
     auto cur = model.db->query_data(query);

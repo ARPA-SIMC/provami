@@ -1,5 +1,4 @@
 #include <provami/datagridmodel.h>
-#include <dballe/core/var.h>
 #include <QDebug>
 #include <sstream>
 
@@ -76,8 +75,8 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
         {
             char datetime[20];
             snprintf(datetime, 20, "%04d-%02d-%02d %02d:%02d:%02d",
-                     val.date[0], val.date[1], val.date[2],
-                     val.date[3], val.date[4], val.date[5]);
+                     val.date.year, val.date.month, val.date.day,
+                     val.date.hour, val.date.minute, val.date.second);
             return QVariant(datetime);
         }
         case CT_VARCODE: return QVariant(format_code(val.var.code()).c_str());
@@ -110,8 +109,8 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
         {
             char datetime[20];
             snprintf(datetime, 20, "%04d-%02d-%02d %02d:%02d:%02d",
-                     val.date[0], val.date[1], val.date[2],
-                     val.date[3], val.date[4], val.date[5]);
+                     val.date.year, val.date.month, val.date.day,
+                     val.date.hour, val.date.minute, val.date.second);
             return QVariant(datetime);
         }
         case CT_VARCODE:

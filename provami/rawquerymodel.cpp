@@ -1,5 +1,4 @@
 #include "provami/rawquerymodel.h"
-#include <dballe/core/query.h>
 #include <QDebug>
 
 using namespace dballe;
@@ -126,7 +125,7 @@ bool RawQueryModel::setData(const QModelIndex &index, const QVariant &value, int
     case CT_VALUE: values[index.row()].val = value.toString().toStdString(); break;
     }
 
-    model.set_filter(build_record());
+    model.set_filter(*build_record());
 
     return true;
 }
@@ -142,20 +141,16 @@ const rawquery::Item* RawQueryModel::valueAt(const QModelIndex &index) const
 static std::vector<rawquery::Item> record_to_items(const dballe::Query& q)
 {
     std::vector<rawquery::Item> new_items;
-    q.to_vars([&](dba_keyword key, unique_ptr<Var> var) {
-        new_items.emplace_back(rawquery::Item{ Record::keyword_name(key), var->format("") });
+    q.to_vars([&](const char* key, unique_ptr<Var>&& var) {
+        new_items.emplace_back(rawquery::Item{ key, var->format("") });
     });
-
-    if (q.block != MISSING_INT) new_items.emplace_back(rawquery::Item{ "block", to_string(q.block) });
-    if (q.station != MISSING_INT) new_items.emplace_back(rawquery::Item{ "station", to_string(q.station) });
-
     return new_items;
 }
 
 void RawQueryModel::next_filter_changed()
 {
     // Rebuild filter
-    std::vector<rawquery::Item> new_items = record_to_items(model.next_filter);
+    std::vector<rawquery::Item> new_items = record_to_items(*model.next_filter);
 
     // Preserve the last row if partially edited, or add a new one
     if (!values.empty() && (values.back().key.empty() || values.back().val.empty()))
@@ -168,19 +163,19 @@ void RawQueryModel::next_filter_changed()
     endResetModel();
 }
 
-Query RawQueryModel::build_record() const
+unique_ptr<Query> RawQueryModel::build_record() const
 {
-    Query new_rec;
+    auto new_rec = Query::create();
     for (const auto& item: values)
     {
         if (item.key.empty() || item.val.empty()) continue;
         try {
-            new_rec.set_from_string(item.key.c_str(), item.val.c_str());
+            new_rec->sets(item.key.c_str(), item.val);
         } catch (std::exception) {
             continue;
         }
     }
-    return new_rec;
+    return move(new_rec);
 }
 
 static bool is_shell_safe(char c)
@@ -223,7 +218,7 @@ static std::string shell_escape(const std::string& s)
 QStringList RawQueryModel::as_shell_args(bool quoted) const
 {
     QStringList res;
-    std::vector<rawquery::Item> new_items = record_to_items(build_record());
+    std::vector<rawquery::Item> new_items = record_to_items(*build_record());
     for (auto item: new_items)
     {
         std::string s(item.key.c_str());
