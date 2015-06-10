@@ -47,17 +47,14 @@ Matcher::Matcher(const dballe::Query& query_gen, const std::map<int, Station> &a
 
     // If there is any filtering on the station, build a whitelist of matching stations
     bool has_flt_ident = query.has_ident;
-    bool has_flt_area = !query.coords_min.is_missing() && !query.coords_max.is_missing();
+    bool has_flt_area = !query.get_latrange().is_missing() || !query.get_lonrange().is_missing();
     bool has_flt_station_id = query.ana_id != MISSING_INT;
     if (has_flt_ident || has_flt_area || has_flt_station_id)
     {
         int flt_station_id = query.ana_id;
         string flt_ident = query.has_ident ? query.ident : string();
-        // FIXME: this only supports longitude filters that do not cross the date change line
-        double flt_area_latmin = query.coords_min.lat != MISSING_INT ? query.coords_min.dlat() : -90.0;
-        double flt_area_latmax = query.coords_max.lat != MISSING_INT ? query.coords_max.dlat() : 90.0;
-        double flt_area_lonmin = query.coords_min.lon != MISSING_INT ? query.coords_min.dlon() : -1000.0;
-        double flt_area_lonmax = query.coords_max.lon != MISSING_INT ? query.coords_max.dlon() : 1000.0;
+        LatRange flt_area_latrange = query.get_latrange();
+        LonRange flt_area_lonrange = query.get_lonrange();
         has_flt_station = true;
         for (auto s: all_stations)
         {
@@ -67,8 +64,8 @@ Matcher::Matcher(const dballe::Query& query_gen, const std::map<int, Station> &a
 
             if (has_flt_area)
             {
-                if (station.lat < flt_area_latmin || station.lat > flt_area_latmax
-                 || station.lon < flt_area_lonmin || station.lon > flt_area_lonmax)
+                if (!flt_area_latrange.contains(station.lat) ||
+                    !flt_area_lonrange.contains(station.lon))
                     continue;
             }
             if (has_flt_ident && flt_ident != station.ident)
@@ -90,8 +87,7 @@ Matcher::Matcher(const dballe::Query& query_gen, const std::map<int, Station> &a
     has_flt_varcode = !query.varcodes.empty();
     wanted_varcode = has_flt_varcode ? *query.varcodes.begin() : 0;
 
-    wanted_dtmin = query.datetime_min;
-    wanted_dtmax = query.datetime_max;
+    wanted_dtrange = query.get_datetimerange();
 }
 
 bool Matcher::match(const dballe::db::summary::Entry& entry) const
@@ -111,8 +107,7 @@ bool Matcher::match(const dballe::db::summary::Entry& entry) const
     if (has_flt_varcode && wanted_varcode != entry.varcode)
         return false;
 
-    if (!Datetime::range_contains(wanted_dtmin, wanted_dtmax,
-                                  entry.datemin, entry.datemax))
+    if (!wanted_dtrange.contains(entry.dtrange))
         return false;
 
     return true;

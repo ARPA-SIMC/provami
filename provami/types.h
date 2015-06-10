@@ -89,8 +89,7 @@ struct Matcher
     dballe::Trange wanted_trange;
     bool has_flt_varcode = false;
     wreport::Varcode wanted_varcode;
-    dballe::Datetime wanted_dtmin;
-    dballe::Datetime wanted_dtmax;
+    dballe::DatetimeRange wanted_dtrange;
 
     Matcher(const dballe::Query& query, const std::map<int, Station>& all_stations);
 

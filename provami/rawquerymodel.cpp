@@ -37,9 +37,10 @@ int RawQueryModel::columnCount(const QModelIndex &parent) const
 
 static wreport::Varinfo varinfo_by_name(const std::string& name)
 {
-    dba_keyword k = Record::keyword_byname_len(name.data(), name.size());
+    using namespace dballe::core;
+    dba_keyword k = core::Record::keyword_byname_len(name.data(), name.size());
     if (k != DBA_KEY_ERROR)
-        return Record::keyword_info(k);
+        return core::Record::keyword_info(k);
     else
         return varinfo(resolve_varcode_safe(name));
 }
@@ -125,7 +126,9 @@ bool RawQueryModel::setData(const QModelIndex &index, const QVariant &value, int
     case CT_VALUE: values[index.row()].val = value.toString().toStdString(); break;
     }
 
-    model.set_filter(*build_record());
+    auto query = Query::create();
+    query->set_from_record(*build_record());
+    model.set_filter(*query);
 
     return true;
 }
@@ -136,6 +139,15 @@ const rawquery::Item* RawQueryModel::valueAt(const QModelIndex &index) const
     if ((unsigned)index.row() >= values.size()) return NULL;
     const rawquery::Item& item = values[index.row()];
     return &item;
+}
+
+static std::vector<rawquery::Item> record_to_items(const dballe::Record& rec)
+{
+    std::vector<rawquery::Item> new_items;
+    rec.to_vars([&](const char* key, unique_ptr<Var>&& var) {
+        new_items.emplace_back(rawquery::Item{ key, var->format("") });
+    });
+    return new_items;
 }
 
 static std::vector<rawquery::Item> record_to_items(const dballe::Query& q)
@@ -163,9 +175,9 @@ void RawQueryModel::next_filter_changed()
     endResetModel();
 }
 
-unique_ptr<Query> RawQueryModel::build_record() const
+unique_ptr<Record> RawQueryModel::build_record() const
 {
-    auto new_rec = Query::create();
+    auto new_rec = Record::create();
     for (const auto& item: values)
     {
         if (item.key.empty() || item.val.empty()) continue;

@@ -74,45 +74,46 @@ std::vector<Value> &Model::values()
 
 void Model::update(Value &val, const wreport::Var &new_val)
 {
-    Record change;
-    change.set(DBA_KEY_ANA_ID, val.ana_id);
-    change.set(DBA_KEY_REP_MEMO, val.rep_memo.c_str());
-    change.set(val.level);
-    change.set(val.trange);
-    change.set(val.date);
-    change.set(new_val);
-    db->insert(change, true, false);
+    auto change = Record::create();
+    change->set("ana_id", val.ana_id);
+    change->set("rep_memo", val.rep_memo.c_str());
+    change->set(val.level);
+    change->set(val.trange);
+    change->set(val.date);
+    change->set(new_val);
+    db->insert(*change, true, false);
     val.var = new_val;
 }
 
 void Model::update(StationValue &val, const wreport::Var &new_val)
 {
-    Record change;
-    change.set_ana_context();
-    change.set(DBA_KEY_ANA_ID, val.ana_id);
-    change.set(DBA_KEY_REP_MEMO, val.rep_memo.c_str());
-    change.set(new_val);
-    db->insert(change, true, false);
+    auto change = Record::create();
+    core::Record::downcast(*change).set_ana_context();
+    change->set("ana_id", val.ana_id);
+    change->set("rep_memo", val.rep_memo.c_str());
+    change->set(new_val);
+    db->insert(*change, true, false);
     val.var = new_val;
 }
 
 void Model::update(int var_id, wreport::Varcode var_related, const wreport::Var &new_val)
 {
-    Record change;
-    change.set(new_val);
-    db->attr_insert(var_id, var_related, change);
+    auto change = Record::create();
+    change->set(new_val);
+    db->attr_insert(var_id, var_related, *change);
 }
 
 void Model::remove(const Value &val)
 {
     emit begin_data_changed();
     auto change = Query::create();
-    change->set("ana_id", val.ana_id);
-    change->set("rep_memo", val.rep_memo);
+    core::Query::downcast(*change).ana_id = val.ana_id;
+    core::Query::downcast(*change).rep_memo = val.rep_memo;
     change->set_level(val.level);
     change->set_trange(val.trange);
-    change->set_datetime_exact(val.date);
-    change->set("var", format_code(val.var.code()));
+    change->set_datetimerange(DatetimeRange(val.date, val.date));
+    core::Query::downcast(*change).varcodes.clear();
+    core::Query::downcast(*change).varcodes.insert(val.var.code());
     db->remove(*change);
     vector<Value>::iterator i = std::find(cache_values.begin(), cache_values.end(), val);
     if (i != cache_values.end())
@@ -181,7 +182,7 @@ void Model::refresh_data()
 {
     emit progress("data", "Loading data...");
     auto query = active_filter->clone();
-    query->seti("limit", limit);
+    core::Query::downcast(*query).limit = limit;
     refreshing_data = true;
     refresh_thread.query_data(*query);
 }
@@ -310,15 +311,12 @@ void Model::process_summary()
     if (matcher.has_flt_station)
     {
         auto subrec = next_filter->clone();
-        subrec->unset("ana_id");
-        subrec->unset("mobile");
-        subrec->unset("ident");
-        subrec->unset("lat");
-        subrec->unset("lon");
-        subrec->unset("latmax");
-        subrec->unset("latmin");
-        subrec->unset("lonmax");
-        subrec->unset("lonmin");
+        core::Query::downcast(*subrec).ana_id = MISSING_INT;
+        core::Query::downcast(*subrec).mobile = MISSING_INT;
+        core::Query::downcast(*subrec).has_ident = false;
+        core::Query::downcast(*subrec).ident.clear();
+        subrec->set_latrange(LatRange());
+        subrec->set_lonrange(LonRange());
         Matcher submatcher(*subrec, cache_stations);
         db::Summary sub(*subrec);
         filter_top_summary(submatcher, sub);
@@ -345,7 +343,7 @@ void Model::process_summary()
     if (matcher.has_flt_rep_memo)
     {
         auto subrec = next_filter->clone();
-        subrec->unset("rep_memo");
+        core::Query::downcast(*subrec).rep_memo.clear();
         Matcher submatcher(*subrec, cache_stations);
         db::Summary sub(*subrec);
         filter_top_summary(submatcher, sub);
@@ -379,7 +377,7 @@ void Model::process_summary()
     if (matcher.has_flt_varcode)
     {
         auto subrec = next_filter->clone();;
-        subrec->unset("var");
+        core::Query::downcast(*subrec).varcodes.clear();
         Matcher submatcher(*subrec, cache_stations);
         db::Summary sub(*subrec);
         filter_top_summary(submatcher, sub);
@@ -392,7 +390,7 @@ void Model::process_summary()
 
 void Model::select_report(const string &val)
 {
-    next_filter->set("rep_memo", val.c_str());
+    core::Query::downcast(*next_filter).rep_memo = val;
     process_summary();
 }
 
@@ -410,36 +408,36 @@ void Model::select_trange(const Trange &val)
 
 void Model::select_varcode(wreport::Varcode val)
 {
-    next_filter->set("var", wreport::varcode_format(val));
+    core::Query::downcast(*next_filter).varcodes.clear();
+    core::Query::downcast(*next_filter).varcodes.insert(val);
     process_summary();
 }
 
 void Model::select_datemin(const dballe::Datetime& val)
 {
-    Datetime dtmin, dtmax;
-    next_filter->get_datetime_bounds(dtmin, dtmax);
-    if (dtmin == val) return;
-    next_filter->set_datetime_bounds(val, dtmax);
+    DatetimeRange dtr = next_filter->get_datetimerange();
+    if (dtr.min == val) return;
+    dtr.min = val;
+    next_filter->set_datetimerange(dtr);
     process_summary();
 }
 
 void Model::select_datemax(const dballe::Datetime& val)
 {
-    Datetime dtmin, dtmax;
-    next_filter->get_datetime_bounds(dtmin, dtmax);
-    if (dtmax == val) return;
-    next_filter->set_datetime_bounds(dtmin, val);
+    DatetimeRange dtr = next_filter->get_datetimerange();
+    if (dtr.max == val) return;
+    dtr.max = val;
+    next_filter->set_datetimerange(dtr);
     process_summary();
 }
 
 void Model::select_station_id(int id)
 {
-    next_filter->unset("latmin");
-    next_filter->unset("latmax");
-    next_filter->unset("lonmin");
-    next_filter->unset("lonmax");
-    next_filter->unset("ident");
-    next_filter->set("ana_id", id);
+    next_filter->set_latrange(LatRange());
+    next_filter->set_lonrange(LonRange());
+    core::Query::downcast(*next_filter).has_ident = false;
+    core::Query::downcast(*next_filter).ident.clear();
+    core::Query::downcast(*next_filter).ana_id = id;
     process_summary();
 }
 
@@ -450,23 +448,22 @@ void Model::select_station_bounds(double latmin, double latmax, double lonmin, d
     if (lonmin < -180) lonmin = -180;
     if (lonmax > 180) lonmax = 180;
 
-    next_filter->set("latmin", latmin);
-    next_filter->set("latmax", latmax);
-    next_filter->set("lonmin", lonmin);
-    next_filter->set("lonmax", lonmax);
-    next_filter->unset("ana_id");
+    next_filter->set_latrange(LatRange(latmin, latmax));
+    next_filter->set_lonrange(LonRange(lonmin, lonmax));
+    core::Query::downcast(*next_filter).ana_id = MISSING_INT;
     process_summary();
 }
 
 void Model::select_ident(const string &val)
 {
-    next_filter->set("ident", val.c_str());
+    core::Query::downcast(*next_filter).has_ident = true;
+    core::Query::downcast(*next_filter).ident = val;
     process_summary();
 }
 
 void Model::unselect_report()
 {
-    next_filter->unset("rep_memo");
+    core::Query::downcast(*next_filter).rep_memo.clear();
     process_summary();
 }
 
@@ -484,25 +481,25 @@ void Model::unselect_trange()
 
 void Model::unselect_varcode()
 {
-    next_filter->unset("var");
+    core::Query::downcast(*next_filter).varcodes.clear();
     process_summary();
 }
 
 void Model::unselect_datemin()
 {
-    Datetime dtmin, dtmax;
-    next_filter->get_datetime_bounds(dtmin, dtmax);
-    if (dtmin.is_missing()) return;
-    next_filter->set_datetime_bounds(Datetime(), dtmax);
+    DatetimeRange dtr = next_filter->get_datetimerange();
+    if (dtr.min.is_missing()) return;
+    dtr.min = Datetime();
+    next_filter->set_datetimerange(dtr);
     process_summary();
 }
 
 void Model::unselect_datemax()
 {
-    Datetime dtmin, dtmax;
-    next_filter->get_datetime_bounds(dtmin, dtmax);
-    if (dtmax.is_missing()) return;
-    next_filter->set_datetime_bounds(dtmin, Datetime());
+    DatetimeRange dtr = next_filter->get_datetimerange();
+    if (dtr.max.is_missing()) return;
+    dtr.max = Datetime();
+    next_filter->set_datetimerange(dtr);
     process_summary();
 }
 
@@ -513,18 +510,18 @@ void Model::set_filter(const Query& new_filter)
 
 void Model::unselect_station()
 {
-    next_filter->unset("latmin");
-    next_filter->unset("latmax");
-    next_filter->unset("lonmin");
-    next_filter->unset("lonmax");
-    next_filter->unset("ident");
-    next_filter->unset("ana_id");
+    next_filter->set_latrange(LatRange());
+    next_filter->set_lonrange(LonRange());
+    core::Query::downcast(*next_filter).has_ident = false;
+    core::Query::downcast(*next_filter).ident.clear();
+    core::Query::downcast(*next_filter).ana_id = MISSING_INT;
     process_summary();
 }
 
 void Model::unselect_ident()
 {
-    next_filter->unset("ident");
+    core::Query::downcast(*next_filter).has_ident = false;
+    core::Query::downcast(*next_filter).ident.clear();
     process_summary();
 }
 

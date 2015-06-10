@@ -10,18 +10,6 @@ using namespace wibble::tests;
 using namespace dballe;
 using namespace provami;
 
-namespace {
-
-// Set a record from a ", "-separated string of assignments
-void set_record_from_string(Record& rec, const std::string& s)
-{
-    str::Split splitter(", ", s);
-    for (str::Split::const_iterator i = splitter.begin(); i != splitter.end(); ++i)
-        rec.set_from_string(i->c_str());
-}
-
-}
-
 namespace tut {
 
 struct model_shar
@@ -50,20 +38,19 @@ struct model_shar
             Datetime(2015, 2, 1, 0, 0, 0),
         };
 
-        Record rec;
+        auto rec = Record::create();
         for (auto s: stations)
             for (auto r: records)
                 for (auto d: datetimes)
                 {
-                    rec.clear();
-                    set_record_from_string(rec, s);
-                    rec.set(DBA_KEY_REP_MEMO, r);
-                    rec.set(Level(1, 0));
-                    rec.set(Trange::instant());
-                    rec.set(d);
-                    rec.add(newvar(WR_VAR(0, 12, 101), 280.0));
-
-                    db->insert(rec, true, true);
+                    rec->clear();
+                    core::Record::downcast(*rec).set_from_test_string(s);
+                    rec->set("rep_memo", r);
+                    rec->set(Level(1, 0));
+                    rec->set(Trange::instant());
+                    rec->set(d);
+                    rec->set(newvar(WR_VAR(0, 12, 101), 280.0));
+                    db->insert(*rec, true, true);
                 }
 
         return db;

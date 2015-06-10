@@ -26,27 +26,27 @@ void RecordLineEdit::set_record(Model& model, const std::string& key)
         };
     else if (key == "latmin")
         query_to_string = [](const Model& m) {
-            const core::Query& q = core::Query::downcast(*m.next_filter);
-            if (q.coords_min.lat == MISSING_INT) return QString();
-            return QString::number(q.coords_min.dlat(), 'f', 5);
+            LatRange lr = m.next_filter->get_latrange();
+            if (lr.imin == LatRange::IMIN) return QString();
+            return QString::number(lr.dmin(), 'f', 5);
         };
     else if (key == "latmax")
         query_to_string = [](const Model& m) {
-            const core::Query& q = core::Query::downcast(*m.next_filter);
-            if (q.coords_max.lat == MISSING_INT) return QString();
-            return QString::number(q.coords_max.dlat(), 'f', 5);
+            LatRange lr = m.next_filter->get_latrange();
+            if (lr.imax == LatRange::IMAX) return QString();
+            return QString::number(lr.dmax(), 'f', 5);
         };
     else if (key == "lonmin")
         query_to_string = [](const Model& m) {
-            const core::Query& q = core::Query::downcast(*m.next_filter);
-            if (q.coords_min.lon == MISSING_INT) return QString();
-            return QString::number(q.coords_min.dlon(), 'f', 5);
+            LonRange lr = m.next_filter->get_lonrange();
+            if (lr.imin == MISSING_INT) return QString();
+            return QString::number(lr.dmin(), 'f', 5);
         };
     else if (key == "lonmax")
         query_to_string = [](const Model& m) {
-            const core::Query& q = core::Query::downcast(*m.next_filter);
-            if (q.coords_max.lon == MISSING_INT) return QString();
-            return QString::number(q.coords_max.dlon(), 'f', 5);
+            LonRange lr = m.next_filter->get_lonrange();
+            if (lr.imax == MISSING_INT) return QString();
+            return QString::number(lr.dmax(), 'f', 5);
         };
     else
         throw error_unimplemented("RecordLineEdit not implemented for this key");

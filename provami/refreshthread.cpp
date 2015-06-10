@@ -108,7 +108,7 @@ void RefreshThread::query_summary(const Query &query, bool want_details)
     auto q = query.clone();
 
     // If the active filter is empty, request all details
-    if (want_details) q->set("query", "details");
+    if (want_details) core::Query::downcast(*q).query = "details";
 
     // Enqueue the job for the worker thread
     MutexLock lock(mutex);
