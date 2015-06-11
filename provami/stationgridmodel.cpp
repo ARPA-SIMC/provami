@@ -161,8 +161,7 @@ void StationGridModel::on_highlight_changed()
     values.clear();
     dballe::core::Query query;
     query.ana_id = station_id;
-    query.query_station_vars = true;
-    auto cur = model.db->query_data(query);
+    auto cur = model.db->query_station_data(query);
     while (cur->next())
         values.emplace_back(*cur);
     endResetModel();
