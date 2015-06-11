@@ -312,7 +312,6 @@ void Model::process_summary()
         auto subrec = next_filter->clone();
         core::Query::downcast(*subrec).ana_id = MISSING_INT;
         core::Query::downcast(*subrec).mobile = MISSING_INT;
-        core::Query::downcast(*subrec).has_ident = false;
         core::Query::downcast(*subrec).ident.clear();
         subrec->set_latrange(LatRange());
         subrec->set_lonrange(LonRange());
@@ -434,7 +433,6 @@ void Model::select_station_id(int id)
 {
     next_filter->set_latrange(LatRange());
     next_filter->set_lonrange(LonRange());
-    core::Query::downcast(*next_filter).has_ident = false;
     core::Query::downcast(*next_filter).ident.clear();
     core::Query::downcast(*next_filter).ana_id = id;
     process_summary();
@@ -455,7 +453,6 @@ void Model::select_station_bounds(double latmin, double latmax, double lonmin, d
 
 void Model::select_ident(const string &val)
 {
-    core::Query::downcast(*next_filter).has_ident = true;
     core::Query::downcast(*next_filter).ident = val;
     process_summary();
 }
@@ -511,7 +508,6 @@ void Model::unselect_station()
 {
     next_filter->set_latrange(LatRange());
     next_filter->set_lonrange(LonRange());
-    core::Query::downcast(*next_filter).has_ident = false;
     core::Query::downcast(*next_filter).ident.clear();
     core::Query::downcast(*next_filter).ana_id = MISSING_INT;
     process_summary();
@@ -519,7 +515,6 @@ void Model::unselect_station()
 
 void Model::unselect_ident()
 {
-    core::Query::downcast(*next_filter).has_ident = false;
     core::Query::downcast(*next_filter).ident.clear();
     process_summary();
 }

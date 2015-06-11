@@ -46,13 +46,12 @@ Matcher::Matcher(const dballe::Query& query_gen, const std::map<int, Station> &a
     // Scan the filter building a todo list of things to match
 
     // If there is any filtering on the station, build a whitelist of matching stations
-    bool has_flt_ident = query.has_ident;
+    bool has_flt_ident = !query.ident.is_missing();
     bool has_flt_area = !query.get_latrange().is_missing() || !query.get_lonrange().is_missing();
     bool has_flt_station_id = query.ana_id != MISSING_INT;
     if (has_flt_ident || has_flt_area || has_flt_station_id)
     {
         int flt_station_id = query.ana_id;
-        string flt_ident = query.has_ident ? query.ident : string();
         LatRange flt_area_latrange = query.get_latrange();
         LonRange flt_area_lonrange = query.get_lonrange();
         has_flt_station = true;
@@ -68,7 +67,7 @@ Matcher::Matcher(const dballe::Query& query_gen, const std::map<int, Station> &a
                     !flt_area_lonrange.contains(station.lon))
                     continue;
             }
-            if (has_flt_ident && flt_ident != station.ident)
+            if (has_flt_ident && query.ident != station.ident)
                 continue;
 
             wanted_stations.insert(station.id);

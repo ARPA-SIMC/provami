@@ -216,8 +216,8 @@ FilterIdentModel::FilterIdentModel(Model &model, QObject *parent)
 string FilterIdentModel::from_record(const dballe::Query& query) const
 {
     const core::Query& q = core::Query::downcast(query);
-    if (q.has_ident)
-        return q.ident;
+    if (!q.ident.is_missing())
+        return q.ident.get();
     else
         // FIXME: it could be possible that a station has an empty string as
         // ident. To support that, we need to return a QString instead of a
