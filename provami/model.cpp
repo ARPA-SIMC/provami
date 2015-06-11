@@ -88,7 +88,6 @@ void Model::update(Value &val, const wreport::Var &new_val)
 void Model::update(StationValue &val, const wreport::Var &new_val)
 {
     auto change = Record::create();
-    core::Record::downcast(*change).set_ana_context();
     change->set("ana_id", val.ana_id);
     change->set("rep_memo", val.rep_memo.c_str());
     change->set(new_val);
