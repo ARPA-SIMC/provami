@@ -144,7 +144,7 @@ const rawquery::Item* RawQueryModel::valueAt(const QModelIndex &index) const
 static std::vector<rawquery::Item> record_to_items(const dballe::Record& rec)
 {
     std::vector<rawquery::Item> new_items;
-    rec.to_vars([&](const char* key, unique_ptr<Var>&& var) {
+    rec.foreach_key([&](const char* key, unique_ptr<Var>&& var) {
         new_items.emplace_back(rawquery::Item{ key, var->format("") });
     });
     return new_items;
@@ -153,7 +153,7 @@ static std::vector<rawquery::Item> record_to_items(const dballe::Record& rec)
 static std::vector<rawquery::Item> record_to_items(const dballe::Query& q)
 {
     std::vector<rawquery::Item> new_items;
-    q.to_vars([&](const char* key, unique_ptr<Var>&& var) {
+    q.foreach_key([&](const char* key, unique_ptr<Var>&& var) {
         new_items.emplace_back(rawquery::Item{ key, var->format("") });
     });
     return new_items;
