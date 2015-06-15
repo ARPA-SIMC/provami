@@ -1,6 +1,7 @@
 #include "provami/model.h"
 #include <memory>
 #include <dballe/db/db.h>
+#include <dballe/core/values.h>
 #include <set>
 #include <algorithm>
 #include <QDebug>
@@ -74,24 +75,24 @@ std::vector<Value> &Model::values()
 
 void Model::update(Value &val, const wreport::Var &new_val)
 {
-    auto change = Record::create();
-    change->set("ana_id", val.ana_id);
-    change->set("rep_memo", val.rep_memo.c_str());
-    change->set(val.level);
-    change->set(val.trange);
-    change->set(val.date);
-    change->set(new_val);
-    db->insert(*change, true, false);
+    DataValues vals;
+    vals.info.ana_id = val.ana_id;
+    vals.info.report = val.rep_memo;
+    vals.info.level = val.level;
+    vals.info.trange = val.trange;
+    vals.info.datetime = val.date;
+    vals.values.set(new_val);
+    db->insert_data(vals, true, false);
     val.var = new_val;
 }
 
 void Model::update(StationValue &val, const wreport::Var &new_val)
 {
-    auto change = Record::create();
-    change->set("ana_id", val.ana_id);
-    change->set("rep_memo", val.rep_memo.c_str());
-    change->set(new_val);
-    db->insert(*change, true, false);
+    StationValues vals;
+    vals.info.ana_id = val.ana_id;
+    vals.info.report = val.rep_memo;
+    vals.values.set(new_val);
+    db->insert_station_data(vals, true, false);
     val.var = new_val;
 }
 

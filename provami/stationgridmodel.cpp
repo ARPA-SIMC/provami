@@ -2,6 +2,7 @@
 #include <QDebug>
 
 using namespace dballe;
+using namespace wreport;
 
 namespace provami {
 
@@ -50,7 +51,7 @@ QVariant StationGridModel::data(const QModelIndex &index, int role) const
         switch (ctype)
         {
         case CT_NETWORK: return QVariant(val.rep_memo.c_str());
-        case CT_VARCODE: return QVariant(format_code(val.var.code()).c_str());
+        case CT_VARCODE: return QVariant(varcode_format(val.var.code()).c_str());
         case CT_VALUE: return QVariant(val.var.format().c_str());
         default: return QVariant();
         }

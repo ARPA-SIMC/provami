@@ -2,6 +2,7 @@
 #include "provami/model.h"
 
 using namespace dballe;
+using namespace wreport;
 using namespace std;
 
 namespace provami {
@@ -199,7 +200,7 @@ void FilterVarcodeModel::filter_select(const wreport::Varcode &val) { model.sele
 void FilterVarcodeModel::filter_unselect() { model.unselect_varcode(); }
 QVariant FilterVarcodeModel::item_to_table_cell(const wreport::Varcode& val) const
 {
-    string desc = format_code(val);
+    string desc = varcode_format(val);
     try {
         wreport::Varinfo info = varinfo(val);
         desc += ": ";

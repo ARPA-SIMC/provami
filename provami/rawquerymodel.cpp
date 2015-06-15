@@ -37,12 +37,7 @@ int RawQueryModel::columnCount(const QModelIndex &parent) const
 
 static wreport::Varinfo varinfo_by_name(const std::string& name)
 {
-    using namespace dballe::core;
-    dba_keyword k = core::Record::keyword_byname_len(name.data(), name.size());
-    if (k != DBA_KEY_ERROR)
-        return core::Record::keyword_info(k);
-    else
-        return varinfo(resolve_varcode_safe(name));
+    return Record::key_info(name);
 }
 
 QVariant RawQueryModel::data(const QModelIndex &index, int role) const

@@ -1,7 +1,8 @@
 #include "tests.h"
 #include "provami/model.h"
 #include <wibble/string.h>
-#include <dballe/core/defs.h>
+#include <dballe/types.h>
+#include <dballe/core/values.h>
 #include <QDebug>
 
 using namespace std;
@@ -50,7 +51,8 @@ struct model_shar
                     rec->set(Trange::instant());
                     rec->set(d);
                     rec->set(newvar(WR_VAR(0, 12, 101), 280.0));
-                    db->insert(*rec, true, true);
+                    DataValues dv(*rec);
+                    db->insert_data(dv, true, true);
                 }
 
         return db;

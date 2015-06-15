@@ -2,6 +2,7 @@
 #include <QDebug>
 
 using namespace dballe;
+using namespace wreport;
 
 namespace provami {
 
@@ -48,7 +49,7 @@ QVariant AttrGridModel::data(const QModelIndex &index, int role) const
         const wreport::Var& var = values[index.row()];
         switch (ctype)
         {
-        case CT_VARCODE: return QVariant(format_code(var.code()).c_str());
+        case CT_VARCODE: return QVariant(varcode_format(var.code()).c_str());
         case CT_VALUE: return QVariant(var.format().c_str());
         default: return QVariant();
         }

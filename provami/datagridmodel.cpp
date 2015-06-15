@@ -4,6 +4,7 @@
 
 using namespace std;
 using namespace dballe;
+using namespace wreport;
 
 namespace provami {
 
@@ -79,7 +80,7 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
                      val.date.hour, val.date.minute, val.date.second);
             return QVariant(datetime);
         }
-        case CT_VARCODE: return QVariant(format_code(val.var.code()).c_str());
+        case CT_VARCODE: return QVariant(varcode_format(val.var.code()).c_str());
         case CT_VALUE: return QVariant(val.var.format().c_str());
         default: return QVariant();
         }
