@@ -5,9 +5,9 @@
 #include <map>
 #include <limits>
 #include <sstream>
-#include <dballe/core/defs.h>
-#include <dballe/core/var.h>
-#include <dballe/core/record.h>
+#include <dballe/types.h>
+#include <dballe/var.h>
+#include <dballe/record.h>
 #include <QFileDialog>
 #include <QProcess>
 #include <QMessageBox>
