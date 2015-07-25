@@ -126,7 +126,7 @@ bool StationGridModel::setData(const QModelIndex &index, const QVariant &value, 
     StationValue& val = values[index.row()];
     wreport::Var new_var(val.var);
     try {
-        new_var.set_from_formatted(utf8_val.constData());
+        new_var.setf(utf8_val.constData());
     } catch (std::exception& e) {
         qDebug() << "Cannot set value:" << e.what();
         return false;

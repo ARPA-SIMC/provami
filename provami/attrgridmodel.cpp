@@ -119,7 +119,7 @@ bool AttrGridModel::setData(const QModelIndex &index, const QVariant &value, int
     wreport::Var& var = values[index.row()];
     wreport::Var new_attr(var);
     try {
-        new_attr.set_from_formatted(utf8_val.constData());
+        new_attr.setf(utf8_val.constData());
     } catch (std::exception& e) {
         qDebug() << "Cannot set value:" << e.what();
         return false;
@@ -155,7 +155,7 @@ void AttrGridModel::on_highlight_changed()
     owner_id = value_id;
     values.clear();
     if (owner_varcode)
-        model.db->query_attrs(owner_id, owner_varcode, [this](std::unique_ptr<wreport::Var> v) {
+        model.db->attr_query_data(owner_id, [this](std::unique_ptr<wreport::Var>&& v) {
             values.emplace_back(*v);
         });
     endResetModel();
