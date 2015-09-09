@@ -20,28 +20,11 @@
 #ifndef PROVAMI_TEST_UTILS_H
 #define PROVAMI_TEST_UTILS_H
 
-#include <wibble/tests.h>
+#include <wreport/utils/tests.h>
 #include <memory>
 
 namespace provami {
 namespace tests {
-
-struct Check
-{
-    virtual ~Check() {}
-    virtual void check(WIBBLE_TEST_LOCPRM) const = 0;
-};
-
-}
-}
-
-namespace wibble {
-namespace tests {
-
-static inline void _wassert(WIBBLE_TEST_LOCPRM, std::auto_ptr<provami::tests::Check> expr)
-{
-    expr->check(wibble_test_location);
-}
 
 }
 }
