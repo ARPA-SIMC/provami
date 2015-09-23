@@ -1,0 +1,2 @@
+#!/bin/sh
+help2man --section=1 --no-info --include help2man-extras "$@" > provami-qt.1
