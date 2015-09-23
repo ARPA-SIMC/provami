@@ -5,6 +5,7 @@
 #include <QMetaType>
 #include <QApplication>
 #include <QNetworkProxyFactory>
+#include <QCommandLineParser>
 #include <QDebug>
 #include <cstdlib>
 #include <cstdio>
@@ -21,7 +22,17 @@ int main(int argc, char *argv[])
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
     Model model;
-    QApplication a(argc, argv);
+    QApplication app(argc, argv);
+    QApplication::setApplicationName("provami");
+    QApplication::setApplicationVersion("1.0");
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Graphical interface to navigate a DB-All.e database");
+    parser.addHelpOption();
+    parser.addVersionOption();
+
+    parser.process(app);
+
     ProvamiMainWindow w(model);
 
     // Parse initial query from command line arguments, taking those arguments
@@ -58,5 +69,5 @@ int main(int argc, char *argv[])
     model.refresh_thread.start();
     w.show();
     qDebug() << "entering event loop" << endl;
-    return a.exec();
+    return app.exec();
 }
