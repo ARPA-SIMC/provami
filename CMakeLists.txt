@@ -50,5 +50,5 @@ add_test(NAME test-provami COMMAND test-provami)
 
 install(TARGETS provami-qt DESTINATION bin)
 install(DIRECTORY mapview DESTINATION ${DATADIR})
-install(FILES provami-qt.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
-
+# improvable (see https://github.com/htacg/tidy-html5/issues/193)
+install(FILES provami-qt.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
