@@ -3,7 +3,6 @@
 
 #include <provami/types.h>
 #include <provami/highlight.h>
-#include <provami/refreshthread.h>
 #include <provami/filters.h>
 #include <QObject>
 #include <dballe/types.h>
@@ -14,10 +13,12 @@
 #include <map>
 #include <vector>
 #include <QAction>
+#include <QFutureWatcher>
 
 namespace provami {
 class Model;
-class RefreshThread;
+class PendingDataRequest;
+class PendingSummaryRequest;
 
 class Model : public QObject
 {
@@ -43,7 +44,7 @@ public slots:
     void unselect_datemin();
     void unselect_datemax();
     void set_filter(const dballe::Query& new_filter);
-    void on_have_new_summary(dballe::core::Query query, bool with_details);
+    void on_have_new_summary();
     void on_have_new_data();
 
 signals:
@@ -55,13 +56,14 @@ signals:
 
 public:
     dballe::DB* db;
-    RefreshThread refresh_thread;
+    //RefreshThread refresh_thread;
 
 protected:
-    // True if there is a pending station refresh request
-    bool refreshing_stations = false;
-    // True if there is a pending data refresh request
-    bool refreshing_data = false;
+    /// Monitor a pending data refresh action
+    PendingDataRequest* pending_query_data = nullptr;
+
+    /// Monitor a pending summary refresh action
+    PendingSummaryRequest* pending_query_summary = nullptr;
 
     // Filtering elements
     std::map<int, Station> cache_stations;

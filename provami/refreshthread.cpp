@@ -2,132 +2,45 @@
 #include <dballe/core/query.h>
 #include <dballe/db/db.h>
 #include <QDebug>
+#include <QtConcurrent/QtConcurrent>
 
 using namespace std;
 using namespace dballe;
 
 namespace provami {
 
-RefreshThread::~RefreshThread()
+static db::CursorData* do_refresh_data(DB* db, Query* q)
 {
-    mutex.lock();
-    do_quit = true;
-    condition.wakeOne();
-    mutex.unlock();
-    wait();
+    return db->query_data(*q).release();
 }
 
-// RAII mutex lock
-struct MutexLock
+PendingDataRequest::PendingDataRequest(dballe::DB* db, std::unique_ptr<dballe::Query>&& query, const QObject* receiver, const char* method)
+    : PendingRequest(receiver, method), query(query.release())
 {
-    QMutex& mutex;
-    MutexLock(QMutex& mutex) : mutex(mutex)
-    {
-        mutex.lock();
-    }
-    ~MutexLock()
-    {
-        mutex.unlock();
-    }
-    void wait(QWaitCondition& cond)
-    {
-        cond.wait(&mutex);
-    }
-};
-
-void RefreshThread::run()
-{
-    //qDebug() << "worker: start thread";
-    while (true)
-    {
-        unique_ptr<dballe::Query> sum_query;
-        unique_ptr<dballe::Query> data_query;
-        // Check if an abort is requested
-        {
-            bool has_work = false;
-            MutexLock checkQueue(mutex);
-            if (do_quit) break;
-            if (pending_summary_query)
-            {
-                sum_query.reset(pending_summary_query);
-                pending_summary_query = 0;
-                has_work = true;
-            }
-            if (pending_data_query)
-            {
-                data_query.reset(pending_data_query);
-                pending_data_query = 0;
-                has_work = true;
-            }
-
-            if (!has_work)
-            {
-                //qDebug() << "worker: no more work, wait for some";
-                checkQueue.wait(condition);
-                continue;
-            }
-        }
-
-        //qDebug() << "worker: Wakeup refresh thread: summary: " << (sum_query.get() != 0)
-        //         << " data: " << (data_query.get() != 0);
-
-        if (sum_query)
-        {
-            //qDebug() << "worker: starting summary query";
-            bool with_details = core::Query::downcast(*sum_query).query.find("details") != string::npos;
-            auto cur = db->query_summary(*sum_query);
-            {
-                MutexLock lock(mutex);
-                cur_summary = move(cur);
-            }
-            //qDebug() << "worker: notifying summary query";
-            emit have_new_summary(core::Query::downcast(*sum_query), with_details);
-            //qDebug() << "worker: done summary query";
-        }
-
-        if (data_query)
-        {
-            //qDebug() << "worker: starting data query";
-            auto cur = db->query_data(*data_query);
-            {
-                MutexLock lock(mutex);
-                cur_data = move(cur);
-            }
-            //qDebug() << "worker: notifying data query";
-            emit have_new_data();
-            //qDebug() << "worker: done data query";
-        }
-    }
-    //qDebug() << "worker: end thread";
+    future = QtConcurrent::run(do_refresh_data, db, this->query);
+    future_watcher.setFuture(future);
 }
 
-void RefreshThread::query_summary(const Query &query, bool want_details)
+PendingDataRequest::~PendingDataRequest()
 {
-    //qDebug("query summary requested");
-    // Make a copy to pass to pending_summary_query
-    auto q = query.clone();
-
-    // If the active filter is empty, request all details
-    if (want_details) core::Query::downcast(*q).query = "details";
-
-    // Enqueue the job for the worker thread
-    MutexLock lock(mutex);
-    delete pending_summary_query;
-    pending_summary_query = q.release();
-    condition.wakeOne();
+    delete query;
 }
 
-void RefreshThread::query_data(const Query &query)
+static db::CursorSummary* do_refresh_summary(DB* db, Query* q)
 {
-    //qDebug("query data requested");
-    // Make a copy to pass to pending_data_query
-    auto q = query.clone();
+    return db->query_summary(*q).release();
+}
 
-    // Enqueue the job for the worker thread
-    MutexLock lock(mutex);
-    delete pending_data_query;
-    pending_data_query = q.release();
-    condition.wakeOne();
+PendingSummaryRequest::PendingSummaryRequest(dballe::DB* db, std::unique_ptr<dballe::Query>&& query, const QObject* receiver, const char* method)
+    : PendingRequest(receiver, method), query(query.release())
+{
+    future = QtConcurrent::run(do_refresh_summary, db, this->query);
+    future_watcher.setFuture(future);
+}
+
+PendingSummaryRequest::~PendingSummaryRequest()
+{
+    delete query;
 }
 
 }

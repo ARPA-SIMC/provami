@@ -2,6 +2,7 @@
 #include "provami/model.h"
 #include <dballe/types.h>
 #include <dballe/core/values.h>
+#include <dballe/core/record.h>
 #include <QDebug>
 
 using namespace std;
@@ -61,7 +62,6 @@ class Tests : public TestCase
             qDebug() << "start";
             Model model;
             model.set_db(populate(), "test");
-            model.refresh_thread.start();
 
             qDebug() << "have db";
 

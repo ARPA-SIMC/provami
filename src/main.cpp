@@ -68,7 +68,6 @@ int main(int argc, char *argv[])
     } else {
         model.dballe_connect(non_query_args[0]);
     }
-    model.refresh_thread.start();
     w.show();
     return app.exec();
 }

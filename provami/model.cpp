@@ -1,4 +1,5 @@
 #include "provami/model.h"
+#include "provami/refreshthread.h"
 #include <memory>
 #include <dballe/db/db.h>
 #include <dballe/core/values.h>
@@ -16,13 +17,13 @@ Model::Model()
     : db(0), active_filter(Query::create()), next_filter(Query::create()),
       reports(*this), levels(*this), tranges(*this), varcodes(*this), idents(*this)
 {
-    connect(&refresh_thread, SIGNAL(have_new_summary(dballe::core::Query, bool)), this, SLOT(on_have_new_summary(dballe::core::Query, bool)));
-    connect(&refresh_thread, SIGNAL(have_new_data()), this, SLOT(on_have_new_data()));
 }
 
 Model::~Model()
 {
-    if (db) delete db;
+    delete pending_query_data;
+    delete pending_query_summary;
+    delete db;
 }
 
 static const dballe::Datetime missing_datetime;
@@ -141,7 +142,6 @@ void Model::dballe_connect(const std::string &dballe_url)
 
     auto new_db = DB::connect_from_url(dballe_url.c_str());
     db = new_db.release();
-    refresh_thread.db = db;
 
     refresh();
 }
@@ -157,19 +157,19 @@ void Model::set_db(std::unique_ptr<DB> &&_db, const std::string& url)
     m_dballe_url = url;
 
     db = _db.release();
-    refresh_thread.db = db;
 
     refresh();
 }
 
 void Model::test_wait_for_refresh()
 {
-    // Wait for the model to get refreshed
+    if (pending_query_data)
+        pending_query_data->future_watcher.waitForFinished();
+    if (pending_query_summary)
+        pending_query_summary->future_watcher.waitForFinished();
+
     QEventLoop loop;
-    QObject::connect(this, SIGNAL(active_filter_changed()), &loop, SLOT(quit()));
-    QObject::connect(this, SIGNAL(end_data_changed()), &loop, SLOT(quit()));
-    while (refreshing_stations || refreshing_data)
-        loop.exec();
+    loop.processEvents();
 }
 
 void Model::refresh(bool accurate)
@@ -180,25 +180,29 @@ void Model::refresh(bool accurate)
 
 void Model::refresh_data()
 {
+    // TODO: queue it instead of ignoring it?
+    if (pending_query_data) return;
     emit progress("data", "Loading data...");
     auto query = active_filter->clone();
     core::Query::downcast(*query).limit = limit;
-    refreshing_data = true;
-    refresh_thread.query_data(*query);
+    pending_query_data = new PendingDataRequest(db, move(query), this, SLOT(on_have_new_data()));
 }
 
 void Model::on_have_new_data()
 {
     emit progress("data", "Processing data...");
 
-    refreshing_data = false;
+    // Get the result out of the pending action
+    unique_ptr<db::CursorData> cur(pending_query_data->future_watcher.future().result());
+    delete pending_query_data;
+    pending_query_data = nullptr;
 
     emit begin_data_changed();
     // Query data for the currently active filter
     cache_values.clear();
-    while (refresh_thread.cur_data->next())
+    while (cur->next())
     {
-        cache_values.push_back(Value(*refresh_thread.cur_data));
+        cache_values.push_back(Value(*cur));
     }
     emit end_data_changed();
 
@@ -209,27 +213,34 @@ void Model::refresh_summary(bool accurate)
 {
     using namespace dballe::db::summary;
 
+    // TODO: queue it instead of ignoring it?
+    if (pending_query_summary) return;
+
     emit progress("summary", "Loading summary...");
 
-    if (summaries.empty())
-    {
-        emit progress("summary", "Loading initial summary from db...");
-        refreshing_stations = true;
-        refresh_thread.query_summary(*Query::create(), true);
-        return;
-    }
+    unique_ptr<Query> query;
 
-    Matcher matcher(*active_filter, cache_stations);
-    auto supported = summaries.query(*active_filter, accurate, [&](const Entry& entry) {
-        return matcher.match(entry);
-    });
+    db::summary::Support supported = UNSUPPORTED;
+    if (!summaries.empty())
+    {
+        Matcher matcher(*active_filter, cache_stations);
+        supported = summaries.query(*active_filter, accurate, [&](const Entry& entry) {
+            return matcher.match(entry);
+        });
+        query = active_filter->clone();
+        if (accurate)
+            core::Query::downcast(*query).query = "details";
+    } else {
+        query = Query::create();
+        core::Query::downcast(*query).query = "details";
+    }
 
     if (supported == UNSUPPORTED || (supported == OVERESTIMATED && accurate))
     {
-        emit progress("summary", "Loading summary from db...");
-        refreshing_stations = true;
         // The best summary that we have do not support what we need: hit the database
-        refresh_thread.query_summary(*active_filter, accurate);
+        emit progress("summary", "Loading summary from db...");
+        pending_query_summary = new PendingSummaryRequest(db, move(query),
+                this, SLOT(on_have_new_summary()));
     }
     else
     {
@@ -239,30 +250,32 @@ void Model::refresh_summary(bool accurate)
         emit progress("summary");
         emit active_filter_changed();
     }
-
 }
 
-void Model::on_have_new_summary(core::Query query, bool with_details)
+void Model::on_have_new_summary()
 {
     emit progress("summary", "Processing summary...");
     qDebug() << "Refresh summary results arrived";
 
-    refreshing_stations = false;
-
-    db::Summary& s = summaries.push(query);
+    // Get the result out of the pending action
+    unique_ptr<db::CursorSummary> cur(pending_query_summary->future_watcher.future().result());
+    db::Summary& s = summaries.push(*(pending_query_summary->query));
+    bool with_details = core::Query::downcast(*pending_query_summary->query).query == "details";
+    delete pending_query_summary;
+    pending_query_summary = nullptr;
 
     cache_stations.clear();
     cache_values.clear();
 
     highlight.reset();
 
-    while (refresh_thread.cur_summary->next())
+    while (cur->next())
     {
-        int ana_id = refresh_thread.cur_summary->get_station_id();
+        int ana_id = cur->get_station_id();
         if (cache_stations.find(ana_id) == cache_stations.end())
-            cache_stations.insert(make_pair(ana_id, Station(*refresh_thread.cur_summary)));
+            cache_stations.insert(make_pair(ana_id, Station(*cur)));
 
-        s.add_summary(*refresh_thread.cur_summary, with_details);
+        s.add_summary(*cur, with_details);
     }
 
     // Recompute the available choices
