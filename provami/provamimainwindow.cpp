@@ -47,7 +47,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     connect(ui->results, SIGNAL(clicked(QModelIndex)), this, SLOT(results_clicked(QModelIndex)));
     connect(ui->station_data, SIGNAL(clicked(QModelIndex)), this, SLOT(station_data_clicked(QModelIndex)));
     connect(ui->export_go, SIGNAL(clicked()), this, SLOT(export_go()));
-    connect(&model, SIGNAL(active_filter_changed()), this, SLOT(on_stats_changed()));
+    connect(&model, SIGNAL(active_filter_changed()), this, SLOT(stats_changed()));
 
     ui->results->setModel(&datagrid_model);
     ui->station_data->setModel(&stationgrid_model);
@@ -231,7 +231,7 @@ void ProvamiMainWindow::on_actionRefreshAccurate_triggered()
     model.activate_next_filter(true);
 }
 
-void ProvamiMainWindow::on_stats_changed()
+void ProvamiMainWindow::stats_changed()
 {
     stringstream buf;
     buf << model.summary_datetime_min() << " to " << model.summary_datetime_max() << ": " << model.summary_count();

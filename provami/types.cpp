@@ -8,7 +8,15 @@ using namespace std;
 
 namespace provami {
 
-Station::Station(const dballe::db::Cursor &cur)
+Station::Station(const dballe::db::CursorStation& cur)
+{
+    id = cur.get_station_id();
+    lat = cur.get_lat();
+    lon = cur.get_lon();
+    ident = cur.get_ident("");
+}
+
+Station::Station(const dballe::db::CursorSummary& cur)
 {
     id = cur.get_station_id();
     lat = cur.get_lat();
@@ -17,8 +25,7 @@ Station::Station(const dballe::db::Cursor &cur)
 }
 
 
-
-BaseValue::BaseValue(const db::Cursor &cur)
+BaseValue::BaseValue(const db::CursorValue& cur)
     : var(cur.get_var())
 {
     ana_id = cur.get_station_id();
@@ -26,12 +33,12 @@ BaseValue::BaseValue(const db::Cursor &cur)
     value_id = cur.attr_reference_id();
 }
 
-StationValue::StationValue(const dballe::db::Cursor &cur)
+StationValue::StationValue(const dballe::db::CursorStationData& cur)
     : BaseValue(cur)
 {
 }
 
-Value::Value(const dballe::db::Cursor &cur)
+Value::Value(const dballe::db::CursorData& cur)
     : BaseValue(cur)
 {
     level = cur.get_level();

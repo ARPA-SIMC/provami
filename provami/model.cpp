@@ -98,9 +98,9 @@ void Model::update(StationValue &val, const wreport::Var &new_val)
 
 void Model::update(int var_id, wreport::Varcode var_related, const wreport::Var &new_val)
 {
-    auto change = Record::create();
-    change->set(new_val);
-    db->attr_insert(var_id, var_related, *change);
+    Values values;
+    values.set(new_val);
+    db->attr_insert_data(var_id, values);
 }
 
 void Model::remove(const Value &val)

@@ -66,7 +66,7 @@ private slots:
     void text_query_changed();
     void on_actionExit_triggered();
     void on_actionRefresh_triggered();
-    void on_stats_changed();
+    void stats_changed();
     void highlight_changed();
     void export_go();
 

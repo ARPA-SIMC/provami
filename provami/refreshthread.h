@@ -11,7 +11,8 @@
 namespace dballe {
 struct DB;
 namespace db {
-struct Cursor;
+struct CursorSummary;
+struct CursorData;
 }
 }
 
@@ -42,8 +43,8 @@ public:
     ~RefreshThread();
 
     dballe::DB* db = 0;
-    std::unique_ptr<dballe::db::Cursor> cur_summary;
-    std::unique_ptr<dballe::db::Cursor> cur_data;
+    std::unique_ptr<dballe::db::CursorSummary> cur_summary;
+    std::unique_ptr<dballe::db::CursorData> cur_data;
 
     void query_summary(const dballe::Query& query, bool want_details);
     void query_data(const dballe::Query& query);

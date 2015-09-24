@@ -9,7 +9,11 @@
 namespace dballe {
 struct Query;
 namespace db {
-class Cursor;
+class CursorStation;
+class CursorSummary;
+class CursorValue;
+class CursorStationData;
+class CursorData;
 namespace summary {
 class Entry;
 }
@@ -27,7 +31,8 @@ struct Station
     bool hidden = false;
 
 protected:
-    Station(const dballe::db::Cursor& cur);
+    Station(const dballe::db::CursorStation& cur);
+    Station(const dballe::db::CursorSummary& cur);
 
     friend class Model;
 };
@@ -48,12 +53,12 @@ struct BaseValue
         return true;
     }
 protected:
-    BaseValue(const dballe::db::Cursor& cur);
+    BaseValue(const dballe::db::CursorValue& cur);
 };
 
 struct StationValue : public BaseValue
 {
-    StationValue(const dballe::db::Cursor& cur);
+    StationValue(const dballe::db::CursorStationData& cur);
 };
 
 struct Value : public BaseValue
@@ -72,7 +77,7 @@ struct Value : public BaseValue
     }
 
 protected:
-    Value(const dballe::db::Cursor& cur);
+    Value(const dballe::db::CursorData& cur);
 
     friend class Model;
 };

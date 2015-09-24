@@ -49,3 +49,5 @@ add_test(NAME test-provami COMMAND test-provami)
 
 install(TARGETS provami-qt DESTINATION bin)
 install(DIRECTORY mapview DESTINATION ${DATADIR})
+install(FILES provami-qt.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/man/man1)
+
