@@ -1,7 +1,7 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami-qt
 Version: 1.0.0
-Release: 4830%{dist}
+Release: 4831%{dist}
 License: GPL
 Group: Applications/Meteo
 Source0: %{name}-%{version}.tar.gz
@@ -50,6 +50,9 @@ ctest -V %{?_smp_mflags}
 %postun
 
 %changelog
+* Fri Sep 25 2015 Daniele Branchini <dbranchini@arpa.emr.it> - qt1.0.0-4831%{dist}
+- fixed issue https://github.com/ARPA-SIMC/provami/issues/2
+
 * Thu Sep 24 2015 Daniele Branchini <dbranchini@arpa.emr.it> - qt1.0.0-4830%{dist}
 - added man page and help options
 
