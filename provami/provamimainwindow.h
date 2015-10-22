@@ -11,6 +11,7 @@
 #include <provami/attrgridmodel.h>
 #include <provami/rawquerymodel.h>
 #include <provami/progressindicator.h>
+//#include <provami/debug.h>
 
 namespace Ui {
 class ProvamiMainWindow;
@@ -40,6 +41,7 @@ class ProvamiMainWindow : public QMainWindow
 
 protected:
     Model& model;
+    //DebugAbstractTableModel<DataGridModel> datagrid_model;
     DataGridModel datagrid_model;
     StationGridModel stationgrid_model;
     AttrGridModel attrgrid_model;
