@@ -44,12 +44,13 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     connect(ui->filter_datemax, SIGNAL(activate(QDateTime)), this, SLOT(filter_datemax_activated(QDateTime)));
     connect(ui->filter_limit, SIGNAL(editingFinished()), this, SLOT(filter_limit_changed()));
     //connect(ui->text_query, SIGNAL(textChanged()), this, SLOT(text_query_changed());
-    connect(ui->results, SIGNAL(clicked(QModelIndex)), this, SLOT(results_clicked(QModelIndex)));
     connect(ui->station_data, SIGNAL(clicked(QModelIndex)), this, SLOT(station_data_clicked(QModelIndex)));
     connect(ui->export_go, SIGNAL(clicked()), this, SLOT(export_go()));
     connect(&model, SIGNAL(active_filter_changed()), this, SLOT(stats_changed()));
 
     ui->results->setModel(&datagrid_model);
+    connect(ui->results->selectionModel(), SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(results_current_changed(QModelIndex, QModelIndex)));
+
     ui->station_data->setModel(&stationgrid_model);
     ui->attr_data->setModel(&attrgrid_model);
     ui->raw_query->setModel(&rawquery_model);
@@ -103,7 +104,7 @@ void ProvamiMainWindow::next_filter_changed()
     ui->raw_query_shell->setText(rawquery_model.as_shell_args().join(" "));
 }
 
-void ProvamiMainWindow::results_clicked(QModelIndex idx)
+void ProvamiMainWindow::results_current_changed(QModelIndex idx, QModelIndex prev)
 {
     const Value* val = datagrid_model.valueAt(idx);
     model.highlight.select_value(val);
