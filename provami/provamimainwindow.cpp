@@ -49,6 +49,10 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     connect(&model, SIGNAL(active_filter_changed()), this, SLOT(stats_changed()));
 
     ui->results->setModel(&datagrid_model);
+    ui->results->setEditTriggers(
+                QAbstractItemView::DoubleClicked
+              | QAbstractItemView::SelectedClicked
+              | 4QAbstractItemView::EditKeyPressed);
     connect(ui->results->selectionModel(), SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(results_current_changed(QModelIndex, QModelIndex)));
 
     ui->station_data->setModel(&stationgrid_model);
