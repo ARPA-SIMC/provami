@@ -143,7 +143,7 @@ void Model::dballe_connect(const std::string &dballe_url)
     auto new_db = DB::connect_from_url(dballe_url.c_str());
     db = new_db.release();
 
-    refresh();
+    //refresh();
 }
 
 void Model::set_db(std::unique_ptr<DB> &&_db, const std::string& url)
@@ -158,7 +158,7 @@ void Model::set_db(std::unique_ptr<DB> &&_db, const std::string& url)
 
     db = _db.release();
 
-    refresh();
+    //refresh();
 }
 
 void Model::test_wait_for_refresh()

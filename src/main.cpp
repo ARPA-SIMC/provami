@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
     initial_filter->set_from_record(*initial_query);
     model.set_initial_filter(*initial_filter);
 
+    // Connect to the db
     if (non_query_args.empty())
     {
         const char* connect_url = getenv("DBA_DB");
@@ -68,6 +69,12 @@ int main(int argc, char *argv[])
     } else {
         model.dballe_connect(non_query_args[0]);
     }
+
+    // Show the main window before running a refresh
     w.show();
+    QApplication::processEvents();
+
+    model.activate_next_filter();
+
     return app.exec();
 }
