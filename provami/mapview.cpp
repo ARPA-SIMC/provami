@@ -8,6 +8,9 @@ using namespace dballe;
 
 namespace provami {
 
+/**
+ * Web page with the map
+ */
 class MapPage : public QWebPage
 {
 public:
@@ -17,9 +20,12 @@ public:
         : QWebPage(parent)
     {
         QWebFrame* frame = mainFrame();
+
+        // Export the MapController instance to JavaScript
         frame->addToJavaScriptWindowObject("provami", &controller);
     }
 
+    /// Called when console.log or similar is called by JavaScript in the page
     virtual void javaScriptConsoleMessage(const QString& message, int lineNumber, const QString& sourceID)
     {
         qDebug() << QString("%1:%2: %3").arg(sourceID).arg(lineNumber).arg(message);
@@ -101,16 +107,11 @@ void MapView::station_selected(int id)
 {
     qDebug() << "station selected" << id;
     model->select_station_id(id);
-
-    QString select_stations = QString("set_selected_stations([%1]);").arg(id);
-    run_javascript(select_stations);
 }
 
 void MapView::area_selected(double latmin, double latmax, double lonmin, double lonmax)
 {
     qDebug() << "area selected" << latmin << latmax << lonmin << lonmax;
-
-    QString select_stations("set_selected_stations([");
 
     unsigned count = 0;
     int selected_id = MISSING_INT;
@@ -121,11 +122,6 @@ void MapView::area_selected(double latmin, double latmax, double lonmin, double 
         if (si.second.lon < lonmin || si.second.lon > lonmax) continue;
         qDebug() << "Found" << si.first << si.second.lat << si.second.lon;
         selected_id = si.first;
-
-        if (count)
-            select_stations += ",";
-        select_stations += QString::number(si.first);
-
         ++count;
     }
 
@@ -145,16 +141,12 @@ void MapView::area_selected(double latmin, double latmax, double lonmin, double 
             model->select_station_bounds(latmin, latmax, lonmin, lonmax);
             break;
     }
-
-    select_stations += "]);";
-    run_javascript(select_stations);
 }
 
 void MapView::area_unselected()
 {
     qDebug() << "Unselect stations";
     model->unselect_station();
-    run_javascript("set_selected_stations([]);");
 }
 
 

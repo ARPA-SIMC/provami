@@ -6,6 +6,11 @@
 
 namespace provami {
 
+/**
+ * Show a world map with the stations on it, and allow to perform some interactive selection.
+ *
+ * This is implemented with a QWebView, with the actual map logic implemented in HTML5+JavaScript.
+ */
 class MapView : public QWebView
 {
     Q_OBJECT

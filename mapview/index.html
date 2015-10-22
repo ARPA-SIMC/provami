@@ -179,6 +179,7 @@ function select_marker(id)
   window.provami.js_station_selected(id);
 }
 
+/*
 function set_selected_stations(ids)
 {
   var selected = {};
@@ -204,6 +205,7 @@ function set_selected_stations(ids)
     update_marker(markers_by_id[id]);
   }
 }
+*/
 
 function station_clicked(evt)
 {
@@ -211,6 +213,14 @@ function station_clicked(evt)
   select_marker(evt.target.options.id);
 }
 
+/**
+ * Replace all the stations on the map with the ones in data.
+ *
+ * Data is a list of station information, as follows:
+ * data = [
+ *      [id, lat, lon, selected, hidden],
+ * ];
+ */
 function set_stations(data)
 {
   if (markers != null)
@@ -228,11 +238,11 @@ function set_stations(data)
   // Compute the bounding box of the points
   for (var i = 0; i < data.length; ++i)
   {
-    var id = data[i][0];
-    var lat = data[i][1];
-    var lon = data[i][2];
-    var sel = data[i][3];
-    var hidden = data[i][4];
+    var id = data[i][0];      // Station ID (integer)
+    var lat = data[i][1];     // Station latitude (float)
+    var lon = data[i][2];     // Station longitude (float)
+    var sel = data[i][3];     // true if the station is currently selected
+    var hidden = data[i][4];  // true if the station is not present in the current result set (TODO: this is currently broken)
     points.push([lat, lon]);
     var marker = L.marker(new L.LatLng(lat, lon), { title: id, id: id, hidden: hidden });
     markers_by_id[id] = marker;
