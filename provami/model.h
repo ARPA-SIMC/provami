@@ -35,7 +35,9 @@ public slots:
     void select_varcode(wreport::Varcode val);
     void select_datemin(const dballe::Datetime& val);
     void select_datemax(const dballe::Datetime& val);
+    /// Reset lat, lon, ana_id and ident filters
     void unselect_station();
+    /// Reset ident filter
     void unselect_ident();
     void unselect_report();
     void unselect_level();

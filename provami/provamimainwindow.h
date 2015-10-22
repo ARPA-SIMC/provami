@@ -66,11 +66,11 @@ private slots:
     void text_query_changed();
     void on_actionExit_triggered();
     void on_actionRefresh_triggered();
+    void on_actionRefreshAccurate_triggered();
+    void on_actionUnselectStations_triggered();
     void stats_changed();
     void highlight_changed();
     void export_go();
-
-    void on_actionRefreshAccurate_triggered();
 
 private:
     Ui::ProvamiMainWindow *ui;

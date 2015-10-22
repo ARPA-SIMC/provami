@@ -231,6 +231,11 @@ void ProvamiMainWindow::on_actionRefreshAccurate_triggered()
     model.activate_next_filter(true);
 }
 
+void provami::ProvamiMainWindow::on_actionUnselectStations_triggered()
+{
+    model.unselect_station();
+}
+
 void ProvamiMainWindow::stats_changed()
 {
     stringstream buf;
@@ -301,3 +306,4 @@ void ProvamiMainWindow::export_go()
 }
 
 }
+
