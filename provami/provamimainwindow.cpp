@@ -52,7 +52,7 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->results->setEditTriggers(
                 QAbstractItemView::DoubleClicked
               | QAbstractItemView::SelectedClicked
-              | 4QAbstractItemView::EditKeyPressed);
+              | QAbstractItemView::EditKeyPressed);
     connect(ui->results->selectionModel(), SIGNAL(currentChanged(QModelIndex, QModelIndex)), this, SLOT(results_current_changed(QModelIndex, QModelIndex)));
 
     ui->station_data->setModel(&stationgrid_model);
