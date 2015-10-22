@@ -265,7 +265,6 @@ void Model::on_have_new_summary()
     pending_query_summary = nullptr;
 
     cache_stations.clear();
-    cache_values.clear();
 
     highlight.reset();
 
