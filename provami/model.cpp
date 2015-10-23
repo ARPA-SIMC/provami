@@ -307,31 +307,42 @@ void Model::mark_hidden_stations(const db::Summary &summary)
 
 void Model::process_summary()
 {
+    qDebug() << "process_summary";
     next_filter->print(stderr);
-    //qDebug() << "process_summary" << QString::fromStdString(next_filter.to_string());
+
+    // We need at least a master summary to process
     if (summaries.empty()) return;
+
     Matcher matcher(*next_filter, cache_stations);
-    db::Summary temp(*next_filter);
-    summaries.top().iterate([&](const db::summary::Entry& entry) {
-        if (matcher.match(entry))
-            temp.add_entry(entry);
-        return true;
-    });
+
+    // Filter the toplevel summary using next_filter,
+    // to create a summary of what would appear in the next refresh
+    db::Summary next_summary(*next_filter);
+    filter_top_summary(matcher, next_summary);
 
     // Mark disappeared stations as hidden
     set<string> all_idents;
     if (matcher.has_flt_station)
     {
+        // Build a version of the current filter without station information
         auto subrec = next_filter->clone();
         core::Query::downcast(*subrec).ana_id = MISSING_INT;
         core::Query::downcast(*subrec).mobile = MISSING_INT;
         core::Query::downcast(*subrec).ident.clear();
         subrec->set_latrange(LatRange());
         subrec->set_lonrange(LonRange());
-        Matcher submatcher(*subrec, cache_stations);
+
+        // Filter the toplevel summary using next_filter minus station information
         db::Summary sub(*subrec);
-        filter_top_summary(submatcher, sub);
+        {
+            Matcher submatcher(*subrec, cache_stations);
+            filter_top_summary(submatcher, sub);
+        }
+
+        // Mark all stations not present in sub as hidden
         mark_hidden_stations(sub);
+
+        // Harvest all idents from the station present in sub to create a filtered ident selection
         for (int s_id : sub.all_stations)
         {
             auto s = cache_stations.find(s_id);
@@ -339,10 +350,16 @@ void Model::process_summary()
                 all_idents.insert(s->second.ident);
         }
 
-        _selected_stations = temp.all_stations;
+        // Mark all stations selected by next_filter as selected
+        _selected_stations = next_summary.all_stations;
     } else {
-        mark_hidden_stations(temp);
-        for (int s_id : temp.all_stations)
+        // If we have no station filter, we can hide all stations
+        // that would give no data if the current next_filter were
+        // activated
+        mark_hidden_stations(next_summary);
+
+        // Harvest all idents from the same set of stations, to create a filtered ident selection
+        for (int s_id : next_summary.all_stations)
         {
             auto s = cache_stations.find(s_id);
             if (s != cache_stations.end() && !s->second.ident.empty())
@@ -361,7 +378,7 @@ void Model::process_summary()
         reports.set_items(sub.all_reports);
     }
     else
-        reports.set_items(temp.all_reports);
+        reports.set_items(next_summary.all_reports);
 
     if (matcher.has_flt_level)
     {
@@ -372,7 +389,7 @@ void Model::process_summary()
         filter_top_summary(submatcher, sub);
         levels.set_items(sub.all_levels);
     } else
-        levels.set_items(temp.all_levels);
+        levels.set_items(next_summary.all_levels);
 
     if (matcher.has_flt_trange)
     {
@@ -383,7 +400,7 @@ void Model::process_summary()
         filter_top_summary(submatcher, sub);
         tranges.set_items(sub.all_tranges);
     } else
-        tranges.set_items(temp.all_tranges);
+        tranges.set_items(next_summary.all_tranges);
 
     if (matcher.has_flt_varcode)
     {
@@ -394,7 +411,7 @@ void Model::process_summary()
         filter_top_summary(submatcher, sub);
         varcodes.set_items(sub.all_varcodes);
     } else
-        varcodes.set_items(temp.all_varcodes);
+        varcodes.set_items(next_summary.all_varcodes);
 
     emit next_filter_changed();
 }

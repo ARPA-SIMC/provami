@@ -85,7 +85,6 @@ void MapView::update_stations()
 {
     qDebug() << "update stations";
     QString set_stations("set_stations([");
-    QWebFrame* frame = page()->mainFrame();
     const std::map<int, Station>& new_stations = model->stations();
     const std::set<int> selected_stations = model->selected_stations();
     for (const auto& si : new_stations)

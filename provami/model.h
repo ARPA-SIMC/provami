@@ -67,7 +67,7 @@ protected:
     /// Monitor a pending summary refresh action
     PendingSummaryRequest* pending_query_summary = nullptr;
 
-    // Filtering elements
+    // All known stations, indexed by their ana_id
     std::map<int, Station> cache_stations;
 
     // Currently selected stations
