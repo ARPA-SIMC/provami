@@ -221,6 +221,7 @@ function station_clicked(evt)
  *      [id, lat, lon, selected, hidden],
  * ];
  */
+var set_stations_first_time = true;
 function set_stations(data)
 {
   if (markers != null)
@@ -256,8 +257,12 @@ function set_stations(data)
 
   map.addLayer(markers);
 
-  var bounds = L.latLngBounds(points);
-  map.fitBounds(bounds);
+  if (set_stations_first_time)
+  {
+    var bounds = L.latLngBounds(points);
+    map.fitBounds(bounds);
+    set_stations_first_time = false;
+  }
 }
 
 function set_highlighted_station(id)
