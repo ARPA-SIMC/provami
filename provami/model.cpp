@@ -365,6 +365,9 @@ void Model::process_summary()
             if (s != cache_stations.end() && !s->second.ident.empty())
                 all_idents.insert(s->second.ident);
         }
+
+        // No station is currently selected, so clear the list
+        _selected_stations.clear();
     }
     idents.set_items(all_idents);
 
