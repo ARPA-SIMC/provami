@@ -487,6 +487,7 @@ void Model::select_station_bounds(double latmin, double latmax, double lonmin, d
 void Model::select_ident(const string &val)
 {
     core::Query::downcast(*next_filter).ident = val;
+    core::Query::downcast(*next_filter).ana_id = MISSING_INT;
     process_summary();
 }
 
