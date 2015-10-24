@@ -67,16 +67,19 @@ protected:
     /// Monitor a pending summary refresh action
     PendingSummaryRequest* pending_query_summary = nullptr;
 
-    // All known stations, indexed by their ana_id
+    /// All known stations, indexed by their ana_id
     std::map<int, Station> cache_stations;
 
-    // Currently selected stations
+    /// Currently selected stations
     std::set<int> _selected_stations;
 
-    /// Cached summary data
-    dballe::db::summary::Stack summaries;
+    /// Summary of the whole database
+    dballe::db::Summary* global_summary = nullptr;
 
-    // Sample values for the currently active filter
+    /// Summary of active_filter
+    dballe::db::Summary* active_summary = nullptr;
+
+    /// Sample values for the currently active filter
     std::vector<Value> cache_values;
 
     std::string m_dballe_url;

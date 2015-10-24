@@ -24,26 +24,28 @@ Model::~Model()
     delete pending_query_data;
     delete pending_query_summary;
     delete db;
+    delete global_summary;
+    delete active_summary;
 }
 
 static const dballe::Datetime missing_datetime;
 
 const Datetime &Model::summary_datetime_min() const
 {
-    if (summaries.empty()) return missing_datetime;
-    return summaries.top().datetime_min();
+    if (!active_summary) return missing_datetime;
+    return active_summary->datetime_min();
 }
 
 const Datetime &Model::summary_datetime_max() const
 {
-    if (summaries.empty()) return missing_datetime;
-    return summaries.top().datetime_max();
+    if (!active_summary) return missing_datetime;
+    return active_summary->datetime_max();
 }
 
 unsigned Model::summary_count() const
 {
-    if (summaries.empty()) return dballe::MISSING_INT;
-    return summaries.top().data_count();
+    if (!active_summary) return dballe::MISSING_INT;
+    return active_summary->data_count();
 }
 
 const std::map<int, Station> &Model::stations() const
@@ -218,22 +220,27 @@ void Model::refresh_summary(bool accurate)
 
     emit progress("summary", "Loading summary...");
 
+    delete active_summary;
+    active_summary = nullptr;
+
     unique_ptr<Query> query;
 
     db::summary::Support supported = UNSUPPORTED;
-    if (!summaries.empty())
+    if (!global_summary)
     {
-        Matcher matcher(*active_filter, cache_stations);
-        supported = summaries.query(*active_filter, accurate, [&](const Entry& entry) {
-            return matcher.match(entry);
-        });
+        query = Query::create();
+        core::Query::downcast(*query).query = "details";
+    } else {
+        supported = global_summary->supports(*active_filter);
+//        Matcher matcher(*active_filter, cache_stations);
+//        supported = summaries.query(*active_filter, accurate, [&](const Entry& entry) {
+//            return matcher.match(entry);
+//        });
         query = active_filter->clone();
         if (accurate)
             core::Query::downcast(*query).query = "details";
-    } else {
-        query = Query::create();
-        core::Query::downcast(*query).query = "details";
     }
+
 
     if (supported == UNSUPPORTED || (supported == OVERESTIMATED && accurate))
     {
@@ -246,6 +253,16 @@ void Model::refresh_summary(bool accurate)
     {
         // Recompute the available choices
         qDebug() << "No need to hit the database, summary collation started";
+
+        Matcher matcher(*query, cache_stations);
+        if (active_summary)
+        {
+            delete active_summary;
+            active_summary = nullptr;
+        }
+        active_summary = new db::Summary(*query);
+        filter_top_summary(matcher, *active_summary);
+
         process_summary();
         emit progress("summary");
         emit active_filter_changed();
@@ -257,24 +274,43 @@ void Model::on_have_new_summary()
     emit progress("summary", "Processing summary...");
     qDebug() << "Refresh summary results arrived";
 
+    bool do_global_summary = false;
+    if (!global_summary)
+    {
+        do_global_summary = true;
+        auto query = dballe::Query::create();
+        global_summary = new db::Summary(*query);
+    }
+
     // Get the result out of the pending action
     unique_ptr<db::CursorSummary> cur(pending_query_summary->future_watcher.future().result());
-    db::Summary& s = summaries.push(*(pending_query_summary->query));
+    if (active_summary)
+    {
+        delete active_summary;
+        active_summary = nullptr;
+    }
+    active_summary = new db::Summary(*(pending_query_summary->query));
+
     bool with_details = core::Query::downcast(*pending_query_summary->query).query == "details";
     delete pending_query_summary;
     pending_query_summary = nullptr;
 
-    cache_stations.clear();
+    if (do_global_summary)
+        cache_stations.clear();
 
     highlight.reset();
 
     while (cur->next())
     {
-        int ana_id = cur->get_station_id();
-        if (cache_stations.find(ana_id) == cache_stations.end())
-            cache_stations.insert(make_pair(ana_id, Station(*cur)));
+        active_summary->add_summary(*cur, with_details);
 
-        s.add_summary(*cur, with_details);
+        if (do_global_summary)
+        {
+            int ana_id = cur->get_station_id();
+            if (cache_stations.find(ana_id) == cache_stations.end())
+                cache_stations.insert(make_pair(ana_id, Station(*cur)));
+            global_summary->add_summary(*cur, with_details);
+        }
     }
 
     // Recompute the available choices
@@ -292,7 +328,7 @@ void Model::activate_next_filter(bool accurate)
 
 void Model::filter_top_summary(const Matcher &matcher, db::Summary &out) const
 {
-    summaries.top().iterate([&](const db::summary::Entry& entry) {
+    global_summary->iterate([&](const db::summary::Entry& entry) {
         if (matcher.match(entry))
             out.add_entry(entry);
         return true;
@@ -311,7 +347,7 @@ void Model::process_summary()
     next_filter->print(stderr);
 
     // We need at least a master summary to process
-    if (summaries.empty()) return;
+    if (!global_summary) return;
 
     Matcher matcher(*next_filter, cache_stations);
 
