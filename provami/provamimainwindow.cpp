@@ -176,7 +176,11 @@ void ProvamiMainWindow::filter_datemax_activated(QDateTime dt)
 
 void ProvamiMainWindow::filter_limit_changed()
 {
-    model.limit = ui->filter_limit->text().toUInt();
+    QString val = ui->filter_limit->text();
+    if (val.isEmpty())
+        model.limit = MISSING_INT;
+    else
+        model.limit = val.toUInt();
 }
 
 void ProvamiMainWindow::text_query_changed()
