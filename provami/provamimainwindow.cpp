@@ -248,7 +248,13 @@ void provami::ProvamiMainWindow::on_actionUnselectStations_triggered()
 void ProvamiMainWindow::stats_changed()
 {
     stringstream buf;
-    buf << model.summary_datetime_min() << " to " << model.summary_datetime_max() << ": " << model.summary_count();
+    const auto& dtmin = model.summary_datetime_min();
+    const auto& dtmax = model.summary_datetime_max();
+    buf << "<i>" << model.summary_count() << "</i> results from <i>";
+    dtmin.to_stream_iso8601(buf, ' ');
+    buf << "</i> to <i>";
+    dtmax.to_stream_iso8601(buf, ' ');
+    buf << "</i>";
     ui->filter_summary->setText(QString::fromStdString(buf.str()));
 }
 

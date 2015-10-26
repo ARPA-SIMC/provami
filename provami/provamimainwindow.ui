@@ -459,13 +459,6 @@
             <widget class="QWidget" name="results_header" native="true">
              <layout class="QHBoxLayout" name="horizontalLayout_10">
               <item>
-               <widget class="QLabel" name="label_24">
-                <property name="text">
-                 <string>Summary:</string>
-                </property>
-               </widget>
-              </item>
-              <item>
                <widget class="QLabel" name="filter_summary">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -475,6 +468,12 @@
                 </property>
                 <property name="text">
                  <string/>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::RichText</enum>
+                </property>
+                <property name="textInteractionFlags">
+                 <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
                 </property>
                </widget>
               </item>
