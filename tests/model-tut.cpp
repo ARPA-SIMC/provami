@@ -62,6 +62,7 @@ class Tests : public TestCase
             qDebug() << "start";
             Model model;
             model.set_db(populate(), "test");
+            model.activate_next_filter();
 
             qDebug() << "have db";
 
