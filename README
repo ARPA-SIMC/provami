@@ -26,7 +26,7 @@ Notes
 -----
 
 missing make dist, workaround #1
-svn export https://github.com/ARPA-SIMC/dballe provami-qt-1.0.0 ; tar czvf provami-qt-1.0.0.tar.gz provami-qt-1.0.0
+wget https://github.com/ARPA-SIMC/provami/archive/master.zip ; unzip master.zip ; mv provami-master provami-qt-1.0.0 ; tar czvf provami-qt-1.0.0.tar.gz provami-qt-1.0.0
 
 workaround #2 (still not tried)
 http://agateau.com/2009/cmake-and-make-dist-the-simple-version/
