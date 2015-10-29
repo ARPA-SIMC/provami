@@ -1,5 +1,6 @@
 #include "provami/provamimainwindow.h"
 #include "provami/sparsewindows.h"
+#include "provami/rawqueryitemdelegate.h"
 #include "provami/config.h"
 #include "ui_provamimainwindow.h"
 #include <set>
@@ -60,6 +61,8 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->station_data->setModel(&stationgrid_model);
     ui->attr_data->setModel(&attrgrid_model);
     ui->raw_query->setModel(&rawquery_model);
+    RawQueryItemDelegate* rqd = new RawQueryItemDelegate(ui->raw_query);
+    ui->raw_query->setItemDelegate(rqd);
     ui->filter_report->setModel(&model.reports);
     ui->filter_level->setModel(&model.levels);
     ui->filter_trange->setModel(&model.tranges);
