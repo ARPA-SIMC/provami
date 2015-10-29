@@ -84,8 +84,13 @@ void SparseTabWidget::on_tabbar_context_menu(QPoint pos)
 
     SparseWindows& sw = SparseWindows::instance();
 
-    sw.iterate_existing_windows([&](int idx, QWidget* win) {
+    sw.iterate_existing_windows([&](int idx, SparseWindow* win) {
         // Skip if idx is the current window
+        if (!is_master_tabs &&
+              win->tabs.property("provami_window_index").toUInt() ==
+                property("provami_window_index").toUInt())
+            return;
+
         QAction* a = myMenu.addAction(QString("Move to window %1").arg(idx));
         a->setProperty("provami_action", "move_tab");
         a->setProperty("provami_move_tab_target", idx);
@@ -109,6 +114,8 @@ void SparseTabWidget::on_tabbar_context_menu(QPoint pos)
     QPoint global_pos = tabBar()->mapToGlobal(pos);
 
     QAction* selectedItem = myMenu.exec(global_pos);
+    if (!selectedItem) return;
+
     QString action = selectedItem->property("provami_action").toString();
     if (action == "move_tab")
     {

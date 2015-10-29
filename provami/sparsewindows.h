@@ -20,7 +20,7 @@ protected:
 public:
     SparseTabWidget tabs;
 
-    explicit SparseWindow(QWidget* parent=nullptr);
+    explicit SparseWindow(unsigned index, QWidget* parent=nullptr);
 };
 
 /**

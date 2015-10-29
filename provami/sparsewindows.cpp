@@ -13,9 +13,10 @@ namespace {
 static SparseWindows* _instance = nullptr;
 }
 
-SparseWindow::SparseWindow(QWidget *parent)
+SparseWindow::SparseWindow(unsigned index, QWidget *parent)
     : QWidget(parent), tabs(this)
 {
+    tabs.setProperty("provami_window_index", index);
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(&tabs);
     setLayout(layout);
@@ -95,14 +96,14 @@ unsigned SparseWindows::create_new_window(unsigned first_tab)
     for (unsigned i = 0; i < extra_windows.size(); ++i)
     {
         if (extra_windows[i]) continue;
-        new_win = extra_windows[i] = new SparseWindow();
         new_index = i;
+        new_win = extra_windows[i] = new SparseWindow(new_index);
     }
     // If there are no gaps, append a new window
     if (!new_win)
     {
         new_index = extra_windows.size();
-        extra_windows.push_back(new_win = new SparseWindow());
+        extra_windows.push_back(new_win = new SparseWindow(new_index));
     }
 
     new_win->tabs.add_tab(page);
