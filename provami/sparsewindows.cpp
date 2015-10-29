@@ -141,4 +141,22 @@ void SparseWindows::move_to_window(unsigned tab, unsigned win_idx)
     delete_empty_extra_windows();
 }
 
+void SparseWindows::close_all_windows()
+{
+    // Move all tabs for all windows to the main window
+    for (unsigned i = 0; i < extra_windows.size(); ++i)
+    {
+        if (!extra_windows[i]) continue;
+        while (extra_windows[i]->tabs.count())
+        {
+            QWidget* page = extra_windows[i]->tabs.widget(0);
+            extra_windows[i]->tabs.removeTab(0);
+            main_tabs.add_tab(page);
+        }
+
+    }
+
+    delete_empty_extra_windows();
+}
+
 }

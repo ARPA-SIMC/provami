@@ -233,6 +233,12 @@ void ProvamiMainWindow::on_actionExit_triggered()
     close();
 }
 
+void ProvamiMainWindow::closeEvent(QCloseEvent *event)
+{
+    SparseWindows& sw = SparseWindows::instance();
+    sw.close_all_windows();
+}
+
 void ProvamiMainWindow::on_actionRefresh_triggered()
 {
     model.activate_next_filter();

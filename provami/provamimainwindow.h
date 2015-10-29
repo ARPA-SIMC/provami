@@ -51,6 +51,7 @@ protected:
     QOptionalIntValidator id_validator;
     ProgressIndicator progress_indicator;
 
+    void closeEvent(QCloseEvent *event);
 
 public:
     explicit ProvamiMainWindow(Model& model, QWidget *parent = 0);

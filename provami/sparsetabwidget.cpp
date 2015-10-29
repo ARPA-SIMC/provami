@@ -78,7 +78,6 @@ void SparseTabWidget::on_tabbar_context_menu(QPoint pos)
 
     // Figure out which actual tab is at this index
     unsigned tab = widget(idx)->property("provami_tab_type").toUInt();
-    qDebug() << "IDX" << idx << "For tab" << tab;
 
     QMenu myMenu;
 

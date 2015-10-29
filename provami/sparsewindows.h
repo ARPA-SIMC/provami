@@ -87,6 +87,11 @@ public:
      */
     void move_to_window(unsigned tab, unsigned win_idx);
 
+    /**
+     * Close all windows, moving tabs to the main one
+     */
+    void close_all_windows();
+
 signals:
 
 public slots:
