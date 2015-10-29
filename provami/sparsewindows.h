@@ -83,7 +83,9 @@ public:
     void move_to_master(unsigned tab);
 
     /**
-     * Move the given tab to the given window
+     * Move the given tab to the given window.
+     *
+     * A window for this index will be created if it does not exist yet
      */
     void move_to_window(unsigned tab, unsigned win_idx);
 

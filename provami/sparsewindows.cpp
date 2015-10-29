@@ -1,6 +1,7 @@
 #include "provami/sparsewindows.h"
 #include <dballe/core/query.h>
 #include <QVBoxLayout>
+#include <QSettings>
 #include <QDebug>
 
 using namespace dballe;
@@ -67,7 +68,21 @@ SparseWindows::SparseWindows(SparseTabWidget& main_tabs, QObject *parent) :
 void SparseWindows::init(SparseTabWidget& main_tabs)
 {
     if (_instance) return;
+
+    main_tabs.set_master_tabs();
     _instance = new SparseWindows(main_tabs);
+
+    // Load window layout from settings
+    QSettings settings;
+    QString conf_key_template("tabs/tab%1win");
+    for (unsigned tab = TAB_FIRST; tab <= TAB_LAST; ++tab)
+    {
+        QString conf_key = conf_key_template.arg(tab);
+        if (!settings.contains(conf_key)) continue;
+        unsigned win_idx = settings.value(conf_key).toUInt();
+
+        _instance->move_to_window(tab, win_idx);
+    }
 }
 
 SparseWindows& SparseWindows::instance()
@@ -111,6 +126,10 @@ unsigned SparseWindows::create_new_window(unsigned first_tab)
 
     delete_empty_extra_windows();
 
+    // Save tab position in settings
+    QSettings settings;
+    settings.setValue(QString("tabs/tab%1win").arg(first_tab), new_index);
+
     return new_index;
 }
 
@@ -122,6 +141,10 @@ void SparseWindows::move_to_master(unsigned tab)
     // And attach it to main_tabs
     main_tabs.add_tab(page);
 
+    // Save tab position in settings
+    QSettings settings;
+    settings.remove(QString("tabs/tab%1win").arg(tab));
+
     delete_empty_extra_windows();
 }
 
@@ -130,13 +153,20 @@ void SparseWindows::move_to_window(unsigned tab, unsigned win_idx)
     // Detach the tab from where it is now
     QWidget* page = detach_tab(tab);
 
-    // Attach it to the given window, if it exists, else fall back to the main window
-    if (extra_windows[win_idx])
+    // Make sure that the window with the given index exists
+    if (win_idx >= extra_windows.size())
+        extra_windows.resize(win_idx + 1);
+    if (!extra_windows[win_idx])
     {
-        extra_windows[win_idx]->tabs.add_tab(page);
-    } else {
-        main_tabs.add_tab(page);
+        extra_windows[win_idx] = new SparseWindow(win_idx);
+        extra_windows[win_idx]->show();
     }
+
+    extra_windows[win_idx]->tabs.add_tab(page);
+
+    // Save tab position in settings
+    QSettings settings;
+    settings.setValue(QString("tabs/tab%1win").arg(tab), win_idx);
 
     delete_empty_extra_windows();
 }
@@ -153,7 +183,6 @@ void SparseWindows::close_all_windows()
             extra_windows[i]->tabs.removeTab(0);
             main_tabs.add_tab(page);
         }
-
     }
 
     delete_empty_extra_windows();

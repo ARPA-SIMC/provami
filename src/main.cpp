@@ -24,6 +24,9 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     QApplication::setApplicationName("provami");
     QApplication::setApplicationVersion("1.0");
+    QCoreApplication::setOrganizationName("ARPA");
+    QCoreApplication::setOrganizationDomain("emr.it");
+    QCoreApplication::setApplicationName("Provami");
 
     QCommandLineParser parser;
     parser.setApplicationDescription("Graphical interface to navigate a DB-All.e database");

@@ -7,11 +7,13 @@
 namespace provami {
 
 // Tab indices
+static const unsigned TAB_FIRST = 1;
 static const unsigned TAB_FILTER = 1;
 static const unsigned TAB_MAP = 2;
 static const unsigned TAB_STATION = 3;
 static const unsigned TAB_ATTRS = 4;
 static const unsigned TAB_QUERY = 5;
+static const unsigned TAB_LAST = 5;
 
 class SparseTabWidget : public QTabWidget
 {

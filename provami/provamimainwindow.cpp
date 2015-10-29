@@ -34,7 +34,6 @@ ProvamiMainWindow::ProvamiMainWindow(Model& model, QWidget *parent) :
     ui->setupUi(this);
     ui->mapview->set_model(model);
     SparseWindows::init(*(ui->tabWidget));
-    ui->tabWidget->set_master_tabs();
     progress_indicator.set_statusbar(*statusBar());
     connect(&model, SIGNAL(next_filter_changed()), this, SLOT(next_filter_changed()));
     connect(&model.highlight, SIGNAL(changed()), this, SLOT(highlight_changed()));
