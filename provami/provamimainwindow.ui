@@ -44,7 +44,7 @@
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
-         <widget class="QTabWidget" name="tabWidget">
+         <widget class="provami::SparseTabWidget" name="tabWidget">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -60,6 +60,9 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="provami_tab_type" stdset="0">
+            <UInt>1</UInt>
            </property>
            <attribute name="title">
             <string>&amp;1 Filter</string>
@@ -142,6 +145,9 @@
            </layout>
           </widget>
           <widget class="QWidget" name="tab_map">
+           <property name="provami_tab_type" stdset="0">
+            <UInt>2</UInt>
+           </property>
            <attribute name="title">
             <string>&amp;2 Map</string>
            </attribute>
@@ -259,6 +265,9 @@
            </layout>
           </widget>
           <widget class="QWidget" name="tab_station">
+           <property name="provami_tab_type" stdset="0">
+            <UInt>3</UInt>
+           </property>
            <attribute name="title">
             <string>&amp;3 Station</string>
            </attribute>
@@ -351,6 +360,9 @@
            </layout>
           </widget>
           <widget class="QWidget" name="tab_attrs">
+           <property name="provami_tab_type" stdset="0">
+            <UInt>4</UInt>
+           </property>
            <attribute name="title">
             <string>&amp;4 Attrs</string>
            </attribute>
@@ -385,7 +397,10 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tab_2">
+          <widget class="QWidget" name="tab_query">
+           <property name="provami_tab_type" stdset="0">
+            <UInt>5</UInt>
+           </property>
            <attribute name="title">
             <string>&amp;5 Query</string>
            </attribute>
@@ -577,7 +592,7 @@
   </action>
   <action name="actionRefreshAccurate">
    <property name="text">
-    <string>Refresh with stats</string>
+    <string>Refresh &amp;with stats</string>
    </property>
    <property name="toolTip">
     <string>Refresh data from the database, computing updated statistics</string>
@@ -588,7 +603,7 @@
   </action>
   <action name="actionUnselectStations">
    <property name="text">
-    <string>Unselect stations</string>
+    <string>&amp;Unselect stations</string>
    </property>
    <property name="toolTip">
     <string>Reset the filter on station latitude, longitude, id and ident</string>
@@ -626,6 +641,12 @@
    <class>provami::MapView</class>
    <extends>QWidget</extends>
    <header>provami/mapview.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>provami::SparseTabWidget</class>
+   <extends>QTabWidget</extends>
+   <header>provami/sparsetabwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
