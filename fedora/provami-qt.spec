@@ -1,7 +1,7 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami-qt
 Version: 1.0.0
-Release: 4832%{dist}
+Release: 4833%{dist}
 License: GPL
 Group: Applications/Meteo
 Source0: %{name}-%{version}.tar.gz
