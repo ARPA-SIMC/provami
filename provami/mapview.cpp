@@ -42,6 +42,9 @@ MapView::MapView(QWidget *parent) :
     connect(&page->controller, SIGNAL(area_selected(double,double,double,double)), this, SLOT(area_selected(double, double, double, double)));
     connect(&page->controller, SIGNAL(area_unselected()), this, SLOT(area_unselected()));
 
+    // Disable context menu (see #23)
+    setContextMenuPolicy(Qt::NoContextMenu);
+
     /*
     setInteractive(true);
     setDragMode(ScrollHandDrag);
