@@ -2,6 +2,8 @@ project(provami)
 
 cmake_minimum_required(VERSION 2.8.11)
 
+set(PACKAGE_VERSION "1.1")
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -22,7 +24,7 @@ add_definitions(${DBALLE_CFLAGS_OTHER})
 
 set(DATADIR "${CMAKE_INSTALL_PREFIX}/share/provami")
 
-add_definitions(-DDATADIR="${DATADIR}")
+add_definitions(-DDATADIR="${DATADIR}" -DPACKAGE_VERSION="${PACKAGE_VERSION}")
 
 #file(GLOB provami_headers provami/*.h)
 file(GLOB provami_uis provami/*.ui)

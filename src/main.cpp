@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     Model model;
     QApplication app(argc, argv);
     QApplication::setApplicationName("provami");
-    QApplication::setApplicationVersion("1.0");
+    QApplication::setApplicationVersion(PACKAGE_VERSION);
     QCoreApplication::setOrganizationName("ARPA");
     QCoreApplication::setOrganizationDomain("emr.it");
     QCoreApplication::setApplicationName("Provami");
