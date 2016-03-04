@@ -19,15 +19,10 @@
  */
 
 #include "tests.h"
-#include <wibble/exception.h>
-#include <wibble/string.h>
-#include <wibble/regexp.h>
-#include <wibble/sys/fs.h>
 #include <sstream>
 
 using namespace std;
 using namespace provami;
-using namespace wibble;
 
 namespace provami {
 namespace tests {
