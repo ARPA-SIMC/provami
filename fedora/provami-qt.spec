@@ -1,6 +1,6 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami-qt
-Version: 1.1
+Version: 1.2
 Release: 1%{dist}
 License: GPL
 Group: Applications/Meteo
@@ -50,6 +50,9 @@ ctest -V %{?_smp_mflags}
 %postun
 
 %changelog
+* Tue Apr 26 2016 Daniele Branchini <dbranchini@arpa.emr.it> - 1.2-1%{dist}
+- new dballe build
+
 * Tue Oct 27 2015 Daniele Branchini <dbranchini@arpa.emr.it> - qt1.0.0-4832%{dist}
 - fixed github issues 5, 9, 8, 12, 15, 17
 
