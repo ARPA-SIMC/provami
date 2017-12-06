@@ -79,12 +79,17 @@ See https://github.com/ARPA-SIMC/dballe/blob/master/doc/fapi_connect.md)");
         model.dballe_connect(non_query_args[0]);
     }
 
-    // Show the main window before running a refresh
-    ProvamiMainWindow w(model);
-    w.show();
-    QApplication::processEvents();
+    try {
+        // Show the main window before running a refresh
+        ProvamiMainWindow w(model);
+        w.show();
+        QApplication::processEvents();
 
-    model.activate_next_filter();
+        model.activate_next_filter();
 
-    return app.exec();
+        return app.exec();
+    } catch (std::exception& e) {
+        fprintf(stderr, "Error: %s\n", e.what());
+        return 1;
+    }
 }
