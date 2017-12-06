@@ -37,8 +37,6 @@ int main(int argc, char *argv[])
 
     parser.process(app);
 
-    ProvamiMainWindow w(model);
-
     // Parse initial query from command line arguments, taking those arguments
     // that contain an =
     auto initial_query = Record::create();
@@ -69,11 +67,14 @@ int main(int argc, char *argv[])
         const char* connect_url = getenv("DBA_DB");
         if (connect_url != NULL)
             model.dballe_connect(connect_url);
+        else
+            parser.showHelp(1);
     } else {
         model.dballe_connect(non_query_args[0]);
     }
 
     // Show the main window before running a refresh
+    ProvamiMainWindow w(model);
     w.show();
     QApplication::processEvents();
 
