@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script type="text/javascript">
+(function($) {
+  function on_message(msg)
+  {
+    var parsed = $.parseJSON(msg.data);
+    // console.log("Message:", parsed);
+    if (parsed.channel == "api")
+    {
+      // console.log("provami api message", parsed.response);
+      if (parsed["function"] == "ping")
+        console.log("PING:", parsed)
+      else if (parsed["function"] == "async_ping")
+        console.log("ASYNC_PING:", parsed)
+    }
+    else if (parsed.channel == "provami:updates")
+    {
+      console.log("Update", parsed);
+    }
+  }
+
+  function main()
+  {
+    window.ws_connection.on("message", on_message);
+    window.ws_connection.send({ "channel": "api", "function": "ping" })
+    window.ws_connection.send({ "channel": "api", "function": "async_ping" })
+  }
+  $(document).ready(main);
+})(jQuery);
+</script>
+{% end %}
+
+{% block body %}
+{% end %}

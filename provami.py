@@ -3,7 +3,7 @@ import os
 import os.path
 import sys
 import webbrowser
-from dballe.provami.webserver import Application
+from dballe_provami.webserver import Application
 from tornado.options import define, options
 from tornado.platform.asyncio import AsyncIOMainLoop
 import asyncio
