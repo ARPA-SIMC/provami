@@ -11,9 +11,9 @@
     {
       // console.log("provami api message", parsed.response);
       if (parsed["function"] == "ping")
-        console.log("PING:", parsed)
+        $("#test").append($("<pre>").text("PING:" + JSON.stringify(parsed)));
       else if (parsed["function"] == "async_ping")
-        console.log("ASYNC_PING:", parsed)
+        $("#test").append($("<pre>").text("ASYNC PING:" + JSON.stringify(parsed)));
     }
     else if (parsed.channel == "provami:updates")
     {
@@ -33,4 +33,6 @@
 {% end %}
 
 {% block body %}
+<div id="test">
+</div>
 {% end %}
