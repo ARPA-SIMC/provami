@@ -14,6 +14,8 @@
         $("#test").append($("<pre>").text("PING:" + JSON.stringify(parsed)));
       else if (parsed["function"] == "async_ping")
         $("#test").append($("<pre>").text("ASYNC PING:" + JSON.stringify(parsed)));
+      else if (parsed["function"] == "query_summary")
+        $("#test").append($("<pre>").text("SUMMARY: " + parsed.response.summary));
     }
     else if (parsed.channel == "provami:updates")
     {
@@ -26,6 +28,7 @@
     window.ws_connection.on("message", on_message);
     window.ws_connection.send({ "channel": "api", "function": "ping" })
     window.ws_connection.send({ "channel": "api", "function": "async_ping" })
+    window.ws_connection.send({ "channel": "api", "function": "query_summary" })
   }
   $(document).ready(main);
 })(jQuery);

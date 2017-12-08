@@ -1,6 +1,9 @@
 import time
 import logging
 import asyncio
+import csv
+import dballe
+import io
 
 log = logging.getLogger(__name__)
 
@@ -46,4 +49,18 @@ class WebAPI:
     async def do_async_ping(self, **kw):
         return {
             "pong": True,
+        }
+
+    async def do_query_summary(self, **kw):
+        query = dballe.Record()
+        query["query"] = "details"
+        out = io.StringIO()
+        writer = csv.writer(out)
+        cur = self.db.query_summary(query)
+        for rec in cur:
+            writer.writerow([
+                rec["ana_id"], rec["rep_memo"], rec["level"], rec["trange"], rec["var"],
+                rec["datemin"], rec["datemax"], rec["context_id"]])
+        return {
+            "summary": out.getvalue(),
         }
