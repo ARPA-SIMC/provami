@@ -18,8 +18,8 @@ class WebAPI:
     """
     Backend-independent functions exposed via REST or WebSocket APIs
     """
-    def __init__(self, db):
-        self.db = db
+    def __init__(self, session):
+        self.session = session
         self.loop = asyncio.get_event_loop()
         import concurrent.futures
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
@@ -52,21 +52,4 @@ class WebAPI:
     async def do_async_ping(self, **kw):
         return {
             "pong": True,
-        }
-
-    async def do_query_summary(self, **kw):
-        def query():
-            query = dballe.Record()
-            query["query"] = "details"
-            out = io.StringIO()
-            writer = csv.writer(out)
-            cur = self.db.query_summary(query)
-            for rec in cur:
-                writer.writerow([
-                    rec["ana_id"], rec["rep_memo"], rec["level"], rec["trange"], rec["var"],
-                    rec["datemin"], rec["datemax"], rec["context_id"]])
-            return out.getvalue()
-        res = await self.loop.run_in_executor(self.executor, query)
-        return {
-            "summary": res,
         }

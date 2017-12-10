@@ -20,6 +20,9 @@ class Provami:
         self.application = Application(self.db_url)
         self.application.listen(self.web_port, address=self.web_host)
 
+    async def async_setup(self):
+        await self.application.async_setup()
+
 
 def main():
     define("web_host", default="127.0.0.1", help="listening hostname for web interface")
@@ -36,6 +39,9 @@ def main():
     provami.setup()
     webbrowser.open("http://{}:{}/".format(options.web_host, options.web_port))
 
+    def _on_init():
+        asyncio.get_event_loop().create_task(provami.async_setup())
+    asyncio.get_event_loop().call_soon(_on_init)
     asyncio.get_event_loop().run_forever()
 
 
