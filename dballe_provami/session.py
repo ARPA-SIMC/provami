@@ -9,33 +9,35 @@ log = logging.getLogger(__name__)
 
 
 class Summary:
-    def __init__(self, records, choices, datemin, datemax):
+    def __init__(self, records):
         self.records = records
-        self.choices = choices
-        self.datemin = datemin
-        self.datemax = datemax
-
-    @classmethod
-    def create(cls, records):
-        log.debug("Summary.update")
-        choices = defaultdict(set)
-        datemin = None
-        datemax = None
+        self.ana_id = set()
+        self.rep_memo = set()
+        self.level = set()
+        self.trange = set()
+        self.var = set()
+        self.datemin = None
+        self.datemax = None
         for rec in records:
-            choices["ana_id"].add(rec["ana_id"])
-            choices["rep_memo"].add(rec["rep_memo"])
-            choices["level"].add(rec["level"])
-            choices["trange"].add(rec["trange"])
-            choices["var"].add(rec["var"])
-            if datemin is None or datemin > rec["datemin"]:
-                datemin = rec["datemin"]
-            if datemax is None or datemax < rec["datemax"]:
-                datemax = rec["datemax"]
-        return cls(records, choices, datemin, datemax)
+            self.ana_id.add(rec["ana_id"])
+            self.rep_memo.add(rec["rep_memo"])
+            self.level.add(rec["level"])
+            self.trange.add(rec["trange"])
+            self.var.add(rec["var"])
+            if self.datemin is None or self.datemin > rec["datemin"]:
+                self.datemin = rec["datemin"]
+            if self.datemax is None or self.datemax < rec["datemax"]:
+                self.datemax = rec["datemax"]
 
     def to_dict(self):
         return {
-            "choices": { k: sorted(v) for k, v in self.choices.items() },
+            "choices": {
+                "ana_id": sorted(self.ana_id),
+                "rep_memo": sorted(self.rep_memo),
+                "level": [(x, dballe.describe_level(*x)) for x in sorted(self.level)],
+                "trange": [(x, dballe.describe_trange(*x)) for x in sorted(self.trange)],
+                "var": sorted(self.var),
+            },
             "datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S"),
             "datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S"),
         }
@@ -57,5 +59,5 @@ class Session:
             query["query"] = "details"
             return [rec for rec in self.db.query_summary(query)]
         records = await self.loop.run_in_executor(self.executor, _refresh_filter)
-        self.summary = await self.loop.run_in_executor(self.executor, functools.partial(Summary.create, records))
+        self.summary = await self.loop.run_in_executor(self.executor, functools.partial(Summary, records))
         return self.summary.to_dict()
