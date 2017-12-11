@@ -7,35 +7,21 @@ class Provami extends provami.EventsBase
     constructor() {
         super();
         var self = this;
-        // self.events.foo = provami.Event(self);
+        self.events.new_filter = new provami.Event(self);
         self.conn = window.ws_connection;
-        //self.conn.on("message", self._on_message);
+        self.conn.on("message", msg => { self._on_message(msg); } );
     }
 
-    /*
     _on_message(msg) {
         var self = this;
         var parsed = $.parseJSON(msg.data);
         // console.log("Message:", parsed);
-        if (parsed.channel == "api")
-        {
-          // console.log("provami api message", parsed.response);
-          if (parsed["function"] == "ping")
-            $("#test").append($("<pre>").text("PING:" + JSON.stringify(parsed)));
-          else if (parsed["function"] == "async_ping")
-            $("#test").append($("<pre>").text("ASYNC PING:" + JSON.stringify(parsed)));
-        }
-        else if (parsed.channel == "events")
+        if (parsed.channel == "events")
         {
           if (parsed.type == "new_filter")
-            $("#test").append($("<pre>").text("FILTER OPTIONS: " + JSON.stringify(parsed.options)));
-        }
-        else if (parsed.channel == "provami:updates")
-        {
-          console.log("Update", parsed);
+            self.events.new_filter.trigger(parsed);
         }
     }
-    */
 
     _get(name, args) {
         var self = this;

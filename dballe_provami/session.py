@@ -62,7 +62,7 @@ class Session:
         self.summary = await self.loop.run_in_executor(self.executor, functools.partial(Summary, records))
         return self.summary.to_dict()
 
-    async def get_data(self, limit=100):
+    async def get_data(self, limit=20):
         log.debug("Session.get_data")
         def _get_data():
             query = self.filter.copy()

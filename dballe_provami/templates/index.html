@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 
 {% block head %}
+<style type="text/css">
+#map { height: 30em; }
+</style>
 <script type="text/javascript">
 (function($) {
   var server;
 
   function set_options(field, options)
   {
-    console.log("set_options", field, options);
     field = $(field);
     field.empty();
     for (var i = 0; i < options.length; ++i)
@@ -22,7 +24,6 @@
   async function update_filter()
   {
     var stats = await server.get_filter_stats();
-    $("#test").append($("<pre>").text("FILTER OPTIONS: " + JSON.stringify(stats)));
 
     if (stats.empty)
     {
@@ -39,7 +40,6 @@
   async function update_data()
   {
     var data = await server.get_data();
-    $("#test").append($("<pre>").text("DATA: " + JSON.stringify(data)));
 
     var tbody = $("#data tbody");
     tbody.empty();
@@ -47,7 +47,6 @@
     for (var i = 0; i < data.rows.length; ++i)
     {
       var row = data.rows[i];
-      console.log("ROW", row);
       var tr = $("<tr>");
       tr.append($("<td>").text(row[0]));
       tr.append($("<td>").text(row[1]));
@@ -56,46 +55,50 @@
       tr.append($("<td>").text(row[4]));
       tr.append($("<td>").text(row[5]));
       tr.append($("<td>").text(row[6]));
-      console.log("TR", tr);
       tbody.append(tr);
     }
   }
 
-  function on_message(msg)
+  function setup_map(id)
   {
-    var parsed = $.parseJSON(msg.data);
-    // console.log("Message:", parsed);
-    if (parsed.channel == "events")
-    {
-      if (parsed.type == "new_filter")
-      {
-        $("#test").append($("<pre>").text("NEW FILTER: " + JSON.stringify(parsed)));
-        update_filter().then();
-      }
-    }
-    else if (parsed.channel == "provami:updates")
-    {
-      console.log("Update", parsed);
-    }
+    // OSM base layer
+    var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    var osmAttrib='Map data © OpenStreetMap contributors';
+    var map = L.map(id).setView([51.505, -0.09], 13);
+
+    var osm = new L.TileLayer(osmUrl, {minZoom: 1, maxZoom: 12, attribution: osmAttrib, boxZoom: false});
+    map.addLayer(osm);
+
+    // Show the mouse position in the map
+    L.control.mousePosition({ position: "bottomright" }).addTo(map);
+
+    // Add the rectangle selection facility
+    var selectfeature = map.boxSelect.enable();
+    //var selectfeature = map.selectAreaFeature.enable();
+    //var locationFilter = new L.LocationFilter({ buttonPosition: "bottomleft", adjustButton: null }).addTo(map);
+    /*
+    locationFilter.on("change", function(e) {
+      window.provami.js_area_selected(e.bounds.getNorth(), e.bounds.getSouth(), e.bounds.getWest(), e.bounds.getEast());
+    });
+    locationFilter.on("enabled", function(e) {
+      window.provami.js_area_selected(e.bounds.getNorth(), e.bounds.getSouth(), e.bounds.getWest(), e.bounds.getEast());
+    });
+    locationFilter.on("disabled", function(e) {
+      window.provami.js_area_unselected();
+    });
+    */
   }
 
   async function main()
   {
     $("#filter_fields").attr("disabled", true);
 
+    setup_map("map");
+
     server = new window.provami.Provami();
-
-    var res = await server.ping();
-    $("#test").append($("<pre>").text("PING:" + JSON.stringify(res)));
-
-    res = await server.async_ping();
-    $("#test").append($("<pre>").text("ASYNC PING:" + JSON.stringify(res)));
+    server.on("new_filter", msg => { update_filter().then(); });
 
     await Promise.all([update_filter(), update_data()]);
-
-    window.ws_connection.on("message", on_message);
-//    window.ws_connection.send({ "channel": "api", "function": "ping" })
-//    window.ws_connection.send({ "channel": "api", "function": "async_ping" })
 
     $("#filter").submit(() => { return false; });
   }
@@ -143,7 +146,12 @@
 </div>
 </div>
 
-<div class="col-md-8" id="test">
+<div class="col-md-8">
+  <div class="panel panel-default">
+    <div class="panel-heading">Stations</div>
+    <div class="panel-body" id="map">
+    </div>
+  </div>
 </div>
 
 </div>
