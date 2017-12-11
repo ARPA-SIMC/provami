@@ -90,25 +90,25 @@
     <fieldset id="filter_fields">
     <label for="filter-repmemo">Network</label>
     <div class="input-group">
-      <span class="input-group-addon" id="filter-repmemo-addon">--</span>
+      <span class="input-group-addon glyphicon glyphicon-asterisk" id="filter-repmemo-addon"></span>
       <select class="form-control" id="filter-repmemo" aria-describedby="filter-repmemo-addon">
       </select>
     </div>
     <label for="filter-var">Variable</label>
     <div class="input-group">
-      <span class="input-group-addon" id="filter-var-addon">--</span>
+      <span class="input-group-addon glyphicon glyphicon-pencil" id="filter-var-addon"></span>
       <select class="form-control" id="filter-var" aria-describedby="filter-var-addon">
       </select>
     </div>
     <label for="filter-level">Level</label>
     <div class="input-group">
-      <span class="input-group-addon" id="filter-level-addon">--</span>
+      <span class="input-group-addon glyphicon glyphicon-resize-vertical" id="filter-level-addon"></span>
       <select class="form-control" id="filter-level" aria-describedby="filter-level-addon">
       </select>
     </div>
     <label for="filter-trange">Time range</label>
     <div class="input-group">
-      <span class="input-group-addon" id="filter-trange-addon">--</span>
+      <span class="input-group-addon glyphicon glyphicon-resize-horizontal" id="filter-trange-addon"></span>
       <select class="form-control" id="filter-trange" aria-describedby="filter-trange-addon">
       </select>
     </div>
@@ -122,4 +122,30 @@
 </div>
 
 </div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="panel panel-default">
+      <div class="panel-heading">Data</div>
+      <div class="panel-body">
+        <table id="data" class="table table-striped">
+          <thead>
+            <tr>
+              <th>Network</th>
+              <th>Station</th>
+              <th>Variable</th>
+              <th>Level</th>
+              <th>Time range</th>
+              <th>Datetime</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% end %}

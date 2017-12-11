@@ -83,6 +83,9 @@ class Application(tornado.web.Application):
 
         settings.setdefault("static_path", os.path.join(os.path.dirname(__file__), "static"))
         settings.setdefault("template_path", os.path.join(os.path.dirname(__file__), "templates"))
+        # FIXME: disable in production
+        settings.setdefault("compiled_template_cache", False)
+        settings.setdefault("debug", True)
         #settings.setdefault("cookie_secret", "random string")
         #settings.setdefault("xsrf_cookies", True)
 
