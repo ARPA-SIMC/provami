@@ -17,6 +17,50 @@ class HomeHandler(tornado.web.RequestHandler):
         self.render("index.html")
 
 
+class RestGET(tornado.web.RequestHandler):
+    """
+    WebAPI front-end for GET requests
+    """
+    def initialize(self, function, **kwargs):
+        self.function = function
+        self.kwargs = kwargs
+
+    async def get(self, **kwargs):
+        self.kwargs.update(kwargs)
+        try:
+            self.write(await self.application.webapi(self.function, **self.kwargs))
+        except WebAPIError as e:
+            self.set_status(e.code, str(e))
+            self.write({
+                "error": True,
+                "code": e.code,
+                "message": str(e)
+            })
+
+
+class RestPOST(tornado.web.RequestHandler):
+    """
+    WebAPI front-end for POST requests
+    """
+    def initialize(self, function, **kwargs):
+        self.function = function
+        self.kwargs = kwargs
+
+    async def post(self, **kwargs):
+        args = json.loads(self.request.body.decode("utf8"))
+        args.update(kwargs)
+        args.update(self.kwargs)
+        try:
+            self.write(await self.application.webapi(self.function, **args))
+        except WebAPIError as e:
+            self.set_status(e.code, str(e))
+            self.write({
+                "error": True,
+                "code": e.code,
+                "message": str(e)
+            })
+
+
 class Application(tornado.web.Application):
     def __init__(self, db_url, **settings):
         self.loop = asyncio.get_event_loop()
@@ -24,6 +68,8 @@ class Application(tornado.web.Application):
 
         urls = [
             url(r"/", HomeHandler, name="home"),
+            url(r"/api/1.0/ping", RestGET, kwargs={"function": "ping"}, name="api1.0_ping"),
+            url(r"/api/1.0/async_ping", RestGET, kwargs={"function": "async_ping"}, name="api1.0_async_ping"),
         ]
 
         self.webapi = WebAPI(self.session)

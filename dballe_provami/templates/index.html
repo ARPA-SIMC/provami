@@ -3,6 +3,8 @@
 {% block head %}
 <script type="text/javascript">
 (function($) {
+  var server;
+
   function on_message(msg)
   {
     var parsed = $.parseJSON(msg.data);
@@ -26,13 +28,21 @@
     }
   }
 
-  function main()
+  async function main()
   {
+    server = new window.provami.Provami();
+
+    var res = await server.ping();
+    $("#test").append($("<pre>").text("PING:" + JSON.stringify(res)));
+
+    res = await server.async_ping();
+    $("#test").append($("<pre>").text("ASYNC PING:" + JSON.stringify(res)));
+
     window.ws_connection.on("message", on_message);
-    window.ws_connection.send({ "channel": "api", "function": "ping" })
-    window.ws_connection.send({ "channel": "api", "function": "async_ping" })
+//    window.ws_connection.send({ "channel": "api", "function": "ping" })
+//    window.ws_connection.send({ "channel": "api", "function": "async_ping" })
   }
-  $(document).ready(main);
+  $(document).ready(() => { main().then(); });
 })(jQuery);
 </script>
 {% end %}
