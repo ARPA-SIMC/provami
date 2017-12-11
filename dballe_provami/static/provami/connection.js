@@ -28,79 +28,86 @@ TODO: Outbound messages are queued when the connection is close, and resent
  * cb_this is the object that will be used as the 'this' value when calling
  * callbacks.
  */
-function Event(cb_this) {
-    var self = this;
-    self.cb_this = cb_this;
-    self.callbacks = [];
-}
-Event.prototype = {
-    on: function(cb) {
+class Event
+{
+    constructor(cb_this) {
+        var self = this;
+        self.cb_this = cb_this;
+        self.callbacks = [];
+    }
+
+    on(cb) {
         var self = this;
         self.callbacks.push(cb);
-    },
-    off: function(cb) {
+    }
+    off(cb) {
         var self = this;
         var cur_idx = self.callbacks.indexOf(cb);
         if (cur_idx != -1)
             self.callbacks = self.callbacks.splice(cur_idx, 1)
-    },
+    }
     /// Trigger an event. All the arguments will be passed to the event
     /// callback functions
-    trigger: function() {
+    trigger() {
         var self = this;
         for (var cbidx in self.callbacks)
         {
             var cb = self.callbacks[cbidx];
             cb.apply(self.cb_this, arguments);
         }
-    },
-};
+    }
+}
 
 /**
  * Base class for objects that handle JQuery-style events.
  *
  * This implements on() and off() functions that 
  */
-function EventsBase() {
-    var self = this;
-    self.events = {}
-}
-EventsBase.prototype = {
+class EventsBase
+{
+    constructor() {
+        var self = this;
+        self.events = {}
+    }
+
     // Add a callback to an event
-    on: function(name, cb) {
+    on(name, cb) {
         var self = this;
         var evt = self.events[name];
         if (!evt) throw "Event not found: " + name;
         evt.on(cb);
-    },
+    }
+
     // Remove a callback from an event
-    off: function(name, cb) {
+    off(name, cb) {
         var self = this;
         var evt = self.events[name];
         if (!evt) throw "Event not found: " + name;
         evt.off(cb);
-    },
-};
+    }
+}
 
 
 /**
  * Manage a Websocket/SockJS connection, reconnecting when it closes.
  */
-function Connection(websocket_url) {
-    EventsBase.call(this);
-    var self = this;
-    self.events.connect = new Event(self);
-    self.events.message = new Event(self);
-    self.events.disconnect = new Event(self);
-    self.url = websocket_url;
-    self.is_open = false;
-    self.send_queue = [];
-    self.ws = null;
-    self.connect_timeouts = [200, 500, 1000, 2000, 3000, 3000];
-    self.cur_connect_timeout = 0;
-    self._reconnect();
-}
-Connection.prototype = $.extend({}, EventsBase.prototype, {
+class Connection extends EventsBase
+{
+    constructor(websocket_url) {
+        super();
+        var self = this;
+        self.events.connect = new Event(self);
+        self.events.message = new Event(self);
+        self.events.disconnect = new Event(self);
+        self.url = websocket_url;
+        self.is_open = false;
+        self.send_queue = [];
+        self.ws = null;
+        self.connect_timeouts = [200, 500, 1000, 2000, 3000, 3000];
+        self.cur_connect_timeout = 0;
+        self._reconnect();
+    }
+
     /**
      * Send a message to the server.
      *
@@ -112,13 +119,13 @@ Connection.prototype = $.extend({}, EventsBase.prototype, {
      * successful reception on send, this could lead to duplicate or lost
      * messages in case the connection is lost during a send.
      */
-    send: function(message) {
+    send(message) {
         var self = this;
         var encoded = JSON.stringify(message);
         self.send_queue.push(encoded);
         self._flush_send_queue();
-    },
-    _flush_send_queue: function() {
+    }
+    _flush_send_queue() {
         var self = this;
         if (!self.is_open) return;
         while (self.send_queue.length)
@@ -126,9 +133,9 @@ Connection.prototype = $.extend({}, EventsBase.prototype, {
             self.ws.send(self.send_queue[0]);
             self.send_queue.shift()
         }
-    },
+    }
     // Open a new connection
-    _reconnect: function() {
+    _reconnect() {
         var self = this;
         console.log(self.url, "Sockjs connection attempted");
         //console.log("Connecting to " + self.url + "...");
@@ -137,8 +144,8 @@ Connection.prototype = $.extend({}, EventsBase.prototype, {
         self.ws.onopen = function() { self._on_open(); }
         self.ws.onmessage = function(evt) { self._on_message(evt); }
         self.ws.onclose = function() { self._on_close(); }
-    },
-    _on_open: function() {
+    }
+    _on_open() {
         var self = this;
         console.log(self.url, "Sockjs connection established");
         //console.log("Connection.on_open " + self.url);
@@ -146,14 +153,14 @@ Connection.prototype = $.extend({}, EventsBase.prototype, {
         self.cur_connect_timeout = 0;
         self._flush_send_queue();
         self.events.connect.trigger();
-    },
-    _on_message: function(evt) {
+    }
+    _on_message(evt) {
         var self = this;
         //console.log("Connection.on_message", evt);
         evt.payload = JSON.parse(evt.data);
         self.events.message.trigger(evt);
-    },
-    _on_close: function() {
+    }
+    _on_close() {
         var self = this;
         console.log(self.url, "Sockjs connection lost");
         self.is_open = false;
@@ -165,8 +172,8 @@ Connection.prototype = $.extend({}, EventsBase.prototype, {
         self.events.disconnect.trigger();
         setTimeout(function() { self._reconnect(); }, self.connect_timeouts[self.cur_connect_timeout]);
         self.cur_connect_timeout = (self.cur_connect_timeout + 1) % self.connect_timeouts.length;
-    },
-});
+    }
+}
 
 window.provami = $.extend(window.provami || {}, {
     Event: Event,
