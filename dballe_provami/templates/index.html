@@ -5,22 +5,48 @@
 (function($) {
   var server;
 
+  function set_options(field, options)
+  {
+    console.log("set_options", field, options);
+    field = $(field);
+    field.empty();
+    for (var i = 0; i < options.length; ++i)
+    {
+      if (options[i] instanceof Array)
+        field.append($("<option>").attr("value", options[i][0]).text(options[i][1]));
+      else
+        field.append($("<option>").attr("value", options[i]).text(options[i]));
+    }
+  }
+
+  async function update_filter()
+  {
+    var stats = await server.get_filter_stats();
+    $("#test").append($("<pre>").text("FILTER OPTIONS: " + JSON.stringify(stats)));
+
+    if (stats.empty)
+    {
+      $("#filter_fields").attr("disabled", true);
+    } else {
+      set_options("#filter-repmemo", stats.choices.rep_memo)
+      set_options("#filter-var", stats.choices["var"])
+      set_options("#filter-level", stats.choices.level)
+      set_options("#filter-trange", stats.choices.trange)
+      $("#filter_fields").attr("disabled", false);
+    }
+  }
+
   function on_message(msg)
   {
     var parsed = $.parseJSON(msg.data);
     // console.log("Message:", parsed);
-    if (parsed.channel == "api")
-    {
-      // console.log("provami api message", parsed.response);
-      if (parsed["function"] == "ping")
-        $("#test").append($("<pre>").text("PING:" + JSON.stringify(parsed)));
-      else if (parsed["function"] == "async_ping")
-        $("#test").append($("<pre>").text("ASYNC PING:" + JSON.stringify(parsed)));
-    }
-    else if (parsed.channel == "events")
+    if (parsed.channel == "events")
     {
       if (parsed.type == "new_filter")
-        $("#test").append($("<pre>").text("FILTER OPTIONS: " + JSON.stringify(parsed.options)));
+      {
+        $("#test").append($("<pre>").text("NEW FILTER: " + JSON.stringify(parsed)));
+        update_filter().then();
+      }
     }
     else if (parsed.channel == "provami:updates")
     {
@@ -30,6 +56,8 @@
 
   async function main()
   {
+    $("#filter_fields").attr("disabled", true);
+
     server = new window.provami.Provami();
 
     var res = await server.ping();
@@ -38,9 +66,13 @@
     res = await server.async_ping();
     $("#test").append($("<pre>").text("ASYNC PING:" + JSON.stringify(res)));
 
+    await update_filter();
+
     window.ws_connection.on("message", on_message);
 //    window.ws_connection.send({ "channel": "api", "function": "ping" })
 //    window.ws_connection.send({ "channel": "api", "function": "async_ping" })
+
+    $("#filter").submit(() => { return false; });
   }
   $(document).ready(() => { main().then(); });
 })(jQuery);
@@ -48,6 +80,46 @@
 {% end %}
 
 {% block body %}
-<div id="test">
+<div class="row">
+
+<div class="col-md-4">
+<div class="panel panel-default">
+  <div class="panel-heading">Filter</div>
+  <div class="panel-body">
+  <form id="filter">
+    <fieldset id="filter_fields">
+    <label for="filter-repmemo">Network</label>
+    <div class="input-group">
+      <span class="input-group-addon" id="filter-repmemo-addon">--</span>
+      <select class="form-control" id="filter-repmemo" aria-describedby="filter-repmemo-addon">
+      </select>
+    </div>
+    <label for="filter-var">Variable</label>
+    <div class="input-group">
+      <span class="input-group-addon" id="filter-var-addon">--</span>
+      <select class="form-control" id="filter-var" aria-describedby="filter-var-addon">
+      </select>
+    </div>
+    <label for="filter-level">Level</label>
+    <div class="input-group">
+      <span class="input-group-addon" id="filter-level-addon">--</span>
+      <select class="form-control" id="filter-level" aria-describedby="filter-level-addon">
+      </select>
+    </div>
+    <label for="filter-trange">Time range</label>
+    <div class="input-group">
+      <span class="input-group-addon" id="filter-trange-addon">--</span>
+      <select class="form-control" id="filter-trange" aria-describedby="filter-trange-addon">
+      </select>
+    </div>
+    </fieldset>
+  </form>
+  </div>
+</div>
+</div>
+
+<div class="col-md-8" id="test">
+</div>
+
 </div>
 {% end %}

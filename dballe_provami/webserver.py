@@ -70,6 +70,7 @@ class Application(tornado.web.Application):
             url(r"/", HomeHandler, name="home"),
             url(r"/api/1.0/ping", RestGET, kwargs={"function": "ping"}, name="api1.0_ping"),
             url(r"/api/1.0/async_ping", RestGET, kwargs={"function": "async_ping"}, name="api1.0_async_ping"),
+            url(r"/api/1.0/get_filter_stats", RestGET, kwargs={"function": "get_filter_stats"}, name="api1.0_get_filter_stats"),
         ]
 
         self.webapi = WebAPI(self.session)
@@ -91,7 +92,7 @@ class Application(tornado.web.Application):
         log.debug("Async setup")
         options = await self.session.refresh_filter()
         log.debug("Got options", options)
-        self.ws_hub.broadcast({"channel": "events", "type": "new_filter", "options": options})
+        self.ws_hub.broadcast({"channel": "events", "type": "new_filter"})
 
     async def on_api(self, conn, payload):
         log.debug("API call: %r", payload)

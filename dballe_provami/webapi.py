@@ -53,3 +53,8 @@ class WebAPI:
         return {
             "pong": True,
         }
+
+    def do_get_filter_stats(self, **kw):
+        if self.session.summary is None:
+            return { "empty": True }
+        return self.session.summary.to_dict()
