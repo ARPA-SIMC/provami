@@ -36,6 +36,31 @@
     }
   }
 
+  async function update_data()
+  {
+    var data = await server.get_data();
+    $("#test").append($("<pre>").text("DATA: " + JSON.stringify(data)));
+
+    var tbody = $("#data tbody");
+    tbody.empty();
+
+    for (var i = 0; i < data.rows.length; ++i)
+    {
+      var row = data.rows[i];
+      console.log("ROW", row);
+      var tr = $("<tr>");
+      tr.append($("<td>").text(row[0]));
+      tr.append($("<td>").text(row[1]));
+      tr.append($("<td>").text(row[2]));
+      tr.append($("<td>").text(row[3]));
+      tr.append($("<td>").text(row[4]));
+      tr.append($("<td>").text(row[5]));
+      tr.append($("<td>").text(row[6]));
+      console.log("TR", tr);
+      tbody.append(tr);
+    }
+  }
+
   function on_message(msg)
   {
     var parsed = $.parseJSON(msg.data);
@@ -66,7 +91,7 @@
     res = await server.async_ping();
     $("#test").append($("<pre>").text("ASYNC PING:" + JSON.stringify(res)));
 
-    await update_filter();
+    await Promise.all([update_filter(), update_data()]);
 
     window.ws_connection.on("message", on_message);
 //    window.ws_connection.send({ "channel": "api", "function": "ping" })

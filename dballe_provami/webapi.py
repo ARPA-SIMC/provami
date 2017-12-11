@@ -58,3 +58,8 @@ class WebAPI:
         if self.session.summary is None:
             return { "empty": True }
         return self.session.summary.to_dict()
+
+    async def do_get_data(self, **kw):
+        return {
+            "rows": await self.session.get_data(),
+        }

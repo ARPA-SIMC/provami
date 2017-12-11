@@ -66,6 +66,10 @@ class Provami extends provami.EventsBase
     async get_filter_stats() {
         return await this._get("get_filter_stats", {});
     }
+
+    async get_data() {
+        return await this._get("get_data", {});
+    }
 }
 
 window.provami = $.extend(window.provami || {}, {

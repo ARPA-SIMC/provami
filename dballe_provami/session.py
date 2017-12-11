@@ -61,3 +61,24 @@ class Session:
         records = await self.loop.run_in_executor(self.executor, _refresh_filter)
         self.summary = await self.loop.run_in_executor(self.executor, functools.partial(Summary, records))
         return self.summary.to_dict()
+
+    async def get_data(self, limit=100):
+        log.debug("Session.get_data")
+        def _get_data():
+            query = self.filter.copy()
+            if limit is not None:
+                query["limit"] = limit
+            res = []
+            for rec in self.db.query_data(query):
+                res.append([
+                    rec["rep_memo"],
+                    rec["ana_id"],
+                    rec["var"],
+                    rec["level"],
+                    rec["trange"],
+                    rec["datetime"].strftime("%Y-%m-%d %H:%M:%S"),
+                    rec[rec["var"]],
+                ])
+            return res
+        records = await self.loop.run_in_executor(self.executor, _get_data)
+        return records
