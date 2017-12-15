@@ -64,13 +64,11 @@ class Summary:
 
     def to_dict(self):
         return {
-            "choices": {
-                "ana_id": sorted(self.ana_id),
-                "rep_memo": sorted(self.rep_memo),
-                "level": [(x, dballe.describe_level(*x)) for x in sorted(self.level)],
-                "trange": [(x, dballe.describe_trange(*x)) for x in sorted(self.trange)],
-                "var": sorted(self.var),
-            },
+            "ana_id": sorted(self.ana_id),
+            "rep_memo": sorted(self.rep_memo),
+            "level": [(x, dballe.describe_level(*x)) for x in sorted(self.level)],
+            "trange": [(x, dballe.describe_trange(*x)) for x in sorted(self.trange)],
+            "var": sorted(self.var),
             "datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
             "datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
         }

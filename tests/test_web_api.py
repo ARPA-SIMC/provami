@@ -65,15 +65,13 @@ class TestBasic(TestWebAPIMixin, AsyncTestCase):
             self.maxDiff = None
             self.assertEqual(res, { "time": 100,
                 "available": {
-                    'choices': {
-                        'ana_id': [1],
-                        'level': [((10, 11, 15, 22), 'Layer from [10 11] to [15 22]')],
-                        'trange': [((20, 111, 222), '20 111 222')],
-                        'rep_memo': ['synop'],
-                        'var': ['B01012']
-                    },
+                    'ana_id': [1],
+                    'level': [((10, 11, 15, 22), 'Layer from [10 11] to [15 22]')],
+                    'trange': [((20, 111, 222), '20 111 222')],
+                    'rep_memo': ['synop'],
+                    'var': ['B01012'],
                     'datemax': '1945-04-25 08:00:00',
-                    'datemin': '1945-04-25 08:00:00'
+                    'datemin': '1945-04-25 08:00:00',
                 },
                 "current": {
                     'ana_id': None,
