@@ -57,7 +57,10 @@ class WebAPI:
     def do_get_filter_stats(self, **kw):
         if self.session.summary is None:
             return { "empty": True }
-        return self.session.summary.to_dict()
+        return {
+            "current": self.session.filter.to_dict(),
+            "available": self.session.summary.to_dict(),
+        }
 
     async def do_get_data(self, **kw):
         return {

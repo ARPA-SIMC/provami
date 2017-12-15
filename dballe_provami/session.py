@@ -8,6 +8,39 @@ import logging
 log = logging.getLogger(__name__)
 
 
+class Filter:
+    def __init__(self):
+        self.ana_id = None
+        self.rep_memo = None
+        self.level = None
+        self.trange = None
+        self.var = None
+        self.datemin = None
+        self.datemax = None
+
+    def to_record(self):
+        res = dballe.Record()
+        if self.ana_id is not None: res["ana_id"] = self.ana_id
+        if self.rep_memo is not None: res["rep_memo"] = self.rep_memo
+        if self.level is not None: res["level"] = self.level
+        if self.trange is not None: res["trange"] = self.trange
+        if self.var is not None: res["var"] = self.var
+        if self.datemin is not None: res["datemin"] = self.datemin
+        if self.datemax is not None: res["datemax"] = self.datemax
+        return res
+
+    def to_dict(self):
+        return {
+            "ana_id": self.ana_id,
+            "rep_memo": self.rep_memo,
+            "level": self.level,
+            "trange": self.trange,
+            "var": self.var,
+            "datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
+            "datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
+        }
+
+
 class Summary:
     def __init__(self, records):
         self.records = records
@@ -38,8 +71,8 @@ class Summary:
                 "trange": [(x, dballe.describe_trange(*x)) for x in sorted(self.trange)],
                 "var": sorted(self.var),
             },
-            "datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S"),
-            "datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S"),
+            "datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
+            "datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
         }
 
 
@@ -49,15 +82,19 @@ class Session:
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
         self.db_url = db_url
         self.db = dballe.DB.connect_from_url(self.db_url)
-        self.filter = dballe.Record()
+        self.filter = Filter()
         self.summary = None
 
     async def refresh_filter(self):
         log.debug("Session.refresh_filter")
         def _refresh_filter():
-            query = self.filter.copy()
-            query["query"] = "details"
-            return [rec for rec in self.db.query_summary(query)]
+            try:
+                query = self.filter.to_record()
+                query["query"] = "details"
+                return [rec for rec in self.db.query_summary(query)]
+            except:
+                log.exception("Refresh filter failed")
+                return []
         records = await self.loop.run_in_executor(self.executor, _refresh_filter)
         self.summary = await self.loop.run_in_executor(self.executor, functools.partial(Summary, records))
         return self.summary.to_dict()
@@ -65,7 +102,7 @@ class Session:
     async def get_data(self, limit=20):
         log.debug("Session.get_data")
         def _get_data():
-            query = self.filter.copy()
+            query = self.filter.to_record()
             if limit is not None:
                 query["limit"] = limit
             res = []
