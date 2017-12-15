@@ -22,8 +22,8 @@ class Filter:
         res = dballe.Record()
         if self.ana_id is not None: res["ana_id"] = self.ana_id
         if self.rep_memo is not None: res["rep_memo"] = self.rep_memo
-        if self.level is not None: res["level"] = self.level
-        if self.trange is not None: res["trange"] = self.trange
+        if self.level is not None: res["level"] = tuple(self.level)
+        if self.trange is not None: res["trange"] = tuple(self.trange)
         if self.var is not None: res["var"] = self.var
         if self.datemin is not None: res["datemin"] = self.datemin
         if self.datemax is not None: res["datemax"] = self.datemax
@@ -39,6 +39,18 @@ class Filter:
             "datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
             "datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
         }
+
+    @classmethod
+    def from_dict(cls, data):
+        res = cls()
+        res.ana_id = data.get("ana_id")
+        res.rep_memo = data.get("rep_memo")
+        res.level = data.get("level")
+        res.trange = data.get("trange")
+        res.var = data.get("var")
+        res.datemin = data.get("datemin")
+        res.datemax = data.get("datemax")
+        return res
 
 
 class Summary:
@@ -63,11 +75,15 @@ class Summary:
                 self.datemax = rec["datemax"]
 
     def to_dict(self):
+        def level_key(l):
+            return tuple((str(x) if x is not None else "") for x in l)
+        def trange_key(t):
+            return tuple((str(x) if x is not None else "") for x in t)
         return {
             "ana_id": sorted(self.ana_id),
             "rep_memo": sorted(self.rep_memo),
-            "level": [(x, dballe.describe_level(*x)) for x in sorted(self.level)],
-            "trange": [(x, dballe.describe_trange(*x)) for x in sorted(self.trange)],
+            "level": [(x, dballe.describe_level(*x)) for x in sorted(self.level, key=level_key)],
+            "trange": [(x, dballe.describe_trange(*x)) for x in sorted(self.trange, key=trange_key)],
             "var": sorted(self.var),
             "datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
             "datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
@@ -83,13 +99,17 @@ class Session:
         self.filter = Filter()
         self.summary = None
 
+    async def set_filter(self, flt):
+        log.debug("Session.set_filter")
+        self.filter = Filter.from_dict(flt)
+
     async def refresh_filter(self):
         log.debug("Session.refresh_filter")
         def _refresh_filter():
             try:
                 query = self.filter.to_record()
                 query["query"] = "details"
-                return [rec for rec in self.db.query_summary(query)]
+                return self.db.query_summary(query)
             except:
                 log.exception("Refresh filter failed")
                 return []

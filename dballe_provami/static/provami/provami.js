@@ -28,8 +28,30 @@ class Server extends provami.EventsBase
         return new Promise((resolve, reject) => {
             $.ajax({
                 url: "/api/1.0/" + name,
+                method: "GET",
                 data: args,
                 dataType: "json",
+                success: (data, textStatus, jqXHR) => {
+                    resolve(data);
+                },
+                error: (jqXHR, textStatus, errorThrown) => {
+                    console.warn("Response to", name, jqXHR, textStatus, errorThrown);
+                    reject(errorThrown);
+                },
+            });
+        });
+    }
+
+    _post(name, args) {
+        var self = this;
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "/api/1.0/" + name,
+                method: "POST",
+                data: JSON.stringify(args),
+                processData: false,
+                dataType: "json",
+                contentType: "application/json",
                 success: (data, textStatus, jqXHR) => {
                     resolve(data);
                 },
@@ -56,6 +78,10 @@ class Server extends provami.EventsBase
     async get_data() {
         return await this._get("get_data", {});
     }
+
+    async set_filter(filter) {
+        return await this._post("set_filter", {filter: filter});
+    }
 }
 
 class Provami
@@ -63,7 +89,10 @@ class Provami
     constructor()
     {
         $("#filter_fields").attr("disabled", true);
+        $("#filter_update").attr("disabled", true);
         $("#filter").submit(() => { return false; });
+        $("#filter").change(() => { $("#filter_update").attr("disabled", false); });
+        $("#filter_update").click(evt => { this.submit_filter(); });
         this.server = new window.provami.Server();
         this.server.on("new_filter", msg => { this.update_filter().then(); });
     }
@@ -76,7 +105,7 @@ class Provami
 
         field = $(field);
         field.empty();
-        var no_choice = $("<option>").attr("value", null).text("-----");
+        var no_choice = $("<option>").attr("value", "").text("-----");
         if (current == null)
             no_choice.attr("selected", true);
         field.append(no_choice);
@@ -140,6 +169,28 @@ class Provami
     async update_all()
     {
         await Promise.all([this.update_filter(), this.update_data()]);
+    }
+
+    async submit_filter()
+    {
+        function clear_string(s)
+        {
+            if (!s) return null;
+            return s;
+        }
+        function clear_list(s)
+        {
+            if (!s) return null;
+            return s.split(",").map(val => { return val ? parseInt(val) : null; });
+        }
+        var filter = {
+            "rep_memo": clear_string($("#filter-repmemo").val()),
+            "var": clear_string($("#filter-var").val()),
+            "level": clear_list($("#filter-level").val()),
+            "trange": clear_list($("#filter-trange").val()),
+        }
+        await this.server.set_filter(filter);
+        await this.update_all();
     }
 }
 

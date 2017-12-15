@@ -66,3 +66,7 @@ class WebAPI:
         return {
             "rows": await self.session.get_data(),
         }
+
+    async def do_set_filter(self, filter, **kw):
+        await self.session.set_filter(filter)
+        return {}
