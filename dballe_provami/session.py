@@ -61,8 +61,11 @@ class Session:
         self.db = dballe.DB.connect_from_url(self.db_url)
         self.filter = Filter()
         self.explorer = dballe.Explorer(self.db)
+        self.initialized = False
 
     def explorer_to_dict(self):
+        if not self.initialized:
+            return { "stations": [], "rep_memo": [], "level": [], "trange": [], "var": [] }
         def level_key(l):
             return tuple((str(x) if x is not None else "") for x in l)
         def trange_key(t):
@@ -93,6 +96,7 @@ class Session:
                 log.exception("Refresh filter failed")
                 return []
         records = await self.loop.run_in_executor(self.executor, self.explorer.revalidate)
+        self.initialized = True
         return self.explorer_to_dict()
 
     async def get_data(self, limit=20):

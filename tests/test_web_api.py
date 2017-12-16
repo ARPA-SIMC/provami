@@ -31,6 +31,15 @@ class TestPing(TestWebAPIMixin, AsyncTestCase):
 
 class TestEmpty(TestWebAPIMixin, AsyncTestCase):
     @async_test
+    async def test_not_initialized(self):
+        with mock.patch("time.time", return_value=100):
+            res = await self.api("get_filter_stats")
+            self.assertEqual(res, { "time": 100,
+                'available': {'stations': [], 'level': [], 'rep_memo': [], 'trange': [], 'var': []},
+                'current': {'ana_id': None, 'datemax': None, 'datemin': None, 'level': None, 'rep_memo': None, 'trange': None, 'var': None},
+            })
+
+    @async_test
     async def test_get_filter_stats(self):
         await self.session.refresh_filter()
         with mock.patch("time.time", return_value=100):
