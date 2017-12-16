@@ -53,43 +53,6 @@ class Filter:
         return res
 
 
-class Summary:
-    def __init__(self, records):
-        self.records = records
-        self.ana_id = set()
-        self.rep_memo = set()
-        self.level = set()
-        self.trange = set()
-        self.var = set()
-        self.datemin = None
-        self.datemax = None
-        for rec in records:
-            self.ana_id.add(rec["ana_id"])
-            self.rep_memo.add(rec["rep_memo"])
-            self.level.add(rec["level"])
-            self.trange.add(rec["trange"])
-            self.var.add(rec["var"])
-            if self.datemin is None or self.datemin > rec["datemin"]:
-                self.datemin = rec["datemin"]
-            if self.datemax is None or self.datemax < rec["datemax"]:
-                self.datemax = rec["datemax"]
-
-    def to_dict(self):
-        def level_key(l):
-            return tuple((str(x) if x is not None else "") for x in l)
-        def trange_key(t):
-            return tuple((str(x) if x is not None else "") for x in t)
-        return {
-            "ana_id": sorted(self.ana_id),
-            "rep_memo": sorted(self.rep_memo),
-            "level": [(x, dballe.describe_level(*x)) for x in sorted(self.level, key=level_key)],
-            "trange": [(x, dballe.describe_trange(*x)) for x in sorted(self.trange, key=trange_key)],
-            "var": sorted(self.var),
-            "datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
-            "datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
-        }
-
-
 class Session:
     def __init__(self, db_url):
         self.loop = asyncio.get_event_loop()
@@ -97,11 +60,27 @@ class Session:
         self.db_url = db_url
         self.db = dballe.DB.connect_from_url(self.db_url)
         self.filter = Filter()
-        self.summary = None
+        self.explorer = dballe.Explorer(self.db)
+
+    def explorer_to_dict(self):
+        def level_key(l):
+            return tuple((str(x) if x is not None else "") for x in l)
+        def trange_key(t):
+            return tuple((str(x) if x is not None else "") for x in t)
+        return {
+            "stations": self.explorer.stations,
+            "rep_memo": self.explorer.reports,
+            "level": [(x, dballe.describe_level(*x)) for x in self.explorer.levels],
+            "trange": [(x, dballe.describe_trange(*x)) for x in self.explorer.tranges],
+            "var": self.explorer.varcodes,
+            #"datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
+            #"datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
+        }
 
     async def set_filter(self, flt):
         log.debug("Session.set_filter")
         self.filter = Filter.from_dict(flt)
+        await self.loop.run_in_executor(self.executor, self.explorer.set_filter, self.filter.to_record())
 
     async def refresh_filter(self):
         log.debug("Session.refresh_filter")
@@ -113,9 +92,8 @@ class Session:
             except:
                 log.exception("Refresh filter failed")
                 return []
-        records = await self.loop.run_in_executor(self.executor, _refresh_filter)
-        self.summary = await self.loop.run_in_executor(self.executor, functools.partial(Summary, records))
-        return self.summary.to_dict()
+        records = await self.loop.run_in_executor(self.executor, self.explorer.revalidate)
+        return self.explorer_to_dict()
 
     async def get_data(self, limit=20):
         log.debug("Session.get_data")

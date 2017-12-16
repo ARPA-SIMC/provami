@@ -21,8 +21,6 @@ class WebAPI:
     def __init__(self, session):
         self.session = session
         self.loop = asyncio.get_event_loop()
-        import concurrent.futures
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
     async def __call__(self, function=None, **kw):
         """
@@ -55,11 +53,9 @@ class WebAPI:
         }
 
     def do_get_filter_stats(self, **kw):
-        if self.session.summary is None:
-            return { "empty": True }
         return {
             "current": self.session.filter.to_dict(),
-            "available": self.session.summary.to_dict(),
+            "available": self.session.explorer_to_dict(),
         }
 
     async def do_get_data(self, **kw):

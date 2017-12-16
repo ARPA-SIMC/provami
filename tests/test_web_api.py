@@ -32,12 +32,17 @@ class TestPing(TestWebAPIMixin, AsyncTestCase):
 class TestEmpty(TestWebAPIMixin, AsyncTestCase):
     @async_test
     async def test_get_filter_stats(self):
+        await self.session.refresh_filter()
         with mock.patch("time.time", return_value=100):
             res = await self.api("get_filter_stats")
-            self.assertEqual(res, { "time": 100, "empty": True })
+            self.assertEqual(res, { "time": 100,
+                'available': {'stations': [], 'level': [], 'rep_memo': [], 'trange': [], 'var': []},
+                'current': {'ana_id': None, 'datemax': None, 'datemin': None, 'level': None, 'rep_memo': None, 'trange': None, 'var': None},
+            })
 
     @async_test
     async def test_get_data(self):
+        await self.session.refresh_filter()
         with mock.patch("time.time", return_value=100):
             res = await self.api("get_data")
             self.assertEqual(res, { "time": 100, "rows": [] })
@@ -75,13 +80,15 @@ class TestBasic(TestWebAPIMixin, AsyncTestCase):
             self.maxDiff = None
             self.assertEqual(res, { "time": 100,
                 "available": {
-                    'ana_id': [1, 2],
+                    'stations': [
+                        ('synop', 1, 12.3456, 76.5432, None),
+                        ('temp', 2, 12.3456, 76.5432, None)],
                     'level': [((10, 11, 15, 22), 'Layer from [10 11] to [15 22]')],
                     'trange': [((20, 111, 222), '20 111 222')],
                     'rep_memo': ['synop', 'temp'],
                     'var': ['B01011', 'B01012'],
-                    'datemax': '1945-04-25 08:00:00',
-                    'datemin': '1945-04-25 08:00:00',
+                    #'datemax': '1945-04-25 08:00:00',
+                    #'datemin': '1945-04-25 08:00:00',
                 },
                 "current": {
                     'ana_id': None,
