@@ -17,10 +17,10 @@
   background-color: rgba( 38, 127, 202, 0.6);
 }
 
-.marker-cluster-selected {
+.marker-cluster-current {
   background-color: rgba(122, 238, 228, 0.6);
 }
-.marker-cluster-selected div {
+.marker-cluster-current div {
   background-color: rgba( 56, 246, 239, 0.6);
 }
 
@@ -33,16 +33,16 @@
 </style>
 <script type="text/javascript">
 (function($) {
-  var server;
-
   function main()
   {
-    provami = new window.provami.Provami();
+    provami = new window.provami.Provami({
+      resource_url: "{{ static_url('provami/') }}",
+    });
   }
 
   async function async_main()
   {
-    await provami.update_all();
+    await provami.init();
   }
 
   $(document).ready(() => {

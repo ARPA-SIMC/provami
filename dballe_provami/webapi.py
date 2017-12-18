@@ -60,6 +60,11 @@ class WebAPI:
             "available": self.session.explorer_to_dict(),
         }
 
+    def do_get_stations(self, **kw):
+        return {
+            "stations": self.session.explorer.all_stations,
+        }
+
     async def do_get_data(self, **kw):
         return {
             "rows": await self.session.get_data(),

@@ -79,6 +79,10 @@ class Server extends provami.EventsBase
         return await this._get("get_data", {});
     }
 
+    async get_stations() {
+        return await this._get("get_stations", {});
+    }
+
     async set_filter(filter) {
         return await this._post("set_filter", {filter: filter});
     }
@@ -176,12 +180,20 @@ class FilterFieldChoices extends FilterField
 
 class Map
 {
-    constructor(id)
+    constructor(id, options)
     {
+        this.options = options;
+        // Alternative icon styles
+        this.IconSelected = this._make_alt_icon("selected");
+        //this.IconHighlighted = this._make_alt_icon("highlighted");
+        //this.IconHidden = this._make_alt_icon("hidden");
+
         // Station markers layer
         this.stations_layer = null;
         // Station markers indexed by station ana_id
         this.stations_by_id = {};
+        // Stations available in the current query results
+        this.stations_current = {};
 
         this.map = L.map(id);
 
@@ -211,6 +223,19 @@ class Map
         */
     }
 
+    _make_alt_icon(type)
+    {
+        var self = this;
+        return L.Icon.Default.extend({
+            _getIconUrl: function (name) {
+                if (L.Browser.retina && name === 'icon') {
+                    name += '-2x';
+                }
+                return self.options.resource_url + "images/marker-" + type + "-" + name + ".png";
+            }
+        });
+    }
+
     _make_markers_layer()
     {
         return new L.markerClusterGroup({
@@ -218,13 +243,13 @@ class Map
             iconCreateFunction: cluster => {
                 var children = cluster.getAllChildMarkers();
                 var is_hidden = true;
-                //var has_selected = false;
+                var has_current = false;
                 //var has_highlighted = false;
                 for (var i in children)
                 {
                     var id = children[i].options.id;
                     is_hidden &= children[i].options.hidden;
-                    //has_selected |= !!markers_selected[id];
+                    has_current |= !!this.stations_current[id];
                     //has_highlighted |= (marker_highlighted && marker_highlighted.options.id == id);
                 }
 
@@ -234,9 +259,9 @@ class Map
                 var c = ' marker-cluster-';
                 if (is_hidden)
                     c += "hidden";
+                else if (has_current)
+                    c += "current";
                 /*
-                else if (has_selected)
-                    c += "selected";
                 else if (has_highlighted)
                     c += "highlighted";
                 */
@@ -256,7 +281,7 @@ class Map
      *      [id, lat, lon, selected, hidden],
      * ];
      */
-    _set_stations(stations)
+    set_stations(stations)
     {
         var first_show = this.stations_layer == null;
         if (this.stations_layer != null)
@@ -264,8 +289,6 @@ class Map
 
         this.stations_layer = null;
         this.stations_by_id = {};
-        //markers_selected = {};
-        //marker_highlighted = null;
 
         if (!stations.length) return;
 
@@ -281,7 +304,6 @@ class Map
             points.push([lat, lon]);
             var marker = L.marker(new L.LatLng(lat, lon), { title: id, id: id, hidden: false });
             this.stations_by_id[id] = marker;
-            //if (sel) markers_selected[id] = marker;
             marker.on("click", evt => {
                 // if (evt.target.options.hidden) return;
                 // select_marker(evt.target.options.id);
@@ -298,22 +320,31 @@ class Map
         if (first_show)
         {
             var bounds = L.latLngBounds(points);
-            console.log("FS", bounds);
             this.map.fitBounds(bounds);
         }
     }
 
-
-    update(stations)
+    set_current_stations(ids)
     {
-        this._set_stations(stations);
+        var c = {};
+        for (var i = 0; i < ids.length; ++i)
+            c[ids[i]] = true;
+        $.each(this.stations_by_id, (id, marker) => {
+            if (c[id])
+                marker.setIcon(new this.IconSelected);
+            else
+                marker.setIcon(new L.Icon.Default);
+        });
+        this.stations_current = c;
+        this.stations_layer.refreshClusters();
     }
 }
 
 class Provami
 {
-    constructor()
+    constructor(options)
     {
+        this.options = options;
         $("#filter_fields").attr("disabled", true);
         $("#filter_update").attr("disabled", true);
         $("#filter").submit(() => { return false; });
@@ -321,13 +352,20 @@ class Provami
         $("#filter_update").click(evt => { this.submit_filter(); });
         this.server = new window.provami.Server();
         this.server.on("new_filter", msg => { this.update_filter().then(); });
-        this.map = new Map("map");
+        this.map = new Map("map", options);
         this.fields = [
             new FilterFieldChoices(this, "rep_memo"),
             new FilterFieldChoices(this, "var"), // TODO: rename in varcode
             new FilterFieldChoices(this, "level"),
             new FilterFieldChoices(this, "trange"),
         ];
+    }
+
+    async init()
+    {
+        var stations = await this.server.get_stations();
+        this.map.set_stations(stations.stations);
+        await this.update_all();
     }
 
     async set_filter(field, value)
@@ -355,7 +393,7 @@ class Provami
         var stats = await this.server.get_filter_stats();
         console.log("New filter stats:", stats);
 
-        this.map.update(stats.available.stations);
+        this.map.set_current_stations(stats.available.stations);
 
         $.each(this.fields, (idx, el) => {
             el.update(stats);

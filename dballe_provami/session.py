@@ -79,7 +79,7 @@ class Session:
         def trange_key(t):
             return tuple((str(x) if x is not None else "") for x in t)
         return {
-            "stations": self.explorer.stations,
+            "stations": [x.ana_id for x in self.explorer.stations],
             "rep_memo": self.explorer.reports,
             "level": [(tuple(x), dballe.describe_level(*x)) for x in self.explorer.levels],
             "trange": [(tuple(x), dballe.describe_trange(*x)) for x in self.explorer.tranges],
