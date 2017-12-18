@@ -68,7 +68,7 @@ var BoxSelect = L.Handler.extend({
             this._box = L.DomUtil.create('div', 'leaflet-zoom-box', this._container);
             L.DomUtil.addClass(this._container, 'leaflet-crosshair');
 
-            this._map.fire('boxzoomstart');
+            //this._map.fire('boxzoomstart');
         }
 
         this._point = this._map.mouseEventToContainerPoint(e);
@@ -80,6 +80,8 @@ var BoxSelect = L.Handler.extend({
 
         this._box.style.width  = size.x + 'px';
         this._box.style.height = size.y + 'px';
+
+        this._map.fire("boxselecting", {bounds: bounds});
     },
 
     _finish: function () {
@@ -114,7 +116,7 @@ var BoxSelect = L.Handler.extend({
                 this._map.containerPointToLatLng(this._startPoint),
                 this._map.containerPointToLatLng(this._point));
 
-        console.log("BOUNDS", bounds);
+        this._map.fire("boxselected", {bounds: bounds});
         /*
         this._map
             .fitBounds(bounds)

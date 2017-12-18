@@ -95,18 +95,32 @@ class FilterField
         this.provami = provami
         this.name = name;
         this.row = $("#filter-" + this.name);
-        this.add = $("#filter-add-" + this.name);
-        this.add.click(evt => { this.row.show(); });
-        this.remove = this.row.find("button.remove");
+        this.remove = this.row.find("button.remove").hide();
         this.value = null;
-        this.remove.click(evt => { this.provami.set_filter(this.name, null).then(); });
+        this.remove.click(evt => { this.unset(); });
+    }
+}
+
+class FilterFieldStation extends FilterField
+{
+    constructor(provami)
+    {
+        super(provami, "station");
+        provami.map.controllers.push(this);
     }
 
-    _get_option(o) {
-        if (o instanceof Array)
-            return o;
-        else
-            return [o, o];
+    unset()
+    {
+    }
+
+    select_station_id(id)
+    {
+        console.log("Selected", id);
+    }
+
+    update(stats)
+    {
+        this.provami.map.set_current_stations(stats.available.stations);
     }
 }
 
@@ -119,12 +133,23 @@ class FilterFieldChoices extends FilterField
         this.field.change(evt => { this.provami.set_filter(this.name, this.field.val()).then(); });
     }
 
+    unset()
+    {
+        this.provami.set_filter(this.name, null).then();
+    }
+
+    _get_option(o) {
+        if (o instanceof Array)
+            return o;
+        else
+            return [o, o];
+    }
+
     _set_forced(value)
     {
         // Only one available option, mark it as hardcoded
         value = this._get_option(value);
         this.value = null;
-        this.add.hide();
         this.remove.hide();
         this.row.find("td.value span.value").text(value[1]).show();
         this.field.hide();
@@ -148,7 +173,6 @@ class FilterFieldChoices extends FilterField
         this.remove.hide();
         this.row.find("td.value span.value").hide();
         this.field.show();
-        this.add.show();
     }
 
     _set_chosen(value)
@@ -159,7 +183,6 @@ class FilterFieldChoices extends FilterField
         this.remove.show();
         this.row.find("td.value span.value").text(value[1]).show();
         this.field.hide();
-        this.add.hide();
     }
 
     update(stats)
@@ -188,6 +211,8 @@ class Map
         //this.IconHighlighted = this._make_alt_icon("highlighted");
         //this.IconHidden = this._make_alt_icon("hidden");
 
+        this.controllers = [];
+
         // Station markers layer
         this.stations_layer = null;
         // Station markers indexed by station ana_id
@@ -195,7 +220,7 @@ class Map
         // Stations available in the current query results
         this.stations_current = {};
 
-        this.map = L.map(id);
+        this.map = L.map(id, { boxZoom: false });
 
         // OSM base layer
         var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -208,6 +233,12 @@ class Map
 
         // Add the rectangle selection facility
         var selectfeature = this.map.boxSelect.enable();
+        this.map.on("boxselecting", (e) => {
+            console.log("BSing", e);
+        });
+        this.map.on("boxselected", (e) => {
+            console.log("BSed", e);
+        });
         //var selectfeature = map.selectAreaFeature.enable();
         //var locationFilter = new L.LocationFilter({ buttonPosition: "bottomleft", adjustButton: null }).addTo(map);
         /*
@@ -307,7 +338,7 @@ class Map
             marker.on("click", evt => {
                 // if (evt.target.options.hidden) return;
                 // select_marker(evt.target.options.id);
-                console.log("Selected", evt.target.options.id);
+                $.each(this.controllers, (idx, c) => { c.select_station_id(evt.target.options.id); });
             });
             this.stations_layer.addLayer(marker);
             // This will remove and add it again to cause an update; it seems to cause
@@ -354,6 +385,7 @@ class Provami
         this.server.on("new_filter", msg => { this.update_filter().then(); });
         this.map = new Map("map", options);
         this.fields = [
+            new FilterFieldStation(this),
             new FilterFieldChoices(this, "rep_memo"),
             new FilterFieldChoices(this, "var"), // TODO: rename in varcode
             new FilterFieldChoices(this, "level"),
@@ -392,8 +424,6 @@ class Provami
     {
         var stats = await this.server.get_filter_stats();
         console.log("New filter stats:", stats);
-
-        this.map.set_current_stations(stats.available.stations);
 
         $.each(this.fields, (idx, el) => {
             el.update(stats);
