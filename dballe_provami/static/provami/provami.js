@@ -162,7 +162,6 @@ class FilterFieldChoices extends FilterField
     {
         var current = stats.current[this.name];
         var options = stats.available[this.name];
-        console.log("Update field", this.name, current, options);
         if (current == null)
         {
             // Not currently chosen
@@ -172,6 +171,142 @@ class FilterFieldChoices extends FilterField
                 this._set_multi(options);
         } else
             this._set_chosen(current);
+    }
+}
+
+class Map
+{
+    constructor(id)
+    {
+        // Station markers layer
+        this.stations_layer = null;
+        // Station markers indexed by station ana_id
+        this.stations_by_id = {};
+
+        this.map = L.map(id);
+
+        // OSM base layer
+        var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        var osmAttrib='Map data © OpenStreetMap contributors';
+        var osm = new L.TileLayer(osmUrl, {minZoom: 1, maxZoom: 12, attribution: osmAttrib, boxZoom: false});
+        this.map.addLayer(osm);
+
+        // Show the mouse position in the map
+        L.control.mousePosition({ position: "bottomright" }).addTo(this.map);
+
+        // Add the rectangle selection facility
+        var selectfeature = this.map.boxSelect.enable();
+        //var selectfeature = map.selectAreaFeature.enable();
+        //var locationFilter = new L.LocationFilter({ buttonPosition: "bottomleft", adjustButton: null }).addTo(map);
+        /*
+        locationFilter.on("change", function(e) {
+          window.provami.js_area_selected(e.bounds.getNorth(), e.bounds.getSouth(), e.bounds.getWest(), e.bounds.getEast());
+        });
+        locationFilter.on("enabled", function(e) {
+          window.provami.js_area_selected(e.bounds.getNorth(), e.bounds.getSouth(), e.bounds.getWest(), e.bounds.getEast());
+        });
+        locationFilter.on("disabled", function(e) {
+          window.provami.js_area_unselected();
+        });
+        */
+    }
+
+    _make_markers_layer()
+    {
+        return new L.markerClusterGroup({
+            maxClusterRadius: 30,
+            iconCreateFunction: cluster => {
+                var children = cluster.getAllChildMarkers();
+                var is_hidden = true;
+                //var has_selected = false;
+                //var has_highlighted = false;
+                for (var i in children)
+                {
+                    var id = children[i].options.id;
+                    is_hidden &= children[i].options.hidden;
+                    //has_selected |= !!markers_selected[id];
+                    //has_highlighted |= (marker_highlighted && marker_highlighted.options.id == id);
+                }
+
+                //return new L.DivIcon({ html: '<b>' + cluster.getChildCount() + '</b>' });
+                var childCount = cluster.getChildCount();
+
+                var c = ' marker-cluster-';
+                if (is_hidden)
+                    c += "hidden";
+                /*
+                else if (has_selected)
+                    c += "selected";
+                else if (has_highlighted)
+                    c += "highlighted";
+                */
+                else
+                    c += "normal";
+
+                return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
+            }
+        });
+    }
+
+    /**
+     * Replace all the stations on the map with the ones in data.
+     *
+     * Data is a list of station information, as follows:
+     * data = [
+     *      [id, lat, lon, selected, hidden],
+     * ];
+     */
+    _set_stations(stations)
+    {
+        var first_show = this.stations_layer == null;
+        if (this.stations_layer != null)
+            this.map.removeLayer(this.stations_layer);
+
+        this.stations_layer = null;
+        this.stations_by_id = {};
+        //markers_selected = {};
+        //marker_highlighted = null;
+
+        if (!stations.length) return;
+
+        this.stations_layer = this._make_markers_layer();
+        var points = [];
+
+        // Compute the bounding box of the points
+        for (var i = 0; i < stations.length; ++i)
+        {
+            var id = stations[i][1];      // Station ID (integer)
+            var lat = stations[i][2];     // Station latitude (float)
+            var lon = stations[i][3];     // Station longitude (float)
+            points.push([lat, lon]);
+            var marker = L.marker(new L.LatLng(lat, lon), { title: id, id: id, hidden: false });
+            this.stations_by_id[id] = marker;
+            //if (sel) markers_selected[id] = marker;
+            marker.on("click", evt => {
+                // if (evt.target.options.hidden) return;
+                // select_marker(evt.target.options.id);
+                console.log("Selected", evt.target.options.id);
+            });
+            this.stations_layer.addLayer(marker);
+            // This will remove and add it again to cause an update; it seems to cause
+            // no harm at the moment, so I'll go for code reuse instead of optimization
+            //update_marker(marker);
+        }
+
+        this.map.addLayer(this.stations_layer);
+
+        if (first_show)
+        {
+            var bounds = L.latLngBounds(points);
+            console.log("FS", bounds);
+            this.map.fitBounds(bounds);
+        }
+    }
+
+
+    update(stations)
+    {
+        this._set_stations(stations);
     }
 }
 
@@ -186,6 +321,7 @@ class Provami
         $("#filter_update").click(evt => { this.submit_filter(); });
         this.server = new window.provami.Server();
         this.server.on("new_filter", msg => { this.update_filter().then(); });
+        this.map = new Map("map");
         this.fields = [
             new FilterFieldChoices(this, "rep_memo"),
             new FilterFieldChoices(this, "var"), // TODO: rename in varcode
@@ -218,6 +354,8 @@ class Provami
     {
         var stats = await this.server.get_filter_stats();
         console.log("New filter stats:", stats);
+
+        this.map.update(stats.available.stations);
 
         $.each(this.fields, (idx, el) => {
             el.update(stats);
