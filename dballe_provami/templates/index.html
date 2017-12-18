@@ -38,13 +38,20 @@
     */
   }
 
-  async function main()
+  function main()
+  {
+    provami = new window.provami.Provami();
+  }
+
+  async function async_main()
   {
     setup_map("map");
-    provami = new window.provami.Provami();
     await provami.update_all();
   }
-  $(document).ready(() => { main().then(); });
+  $(document).ready(() => {
+    main();
+    async_main().then();
+  });
 })(jQuery);
 </script>
 {% end %}
@@ -56,14 +63,58 @@
 <div class="panel panel-default">
   <div class="panel-heading clearfix">
     <h2 class="panel-title">
+      <!--
       <div class="btn-group pull-right" role="group" aria-label="filter_actions">
         <button id="filter_update" type="button" class="btn btn-default btn-xs">Update</button>
       </div>
+      -->
       Filter
     </h2>
   </div>
   <div class="panel-body">
   <form id="filter">
+  <table id="filter" class="table">
+    <tbody>
+      <tr id="filter-rep_memo">
+        <th><label for="filter-field-rep_memo">Network:</label></th>
+        <td class="value">
+          <span class="value"></span>
+          <select class="form-control" id="filter-field-rep_memo">
+          </select>
+        </td>
+        <td><button class="btn btn-default btn-xs glyphicon glyphicon-remove remove"></button></td>
+      </tr>
+      <tr id="filter-var">
+        <th><label for="filter-field-var">Variable:</label></th>
+        <td class="value">
+          <span class="value"></span>
+          <select class="form-control" id="filter-field-var">
+          </select>
+        </td>
+        <td><button class="btn btn-default btn-xs glyphicon glyphicon-remove remove"></button></td>
+      </tr>
+      <tr id="filter-level">
+        <th><label for="filter-field-level">Level:</label></th>
+        <td class="value">
+          <span class="value"></span>
+          <select class="form-control" id="filter-field-level">
+          </select>
+        </td>
+        <td><button class="btn btn-default btn-xs glyphicon glyphicon-remove remove"></button></td>
+      </tr>
+      <tr id="filter-trange">
+        <th><label for="filter-field-trange">Time range:</label></th>
+        <td class="value">
+          <span class="value"></span>
+          <select class="form-control" id="filter-field-trange">
+          </select>
+        </td>
+        <td><button class="btn btn-default btn-xs glyphicon glyphicon-remove remove"></button></td>
+      </tr>
+    </tbody>
+  </table>
+  </form>
+  <!--
     <fieldset id="filter_fields">
     <label for="filter-repmemo">Network</label>
     <div class="input-group">
@@ -90,7 +141,7 @@
       </select>
     </div>
     </fieldset>
-  </form>
+    -->
   </div>
 </div>
 </div>

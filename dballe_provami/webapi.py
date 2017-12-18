@@ -39,6 +39,8 @@ class WebAPI:
         else:
             res = f(**kw)
         log.debug("API call %s %r result %r", function, kw, res)
+        if not self.session.initialized:
+            res["initializing"] = True
         res["time"] = time.time()
         return res
 

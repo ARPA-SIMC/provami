@@ -20,13 +20,13 @@ class TestPing(TestWebAPIMixin, AsyncTestCase):
     async def test_ping(self):
         with mock.patch("time.time", return_value=100):
             res = await self.api("ping")
-            self.assertEqual(res, { "time": 100, "pong": True })
+            self.assertEqual(res, { "time": 100, "initializing": True, "pong": True })
 
     @async_test
     async def test_async_ping(self):
         with mock.patch("time.time", return_value=100):
             res = await self.api("ping")
-            self.assertEqual(res, { "time": 100, "pong": True })
+            self.assertEqual(res, { "time": 100, "initializing": True, "pong": True })
 
 
 class TestEmpty(TestWebAPIMixin, AsyncTestCase):
@@ -37,6 +37,7 @@ class TestEmpty(TestWebAPIMixin, AsyncTestCase):
             self.assertEqual(res, { "time": 100,
                 'available': {'stations': [], 'level': [], 'rep_memo': [], 'trange': [], 'var': []},
                 'current': {'ana_id': None, 'datemax': None, 'datemin': None, 'level': None, 'rep_memo': None, 'trange': None, 'var': None},
+                'initializing': True,
             })
 
     @async_test
@@ -112,6 +113,7 @@ class TestBasic(TestWebAPIMixin, AsyncTestCase):
 
     @async_test
     async def test_get_data(self):
+        await self.session.refresh_filter()
         with mock.patch("time.time", return_value=100):
             res = await self.api("get_data")
             self.maxDiff = None

@@ -7,6 +7,14 @@ import logging
 
 log = logging.getLogger(__name__)
 
+def _tuple_to_string(t):
+    if t is None: return None
+    return ",".join(str(x) if x is not None else "" for x in t)
+
+def _tuple_from_string(t):
+    if t is None: return None
+    return tuple(int(x) if x else None for x in t.split(","))
+
 
 class Filter:
     def __init__(self):
@@ -33,8 +41,8 @@ class Filter:
         return {
             "ana_id": self.ana_id,
             "rep_memo": self.rep_memo,
-            "level": self.level,
-            "trange": self.trange,
+            "level": None if self.level is None else [_tuple_to_string(self.level), dballe.describe_level(*self.level)],
+            "trange": None if self.trange is None else [_tuple_to_string(self.trange), dballe.describe_trange(*self.trange)],
             "var": self.var,
             "datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
             "datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
@@ -45,8 +53,8 @@ class Filter:
         res = cls()
         res.ana_id = data.get("ana_id")
         res.rep_memo = data.get("rep_memo")
-        res.level = data.get("level")
-        res.trange = data.get("trange")
+        res.level = _tuple_from_string(data.get("level"))
+        res.trange = _tuple_from_string(data.get("trange"))
         res.var = data.get("var")
         res.datemin = data.get("datemin")
         res.datemax = data.get("datemax")
@@ -73,8 +81,8 @@ class Session:
         return {
             "stations": self.explorer.stations,
             "rep_memo": self.explorer.reports,
-            "level": [(x, dballe.describe_level(*x)) for x in self.explorer.levels],
-            "trange": [(x, dballe.describe_trange(*x)) for x in self.explorer.tranges],
+            "level": [(tuple(x), dballe.describe_level(*x)) for x in self.explorer.levels],
+            "trange": [(tuple(x), dballe.describe_trange(*x)) for x in self.explorer.tranges],
             "var": self.explorer.varcodes,
             #"datemin": self.datemin.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
             #"datemax": self.datemax.strftime("%Y-%m-%d %H:%M:%S") if self.datemin is not None else None,
@@ -111,8 +119,8 @@ class Session:
                     rec["rep_memo"],
                     rec["ana_id"],
                     rec["var"],
-                    rec["level"],
-                    rec["trange"],
+                    tuple(rec["level"]),
+                    tuple(rec["trange"]),
                     rec["datetime"].strftime("%Y-%m-%d %H:%M:%S"),
                     rec[rec["var"]],
                 ])
