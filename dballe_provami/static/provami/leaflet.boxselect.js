@@ -81,6 +81,9 @@ var BoxSelect = L.Handler.extend({
         this._box.style.width  = size.x + 'px';
         this._box.style.height = size.y + 'px';
 
+        var bounds = new L.LatLngBounds(
+                this._map.containerPointToLatLng(this._startPoint),
+                this._map.containerPointToLatLng(this._point));
         this._map.fire("boxselecting", {bounds: bounds});
     },
 

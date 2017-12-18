@@ -107,15 +107,34 @@ class FilterFieldStation extends FilterField
     {
         super(provami, "station");
         provami.map.controllers.push(this);
+        this.field_value = this.row.find("td.value");
     }
 
     unset()
     {
+        this.field_value.text("all");
+        this.remove.hide();
     }
 
     select_station_id(id)
     {
         console.log("Selected", id);
+        this.field_value.text("ana_id=" + id);
+        this.remove.show();
+    }
+
+    select_station_bounds(bounds, finished)
+    {
+        console.log("Bounds", bounds, finished);
+        var desc = "latmin=" + bounds._southWest.lat + " latmax=" + bounds._northEast.lat
+                 + " lonmin=" + bounds._northEast.lng + " lonmax=" + bounds._southWest.lng;
+        if (finished)
+        {
+            this.field_value.text(desc);
+            this.remove.show();
+        }
+        else
+            this.field_value.html("<i>" + desc + "</i>");
     }
 
     update(stats)
@@ -234,10 +253,10 @@ class Map
         // Add the rectangle selection facility
         var selectfeature = this.map.boxSelect.enable();
         this.map.on("boxselecting", (e) => {
-            console.log("BSing", e);
+            $.each(this.controllers, (idx, c) => { c.select_station_bounds(e.bounds, false); });
         });
         this.map.on("boxselected", (e) => {
-            console.log("BSed", e);
+            $.each(this.controllers, (idx, c) => { c.select_station_bounds(e.bounds, true); });
         });
         //var selectfeature = map.selectAreaFeature.enable();
         //var locationFilter = new L.LocationFilter({ buttonPosition: "bottomleft", adjustButton: null }).addTo(map);
