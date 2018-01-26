@@ -1,14 +1,13 @@
 Summary: Graphical interface to DB-All.e databases
-Name: provami-qt
-Version: 1.2
+Name: provami
+Version: 2.0
 Release: 1%{dist}
 License: GPL
 Group: Applications/Meteo
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildRequires: cmake, libdballe-devel, qt5-qtbase-devel, qt5-qtwebkit-devel
+BuildRequires: cmake, libdballe-devel
 Requires: python-dballe, dballe, numpy, rpy
-#Obsoletes: provami
 
 %description
 
@@ -50,6 +49,9 @@ ctest -V %{?_smp_mflags}
 %postun
 
 %changelog
+* Fri Jan 26 2018 Daniele Branchini <dbranchini@arpa.emr.it> - 2.0-1%{dist}
+- python rewrite
+
 * Tue Apr 26 2016 Daniele Branchini <dbranchini@arpa.emr.it> - 1.2-1%{dist}
 - new dballe build
 
