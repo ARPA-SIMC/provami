@@ -1,10 +1,10 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami
 Version: 2.0
-Release: 1%{dist}
+Release: 1
 License: GPL
 Group: Applications/Meteo
-Source0: %{name}-%{version}.tar.gz
+Source0: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildRequires: cmake, libdballe-devel
 Requires: python-dballe, dballe, numpy, rpy
