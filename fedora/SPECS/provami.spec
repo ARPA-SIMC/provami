@@ -17,7 +17,7 @@ Requires: python-dballe, dballe, numpy, rpy
 
 
 %prep
-%setup -q 
+%setup -q -n %{name}-%{version}-%{release}
 
 %build
 
