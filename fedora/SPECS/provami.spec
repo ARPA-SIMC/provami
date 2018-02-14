@@ -1,5 +1,5 @@
 Summary: Graphical interface to DB-All.e databases
-Name: provami-qt
+Name: provami
 Version: 1.3
 Release: 1
 License: GPL
