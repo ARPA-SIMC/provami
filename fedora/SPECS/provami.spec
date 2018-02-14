@@ -1,14 +1,14 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami-qt
-Version: 1.2
-Release: 1%{dist}
+Version: 1.3
+Release: 1
 License: GPL
 Group: Applications/Meteo
-Source0: %{name}-%{version}.tar.gz
+Source0: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildRequires: cmake, libdballe-devel, qt5-qtbase-devel, qt5-qtwebkit-devel
 Requires: python-dballe, dballe, numpy, rpy
-#Obsoletes: provami
+Obsoletes: provami-qt
 
 %description
 
@@ -18,7 +18,7 @@ Requires: python-dballe, dballe, numpy, rpy
 
 
 %prep
-%setup -q 
+%setup -q -n %{name}-%{version}-%{release}
 
 %build
 
@@ -50,6 +50,10 @@ ctest -V %{?_smp_mflags}
 %postun
 
 %changelog
+* Wed Feb 14 2018 Daniele Branchini <dbranchini@arpae.it> - 1.3-1
+- fixed #27
+- change rpm name for automating build from github
+
 * Tue Apr 26 2016 Daniele Branchini <dbranchini@arpa.emr.it> - 1.2-1%{dist}
 - new dballe build
 
