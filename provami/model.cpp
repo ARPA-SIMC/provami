@@ -291,7 +291,6 @@ void Model::on_have_new_summary()
     }
     active_summary = new db::Summary(*(pending_query_summary->query));
 
-    bool with_details = core::Query::downcast(*pending_query_summary->query).query == "details";
     delete pending_query_summary;
     pending_query_summary = nullptr;
 
@@ -302,14 +301,14 @@ void Model::on_have_new_summary()
 
     while (cur->next())
     {
-        active_summary->add_summary(*cur, with_details);
+        active_summary->add_summary(*cur);
 
         if (do_global_summary)
         {
             int ana_id = cur->get_station_id();
             if (cache_stations.find(ana_id) == cache_stations.end())
                 cache_stations.insert(make_pair(ana_id, Station(*cur)));
-            global_summary->add_summary(*cur, with_details);
+            global_summary->add_summary(*cur);
         }
     }
 
@@ -379,15 +378,14 @@ void Model::process_summary()
         mark_hidden_stations(sub);
 
         // Harvest all idents from the station present in sub to create a filtered ident selection
-        for (int s_id : sub.all_stations)
-        {
-            auto s = cache_stations.find(s_id);
-            if (s != cache_stations.end() && !s->second.ident.empty())
-                all_idents.insert(s->second.ident);
-        }
+        for (const auto& si : sub.all_stations)
+            if (!si.second.ident.is_missing())
+                all_idents.insert(si.second.ident);
 
         // Mark all stations selected by next_filter as selected
-        _selected_stations = next_summary.all_stations;
+        _selected_stations.clear();
+        for (const auto& si : next_summary.all_stations)
+            _selected_stations.insert(si.first);
     } else {
         // If we have no station filter, we can hide all stations
         // that would give no data if the current next_filter were
@@ -395,12 +393,9 @@ void Model::process_summary()
         mark_hidden_stations(next_summary);
 
         // Harvest all idents from the same set of stations, to create a filtered ident selection
-        for (int s_id : next_summary.all_stations)
-        {
-            auto s = cache_stations.find(s_id);
-            if (s != cache_stations.end() && !s->second.ident.empty())
-                all_idents.insert(s->second.ident);
-        }
+        for (const auto& si : next_summary.all_stations)
+            if (!si.second.ident.is_missing())
+                all_idents.insert(si.second.ident);
 
         // No station is currently selected, so clear the list
         _selected_stations.clear();
