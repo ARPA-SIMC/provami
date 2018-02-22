@@ -6,7 +6,7 @@ License: GPL
 Group: Applications/Meteo
 Source0: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildRequires: cmake, libdballe-devel, qt5-qtbase-devel, qt5-qtwebkit-devel
+BuildRequires: cmake, libdballe-devel >= 7.28, qt5-qtbase-devel, qt5-qtwebkit-devel
 Requires: python-dballe, dballe, numpy, rpy
 Obsoletes: provami-qt
 
