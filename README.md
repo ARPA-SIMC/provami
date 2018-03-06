@@ -1,4 +1,4 @@
-PROVAMI (qt version)
+PROVAMI
 ===============================================================
 
 Introduction
@@ -17,19 +17,6 @@ Contact and copyright information
 
 The author of DB-ALLe is Enrico Zini <enrico@enricozini.com>
 
-Provami is Copyright (C) 2015 ARPA-SIM <urpsim@smr.arpa.emr.it>
+Provami is Copyright (C) 2015-2018 ARPAE-SIMC <urpsim@arpae.it>
 
 Provami is licensed under the terms of the GNU General Public License version
-
-
-Notes
------
-
-missing make dist, workaround #1
-wget https://github.com/ARPA-SIMC/provami/archive/master.zip ; unzip master.zip ; mv provami-master provami-qt-1.0.0 ; tar czvf provami-qt-1.0.0.tar.gz provami-qt-1.0.0
-
-workaround #2 (still not tried)
-http://agateau.com/2009/cmake-and-make-dist-the-simple-version/
-
-cmake + spec fedora:
-https://fedoraproject.org/wiki/Packaging:Cmake
