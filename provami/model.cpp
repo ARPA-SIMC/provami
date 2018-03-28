@@ -1,5 +1,4 @@
 #include "provami/model.h"
-#include "provami/refreshthread.h"
 #include <memory>
 #include <dballe/db/db.h>
 #include <dballe/core/values.h>
@@ -21,8 +20,6 @@ Model::Model()
 
 Model::~Model()
 {
-    delete pending_query_data;
-    delete pending_query_summary;
     delete global_summary;
     delete active_summary;
 }
@@ -153,6 +150,7 @@ void Model::set_db(std::shared_ptr<DB> db, const std::string& url)
 
 void Model::test_wait_for_refresh()
 {
+/*
     if (pending_query_data)
         pending_query_data->future_watcher.waitForFinished();
     if (pending_query_summary)
@@ -160,6 +158,7 @@ void Model::test_wait_for_refresh()
 
     QEventLoop loop;
     loop.processEvents();
+ */
 }
 
 std::shared_ptr<dballe::db::Transaction> Model::get_refresh_transaction()
@@ -179,23 +178,16 @@ void Model::refresh(bool accurate)
 
 void Model::refresh_data()
 {
-    // TODO: queue it instead of ignoring it?
-    if (pending_query_data) return;
     emit progress("data", "Loading data...");
     auto tr = get_refresh_transaction();
     auto query = active_filter->clone();
     core::Query::downcast(*query).limit = limit;
-    pending_query_data = new PendingDataRequest(tr, move(query), this, SLOT(on_have_new_data()));
+    on_have_new_data(tr->query_data(*query));
 }
 
-void Model::on_have_new_data()
+void Model::on_have_new_data(std::unique_ptr<db::CursorData> cur)
 {
     emit progress("data", "Processing data...");
-
-    // Get the result out of the pending action
-    unique_ptr<db::CursorData> cur(pending_query_data->future_watcher.future().result());
-    delete pending_query_data;
-    pending_query_data = nullptr;
 
     emit begin_data_changed();
     // Query data for the currently active filter
@@ -212,9 +204,6 @@ void Model::on_have_new_data()
 void Model::refresh_summary(bool accurate)
 {
     using namespace dballe::db::summary;
-
-    // TODO: queue it instead of ignoring it?
-    if (pending_query_summary) return;
 
     emit progress("summary", "Loading summary...");
 
@@ -245,8 +234,7 @@ void Model::refresh_summary(bool accurate)
         // The best summary that we have do not support what we need: hit the database
         emit progress("summary", "Loading summary from db...");
         auto tr = get_refresh_transaction();
-        pending_query_summary = new PendingSummaryRequest(tr, move(query),
-                this, SLOT(on_have_new_summary()));
+        on_have_new_summary(tr->query_summary(*query), *query);
     }
     else
     {
@@ -268,7 +256,7 @@ void Model::refresh_summary(bool accurate)
     }
 }
 
-void Model::on_have_new_summary()
+void Model::on_have_new_summary(std::unique_ptr<db::CursorSummary> cur, const dballe::Query& query)
 {
     emit progress("summary", "Processing summary...");
     qDebug() << "Refresh summary results arrived";
@@ -282,16 +270,12 @@ void Model::on_have_new_summary()
     }
 
     // Get the result out of the pending action
-    unique_ptr<db::CursorSummary> cur(pending_query_summary->future_watcher.future().result());
     if (active_summary)
     {
         delete active_summary;
         active_summary = nullptr;
     }
-    active_summary = new db::Summary(*(pending_query_summary->query));
-
-    delete pending_query_summary;
-    pending_query_summary = nullptr;
+    active_summary = new db::Summary(query);
 
     if (do_global_summary)
         cache_stations.clear();
