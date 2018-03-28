@@ -1,7 +1,7 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami
 Version: 1.4
-Release: 1
+Release: 2
 License: GPL
 Group: Applications/Meteo
 Source0: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
@@ -50,7 +50,7 @@ ctest -V %{?_smp_mflags}
 %postun
 
 %changelog
-* Wed Mar 28 2018 Daniele Branchini <dbranchini@arpae.it> - 1.4-1
+* Wed Mar 28 2018 Daniele Branchini <dbranchini@arpae.it> - 1.4-2
 - fixed #28
 
 * Wed Feb 14 2018 Daniele Branchini <dbranchini@arpae.it> - 1.3-1
