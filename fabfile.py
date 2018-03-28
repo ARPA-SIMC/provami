@@ -21,14 +21,14 @@ def test_ventiquattro():
     push_url = remote.config_reader.get("url")
     remote_dir = re.sub(r"^ssh://[^/]+", "", push_url)
 
-    local(cmd("git", "push", "ventiquattro", "HEAD"))
+    local(cmd("git", "push", "--force", "ventiquattro", "HEAD"))
     with cd(remote_dir):
         run(cmd("git", "checkout", "-B", "test_ventiquattro", repo.head.commit.hexsha))
         run(cmd("git", "reset", "--hard"))
         run(cmd("git", "clean", "-fx"))
         run(cmd("cmake", "."))
         run(cmd("make"))
-        run(cmd("./run-check"))
+        run(cmd("./test-provami"))
 
 def test():
     test_ventiquattro()
