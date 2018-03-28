@@ -23,7 +23,6 @@ Model::~Model()
 {
     delete pending_query_data;
     delete pending_query_summary;
-    delete db;
     delete global_summary;
     delete active_summary;
 }
@@ -79,7 +78,7 @@ std::vector<Value> &Model::values()
 void Model::update(Value &val, const wreport::Var &new_val)
 {
     DataValues vals;
-    vals.info.ana_id = val.ana_id;
+    vals.info.id = val.ana_id;
     vals.info.report = val.rep_memo;
     vals.info.level = val.level;
     vals.info.trange = val.trange;
@@ -92,7 +91,7 @@ void Model::update(Value &val, const wreport::Var &new_val)
 void Model::update(StationValue &val, const wreport::Var &new_val)
 {
     StationValues vals;
-    vals.info.ana_id = val.ana_id;
+    vals.info.id = val.ana_id;
     vals.info.report = val.rep_memo;
     vals.values.set(new_val);
     db->insert_station_data(vals, true, false);
@@ -135,30 +134,19 @@ void Model::set_initial_filter(const Query& rec)
 void Model::dballe_connect(const std::string &dballe_url)
 {
     if (db)
-    {
-        delete db;
-        db = 0;
-    }
+        db.reset();
 
     m_dballe_url = dballe_url;
 
-    auto new_db = DB::connect_from_url(dballe_url.c_str());
-    db = new_db.release();
+    db = DB::connect_from_url(dballe_url.c_str());
 
     //refresh();
 }
 
-void Model::set_db(std::unique_ptr<DB> &&_db, const std::string& url)
+void Model::set_db(std::shared_ptr<DB> db, const std::string& url)
 {
-    if (db)
-    {
-        delete db;
-        db = 0;
-    }
-
     m_dballe_url = url;
-
-    db = _db.release();
+    this->db = db;
 
     //refresh();
 }
@@ -174,6 +162,15 @@ void Model::test_wait_for_refresh()
     loop.processEvents();
 }
 
+std::shared_ptr<dballe::db::Transaction> Model::get_refresh_transaction()
+{
+    if (!refresh_transaction.expired())
+        return refresh_transaction.lock();
+    auto res = db->transaction(); // TODO: make it read only
+    refresh_transaction = res;
+    return res;
+}
+
 void Model::refresh(bool accurate)
 {
     refresh_data();
@@ -185,9 +182,10 @@ void Model::refresh_data()
     // TODO: queue it instead of ignoring it?
     if (pending_query_data) return;
     emit progress("data", "Loading data...");
+    auto tr = get_refresh_transaction();
     auto query = active_filter->clone();
     core::Query::downcast(*query).limit = limit;
-    pending_query_data = new PendingDataRequest(db, move(query), this, SLOT(on_have_new_data()));
+    pending_query_data = new PendingDataRequest(tr, move(query), this, SLOT(on_have_new_data()));
 }
 
 void Model::on_have_new_data()
@@ -246,7 +244,8 @@ void Model::refresh_summary(bool accurate)
     {
         // The best summary that we have do not support what we need: hit the database
         emit progress("summary", "Loading summary from db...");
-        pending_query_summary = new PendingSummaryRequest(db, move(query),
+        auto tr = get_refresh_transaction();
+        pending_query_summary = new PendingSummaryRequest(tr, move(query),
                 this, SLOT(on_have_new_summary()));
     }
     else

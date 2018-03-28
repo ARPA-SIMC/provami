@@ -57,10 +57,15 @@ signals:
     void progress(QString task, QString progress=QString());
 
 public:
-    dballe::DB* db;
+    std::shared_ptr<dballe::DB> db;
     //RefreshThread refresh_thread;
 
 protected:
+    /// Current transaction for refreshing values (if any)
+    std::weak_ptr<dballe::db::Transaction> refresh_transaction;
+
+    std::shared_ptr<dballe::db::Transaction> get_refresh_transaction();
+
     /// Monitor a pending data refresh action
     PendingDataRequest* pending_query_data = nullptr;
 
@@ -169,7 +174,7 @@ public:
     void dballe_connect(const std::string& dballe_url);
 
     /// Take over an existing db
-    void set_db(std::unique_ptr<dballe::DB>&& db, const std::string &url);
+    void set_db(std::shared_ptr<dballe::DB> db, const std::string &url);
 
     /// Synchronously wait for the refresh to finish. Uses only for tests.
     void test_wait_for_refresh();

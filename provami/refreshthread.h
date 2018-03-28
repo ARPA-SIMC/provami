@@ -10,9 +10,9 @@
 #include <QFutureWatcher>
 
 namespace dballe {
-struct DB;
 struct Query;
 namespace db {
+struct Transaction;
 struct CursorSummary;
 struct CursorData;
 }
@@ -38,7 +38,7 @@ class PendingDataRequest : public PendingRequest<dballe::db::CursorData*>
 public:
     dballe::Query* query = nullptr;
 
-    PendingDataRequest(dballe::DB* db, std::unique_ptr<dballe::Query>&& query, const QObject* receiver, const char* method);
+    PendingDataRequest(std::shared_ptr<dballe::db::Transaction> tr, std::unique_ptr<dballe::Query>&& query, const QObject* receiver, const char* method);
     ~PendingDataRequest();
 };
 
@@ -47,7 +47,7 @@ class PendingSummaryRequest : public PendingRequest<dballe::db::CursorSummary*>
 public:
     dballe::Query* query = nullptr;
 
-    PendingSummaryRequest(dballe::DB* db, std::unique_ptr<dballe::Query>&& query, const QObject* receiver, const char* method);
+    PendingSummaryRequest(std::shared_ptr<dballe::db::Transaction> tr, std::unique_ptr<dballe::Query>&& query, const QObject* receiver, const char* method);
     ~PendingSummaryRequest();
 };
 
