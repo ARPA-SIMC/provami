@@ -3,7 +3,6 @@
 #include <dballe/types.h>
 #include <dballe/core/values.h>
 #include <dballe/core/record.h>
-#include <dballe/core/ostream.h>
 #include <QDebug>
 
 using namespace std;
