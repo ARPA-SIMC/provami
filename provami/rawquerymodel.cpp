@@ -157,7 +157,7 @@ static std::vector<rawquery::Item> record_to_items(const dballe::Query& q)
 void RawQueryModel::next_filter_changed()
 {
     // Rebuild filter
-    std::vector<rawquery::Item> new_items = record_to_items(*model.next_filter);
+    std::vector<rawquery::Item> new_items = record_to_items(model.explorer.get_filter());
 
     // Preserve the last row if partially edited, or add a new one
     if (!values.empty() && (values.back().key.empty() || values.back().val.empty()))
@@ -178,7 +178,7 @@ unique_ptr<Record> RawQueryModel::build_record() const
         if (item.key.empty() || item.val.empty()) continue;
         try {
             new_rec->sets(item.key.c_str(), item.val);
-        } catch (std::exception) {
+        } catch (std::exception&) {
             continue;
         }
     }

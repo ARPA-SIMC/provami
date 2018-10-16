@@ -9,6 +9,7 @@
 #include <dballe/query.h>
 #include <dballe/db/db.h>
 #include <dballe/db/summary.h>
+#include <dballe/db/explorer.h>
 #include <string>
 #include <map>
 #include <vector>
@@ -61,17 +62,8 @@ protected:
 
     std::shared_ptr<dballe::db::Transaction> get_refresh_transaction();
 
-    /// All known stations, indexed by their ana_id
-    std::map<int, Station> cache_stations;
-
     /// Currently selected stations
     std::set<int> _selected_stations;
-
-    /// Summary of the whole database
-    dballe::db::Summary* global_summary = nullptr;
-
-    /// Summary of active_filter
-    dballe::db::Summary* active_summary = nullptr;
 
     /// Sample values for the currently active filter
     std::vector<Value> cache_values;
@@ -88,24 +80,23 @@ protected:
     void refresh_summary(bool accurate=false);
 
     /// Process the summary value regenerating the filtering elements lists
-    void process_summary();
-
-    /// Filter the toplevel summary using a matcher, sending the results to out
-    void filter_top_summary(const Matcher& matcher, dballe::db::Summary& out) const;
+    //void process_summary();
 
     /// Mark as hidden all the stations not present in summary
-    void mark_hidden_stations(const dballe::db::Summary& summary);
+    //void mark_hidden_stations(const dballe::db::Summary& summary);
 
     void on_have_new_summary(std::unique_ptr<dballe::db::CursorSummary>, const dballe::Query& query);
     void on_have_new_data(std::unique_ptr<dballe::db::CursorData>);
 
 public:
+    // Explorer interface to the database
+    dballe::db::Explorer explorer;
     // Current highlight
     Highlight highlight;
     // Filter corresponding to the data currently shown
-    std::unique_ptr<dballe::Query> active_filter;
+    //std::unique_ptr<dballe::Query> active_filter;
     // Filter that is being edited
-    std::unique_ptr<dballe::Query> next_filter;
+    //std::unique_ptr<dballe::Query> next_filter;
 
     FilterReportModel reports;
     FilterLevelModel levels;
@@ -127,9 +118,9 @@ public:
     const dballe::Datetime& summary_datetime_max() const;
     unsigned summary_count() const;
 
-    const std::map<int, Station>& stations() const;
+    //const std::map<int, Station>& stations() const;
     const std::set<int>& selected_stations() const;
-    const Station* station(int id) const;
+    // const Station* station(int id) const;
     const std::vector<Value>& values() const;
     std::vector<Value>& values();
 

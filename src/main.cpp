@@ -65,7 +65,6 @@ See https://github.com/ARPA-SIMC/dballe/blob/master/doc/fapi_connect.md)");
 
     auto initial_filter = Query::create();
     initial_filter->set_from_record(*initial_query);
-    model.set_initial_filter(*initial_filter);
 
     // Connect to the db
     if (non_query_args.empty())
@@ -78,6 +77,8 @@ See https://github.com/ARPA-SIMC/dballe/blob/master/doc/fapi_connect.md)");
     } else {
         model.dballe_connect(non_query_args[0]);
     }
+
+    model.set_initial_filter(*initial_filter);
 
     try {
         // Show the main window before running a refresh

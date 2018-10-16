@@ -75,7 +75,7 @@ class Tests : public TestCase
             wassert(actual(model.summary_datetime_min()) == Datetime(2015, 1, 1));
             wassert(actual(model.summary_datetime_max()) == Datetime(2015, 2, 1));
             wassert(actual(model.summary_count()) == 16);
-            wassert(actual(model.stations().size()) == 8);
+            wassert(actual(model.explorer.global_summary().stations().size()) == 8);
             wassert(actual(model.values().size()) == 16);
 
             qDebug() << "filter";
@@ -88,7 +88,7 @@ class Tests : public TestCase
             wassert(actual(model.summary_datetime_max()) == Datetime(2015, 2, 1));
             wassert(actual(model.summary_count()) == 8);
             wassert(actual(model.values().size()) == 8);
-            wassert(actual(model.stations().size()) == 8);
+            wassert(actual(model.explorer.active_summary().stations().size()) == 8);
         });
     }
 } tests("model");

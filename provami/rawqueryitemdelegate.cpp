@@ -120,7 +120,6 @@ QWidget *provami::RawQueryItemDelegate::createEditor(QWidget *parent, const QSty
 
     // Create the combobox and populate it
     QComboBox* cb = new QComboBox(parent);
-    int row = index.row();
     cb->addItem("ana_id");
     cb->addItem("priority");
     cb->addItem("priomin");

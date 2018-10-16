@@ -14,28 +14,10 @@ class CursorSummary;
 class CursorValue;
 class CursorStationData;
 class CursorData;
-namespace summary {
-class Entry;
-}
 }
 }
 
 namespace provami {
-
-struct Station
-{
-    int id;
-    double lat;
-    double lon;
-    std::string ident;
-    bool hidden = false;
-
-protected:
-    Station(const dballe::db::CursorStation& cur);
-    Station(const dballe::db::CursorSummary& cur);
-
-    friend class Model;
-};
 
 struct BaseValue
 {
@@ -80,25 +62,6 @@ protected:
     Value(const dballe::db::CursorData& cur);
 
     friend class Model;
-};
-
-struct Matcher
-{
-    bool has_flt_station = false;
-    std::set<int> wanted_stations;
-    bool has_flt_rep_memo = false;
-    std::string wanted_rep_memo;
-    bool has_flt_level = false;
-    dballe::Level wanted_level;
-    bool has_flt_trange = false;
-    dballe::Trange wanted_trange;
-    bool has_flt_varcode = false;
-    wreport::Varcode wanted_varcode;
-    dballe::DatetimeRange wanted_dtrange;
-
-    Matcher(const dballe::Query& query, const std::map<int, Station>& all_stations);
-
-    bool match(const dballe::db::summary::Entry& entry) const;
 };
 
 }

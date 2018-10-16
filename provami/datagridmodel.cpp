@@ -94,6 +94,7 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
         {
         case CT_STATION:
         {
+#if 0
             const Station* sta = model.station(val.ana_id);
             if (sta->ident.empty())
             {
@@ -102,6 +103,8 @@ QVariant DataGridModel::data(const QModelIndex &index, int role) const
                 return QString("Mobile station %1 at lat %2 lon %3")
                         .arg(sta->ident.c_str()).arg(sta->lat).arg(sta->lon);
             }
+#endif
+            return QString("Station information not implemented at the moment");
         }
         case CT_NETWORK: return QString("Station network: %1").arg(val.rep_memo.c_str());
         case CT_LEVEL: return QVariant(val.level.describe().c_str());

@@ -22,13 +22,13 @@ FilterModelBase<ITEM>::FilterModelBase(Model& model, QObject *parent)
 template<typename ITEM>
 ITEM FilterModelBase<ITEM>::from_model() const
 {
-    return from_record(*model.next_filter);
+    return from_record(model.explorer.get_filter());
 }
 
 template<typename ITEM>
 ITEM FilterModelBase<ITEM>::active_from_model() const
 {
-    return from_record(*model.active_filter);
+    return from_record(model.explorer.get_filter());
 }
 
 template<typename ITEM>
@@ -206,7 +206,7 @@ QVariant FilterVarcodeModel::item_to_table_cell(const wreport::Varcode& val) con
         wreport::Varinfo info = varinfo(val);
         desc += ": ";
         desc += info->desc;
-    } catch (wreport::error_notfound) {
+    } catch (wreport::error_notfound&) {
     }
     return QVariant(desc.c_str());
 }

@@ -20,31 +20,31 @@ void RecordLineEdit::set_record(Model& model, const std::string& key)
     this->key = key;
     if (key == "ana_id")
         query_to_string = [](const Model& m) {
-            const core::Query& q = core::Query::downcast(*m.next_filter);
+            const core::Query& q = core::Query::downcast(m.explorer.get_filter());
             if (q.ana_id == MISSING_INT) return QString();
             return QString::number(q.ana_id);
         };
     else if (key == "latmin")
         query_to_string = [](const Model& m) {
-            LatRange lr = m.next_filter->get_latrange();
+            LatRange lr = m.explorer.get_filter().get_latrange();
             if (lr.imin == LatRange::IMIN) return QString();
             return QString::number(lr.dmin(), 'f', 5);
         };
     else if (key == "latmax")
         query_to_string = [](const Model& m) {
-            LatRange lr = m.next_filter->get_latrange();
+            LatRange lr = m.explorer.get_filter().get_latrange();
             if (lr.imax == LatRange::IMAX) return QString();
             return QString::number(lr.dmax(), 'f', 5);
         };
     else if (key == "lonmin")
         query_to_string = [](const Model& m) {
-            LonRange lr = m.next_filter->get_lonrange();
+            LonRange lr = m.explorer.get_filter().get_lonrange();
             if (lr.imin == MISSING_INT) return QString();
             return QString::number(lr.dmin(), 'f', 5);
         };
     else if (key == "lonmax")
         query_to_string = [](const Model& m) {
-            LonRange lr = m.next_filter->get_lonrange();
+            LonRange lr = m.explorer.get_filter().get_lonrange();
             if (lr.imax == MISSING_INT) return QString();
             return QString::number(lr.dmax(), 'f', 5);
         };

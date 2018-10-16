@@ -14,6 +14,8 @@ struct SelectStationIDAction : public ModelAction
     SelectStationIDAction(Model& model, const Value& val, QObject* parent=0)
         : ModelAction(model, parent), val(val)
     {
+        setIconText(QString("Select station %1").arg(val.ana_id));
+#if 0
         const Station* sta = model.station(val.ana_id);
         if (!sta)
             setIconText(QString("Select station %1").arg(val.ana_id));
@@ -23,6 +25,7 @@ struct SelectStationIDAction : public ModelAction
         else
             setIconText(QString("Select mobile station %1 at lat %2 lon %3")
                     .arg(sta->ident.c_str()).arg(sta->lat).arg(sta->lon));
+#endif
     }
 
     void on_trigger()
@@ -31,6 +34,7 @@ struct SelectStationIDAction : public ModelAction
     }
 };
 
+#if 0
 struct SelectIdentAction : public ModelAction
 {
     const Value& val;
@@ -49,6 +53,7 @@ struct SelectIdentAction : public ModelAction
         model.idents.select(sta->ident);
     }
 };
+#endif
 
 struct SelectNetworkAction : public ModelAction
 {
@@ -149,12 +154,14 @@ static void build_menu(QMenu& menu, Model& model, DataGridModel::ColumnType ctyp
     {
     case DataGridModel::CT_STATION:
     {
-        const Station* sta = model.station(val.ana_id);
         menu.addAction(new SelectStationIDAction(model, val, &menu));
+#if 0
+        const Station* sta = model.station(val.ana_id);
         if (!sta->ident.empty())
         {
             menu.addAction(new SelectIdentAction(model, val, &menu));
         }
+#endif
         break;
     }
     case DataGridModel::CT_NETWORK:
