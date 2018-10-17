@@ -53,10 +53,12 @@ signals:
     void end_data_changed();
     void progress(QString task, QString progress=QString());
 
-public:
+protected:
     std::shared_ptr<dballe::DB> db;
 
-protected:
+    /// Current transaction for refreshing values (if any)
+    std::weak_ptr<dballe::db::Transaction> refresh_transaction;
+
     /// Currently selected stations
     /// Sample values for the currently active filter
     std::vector<Value> cache_values;
@@ -112,6 +114,8 @@ public:
     std::vector<Value>& values();
 
     const std::string& dballe_url() const { return m_dballe_url; }
+
+    std::shared_ptr<dballe::db::Transaction> get_refresh_transaction();
 
     /**
      * Update \a val in the database to have the value \a new_val

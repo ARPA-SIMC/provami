@@ -140,9 +140,18 @@ void Model::set_db(std::shared_ptr<DB> db, const std::string& url)
     //refresh();
 }
 
+std::shared_ptr<dballe::db::Transaction> Model::get_refresh_transaction()
+{
+    if (!refresh_transaction.expired())
+        return refresh_transaction.lock();
+    auto res = db->transaction(true);
+    refresh_transaction = res;
+    return res;
+}
+
 void Model::refresh(bool accurate)
 {
-    auto tr = db->transaction(true);
+    auto tr = get_refresh_transaction();
     refresh_data(*tr);
     refresh_summary(*tr, accurate);
     tr->rollback();
