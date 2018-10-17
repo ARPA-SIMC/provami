@@ -57,14 +57,7 @@ public:
     std::shared_ptr<dballe::DB> db;
 
 protected:
-    /// Current transaction for refreshing values (if any)
-    std::weak_ptr<dballe::db::Transaction> refresh_transaction;
-
-    std::shared_ptr<dballe::db::Transaction> get_refresh_transaction();
-
     /// Currently selected stations
-    std::set<int> _selected_stations;
-
     /// Sample values for the currently active filter
     std::vector<Value> cache_values;
 
@@ -74,29 +67,24 @@ protected:
     void refresh(bool accurate=false);
 
     /// Refresh the data selected by active_filter
-    void refresh_data();
+    void refresh_data(dballe::db::Transaction& tr);
 
     /// Refresh the summary information selected by active_filter
-    void refresh_summary(bool accurate=false);
+    void refresh_summary(dballe::db::Transaction& tr, bool accurate=false);
 
     /// Process the summary value regenerating the filtering elements lists
     //void process_summary();
 
-    /// Mark as hidden all the stations not present in summary
-    //void mark_hidden_stations(const dballe::db::Summary& summary);
-
     void on_have_new_summary(std::unique_ptr<dballe::db::CursorSummary>, const dballe::Query& query);
-    void on_have_new_data(std::unique_ptr<dballe::db::CursorData>);
+
+    void show_filter(const dballe::Query& filter);
+    void explorer_to_fields();
 
 public:
     // Explorer interface to the database
     dballe::db::Explorer explorer;
     // Current highlight
     Highlight highlight;
-    // Filter corresponding to the data currently shown
-    //std::unique_ptr<dballe::Query> active_filter;
-    // Filter that is being edited
-    //std::unique_ptr<dballe::Query> next_filter;
 
     FilterReportModel reports;
     FilterLevelModel levels;
@@ -119,7 +107,6 @@ public:
     unsigned summary_count() const;
 
     //const std::map<int, Station>& stations() const;
-    const std::set<int>& selected_stations() const;
     // const Station* station(int id) const;
     const std::vector<Value>& values() const;
     std::vector<Value>& values();
@@ -158,9 +145,6 @@ public:
 
     /// Take over an existing db
     void set_db(std::shared_ptr<dballe::DB> db, const std::string &url);
-
-    /// Synchronously wait for the refresh to finish. Uses only for tests.
-    void test_wait_for_refresh();
 };
 
 class ModelAction : public QAction

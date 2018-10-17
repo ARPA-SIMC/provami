@@ -45,11 +45,6 @@ const std::map<int, Station> &Model::stations() const
 }
 #endif
 
-const std::set<int> &Model::selected_stations() const
-{
-    return _selected_stations;
-}
-
 #if 0
 const Station *Model::station(int id) const
 {
@@ -122,7 +117,7 @@ void Model::remove(const Value &val)
 
 void Model::set_initial_filter(const Query& rec)
 {
-    explorer.set_filter(rec);
+    show_filter(rec);
 }
 
 void Model::dballe_connect(const std::string &dballe_url)
@@ -145,68 +140,42 @@ void Model::set_db(std::shared_ptr<DB> db, const std::string& url)
     //refresh();
 }
 
-void Model::test_wait_for_refresh()
-{
-/*
-    if (pending_query_data)
-        pending_query_data->future_watcher.waitForFinished();
-    if (pending_query_summary)
-        pending_query_summary->future_watcher.waitForFinished();
-
-    QEventLoop loop;
-    loop.processEvents();
- */
-}
-
-std::shared_ptr<dballe::db::Transaction> Model::get_refresh_transaction()
-{
-    if (!refresh_transaction.expired())
-        return refresh_transaction.lock();
-    auto res = db->transaction(true);
-    refresh_transaction = res;
-    return res;
-}
-
 void Model::refresh(bool accurate)
 {
-    refresh_data();
-    refresh_summary(accurate);
+    auto tr = db->transaction(true);
+    refresh_data(*tr);
+    refresh_summary(*tr, accurate);
+    tr->rollback();
 }
 
-void Model::refresh_data()
+void Model::refresh_data(dballe::db::Transaction& tr)
 {
     emit progress("data", "Loading data...");
-    auto tr = get_refresh_transaction();
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.limit = limit;
-    on_have_new_data(tr->query_data(query));
-}
+    auto cur = tr.query_data(query);
 
-void Model::on_have_new_data(std::unique_ptr<db::CursorData> cur)
-{
     emit progress("data", "Processing data...");
 
     emit begin_data_changed();
     // Query data for the currently active filter
     cache_values.clear();
     while (cur->next())
-    {
         cache_values.push_back(Value(*cur));
-    }
     emit end_data_changed();
 
     emit progress("data");
 }
 
-void Model::refresh_summary(bool accurate)
+void Model::refresh_summary(dballe::db::Transaction& tr, bool accurate)
 {
     using namespace dballe::db::summary;
 
     emit progress("summary", "Loading summary...");
 
-    auto tr = get_refresh_transaction();
-    explorer.revalidate(*tr);
+    explorer.revalidate(tr);
     highlight.reset();
+    explorer_to_fields();
 
     emit progress("summary");
     emit active_filter_changed();
@@ -217,33 +186,49 @@ void Model::activate_next_filter(bool accurate)
     refresh(accurate);
 }
 
-#if 0
-void Model::mark_hidden_stations(const db::Summary &summary)
+void Model::show_filter(const dballe::Query& filter)
 {
-    for (auto& s: cache_stations)
-        s.second.hidden = summary.all_stations.find(s.first) == summary.all_stations.end();
+    explorer.set_filter(filter);
+    explorer_to_fields();
 }
-#endif
+
+void Model::explorer_to_fields()
+{
+    const auto& s = explorer.active_summary();
+    const auto& stations = s.stations();
+    std::set<std::string> new_idents;
+    for (const auto& se: stations)
+    {
+        if (se.station.ident)
+            new_idents.insert(se.station.ident);
+    }
+    idents.set_items(new_idents);
+    reports.set_items(s.reports());
+    levels.set_items(s.levels());
+    tranges.set_items(s.tranges());
+    varcodes.set_items(s.varcodes());
+    emit next_filter_changed();
+}
 
 void Model::select_report(const string &val)
 {
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.rep_memo = val;
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::select_level(const Level &val)
 {
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.set_level(val);
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::select_trange(const Trange &val)
 {
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.set_trange(val);
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::select_varcode(wreport::Varcode val)
@@ -251,7 +236,7 @@ void Model::select_varcode(wreport::Varcode val)
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.varcodes.clear();
     query.varcodes.insert(val);
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::select_datemin(const dballe::Datetime& val)
@@ -261,7 +246,7 @@ void Model::select_datemin(const dballe::Datetime& val)
     if (dtr.min == val) return;
     dtr.min = val;
     query.set_datetimerange(dtr);
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::select_datemax(const dballe::Datetime& val)
@@ -271,7 +256,7 @@ void Model::select_datemax(const dballe::Datetime& val)
     if (dtr.max == val) return;
     dtr.max = val;
     query.set_datetimerange(dtr);
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::select_station_id(int id)
@@ -281,7 +266,7 @@ void Model::select_station_id(int id)
     query.set_lonrange(LonRange());
     query.ident.clear();
     query.ana_id = id;
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::select_station_bounds(double latmin, double latmax, double lonmin, double lonmax)
@@ -295,7 +280,7 @@ void Model::select_station_bounds(double latmin, double latmax, double lonmin, d
     query.set_latrange(LatRange(latmin, latmax));
     query.set_lonrange(LonRange(lonmin, lonmax));
     query.ana_id = MISSING_INT;
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::select_ident(const string &val)
@@ -303,35 +288,35 @@ void Model::select_ident(const string &val)
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.ident = val;
     query.ana_id = MISSING_INT;
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::unselect_report()
 {
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.rep_memo.clear();
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::unselect_level()
 {
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.set_level(Level());
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::unselect_trange()
 {
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.set_trange(Trange());
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::unselect_varcode()
 {
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.varcodes.clear();
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::unselect_datemin()
@@ -341,7 +326,7 @@ void Model::unselect_datemin()
     if (dtr.min.is_missing()) return;
     dtr.min = Datetime();
     query.set_datetimerange(dtr);
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::unselect_datemax()
@@ -351,12 +336,12 @@ void Model::unselect_datemax()
     if (dtr.max.is_missing()) return;
     dtr.max = Datetime();
     query.set_datetimerange(dtr);
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::set_filter(const Query& new_filter)
 {
-    explorer.set_filter(new_filter);
+    show_filter(new_filter);
 }
 
 void Model::unselect_station()
@@ -366,14 +351,14 @@ void Model::unselect_station()
     query.set_lonrange(LonRange());
     query.ident.clear();
     query.ana_id = MISSING_INT;
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 void Model::unselect_ident()
 {
     core::Query query(core::Query::downcast(explorer.get_filter()));
     query.ident.clear();
-    explorer.set_filter(query);
+    show_filter(query);
 }
 
 

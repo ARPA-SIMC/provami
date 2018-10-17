@@ -68,7 +68,7 @@ class Tests : public TestCase
 
             qDebug() << "have db";
 
-            model.test_wait_for_refresh();
+            // model.test_wait_for_refresh();
 
             qDebug() << "populated";
 
@@ -82,7 +82,7 @@ class Tests : public TestCase
 
             model.select_report("temp");
             model.activate_next_filter(true);
-            model.test_wait_for_refresh();
+            // model.test_wait_for_refresh();
 
             wassert(actual(model.summary_datetime_min()) == Datetime(2015, 1, 1));
             wassert(actual(model.summary_datetime_max()) == Datetime(2015, 2, 1));

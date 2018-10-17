@@ -41,6 +41,7 @@ MapView::MapView(QWidget *parent) :
     connect(&page->controller, SIGNAL(station_selected(int)), this, SLOT(station_selected(int)));
     connect(&page->controller, SIGNAL(area_selected(double,double,double,double)), this, SLOT(area_selected(double, double, double, double)));
     connect(&page->controller, SIGNAL(area_unselected()), this, SLOT(area_unselected()));
+    connect(page, SIGNAL(loadFinished(bool)), this, SLOT(load_finished(bool)));
 
     // Disable context menu (see #23)
     setContextMenuPolicy(Qt::NoContextMenu);
@@ -67,15 +68,19 @@ void MapView::set_model(Model &model)
     if (this->model)
         disconnect(this->model, 0, this, 0);
     this->model = &model;
-/*
-    MapScene::MapScene(Model& model, QObject *parent)
-        : QObject(parent),
-          model(model),
-          coastline_group(0)
-    {
-    */
+
     connect(&model, SIGNAL(next_filter_changed()), this, SLOT(update_stations()));
     connect(&model.highlight, SIGNAL(changed()), this, SLOT(update_highlight()));
+    if (_load_finished)
+        update_stations();
+}
+
+void MapView::load_finished(bool ok)
+{
+    _load_finished = true;
+    if (!this->model)
+        return;
+    update_stations();
 }
 
 QSize MapView::sizeHint() const

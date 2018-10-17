@@ -82,35 +82,6 @@ bool FilterModelBase<ITEM>::has_item(const ITEM &item)
 }
 
 template<typename ITEM>
-void FilterModelBase<ITEM>::set_items(std::set<ITEM> &new_items)
-{
-    emit layoutAboutToBeChanged();
-    QModelIndexList pil = persistentIndexList();
-    vector<ITEM> old = items;
-    items.clear();
-    std::copy(new_items.begin(), new_items.end(), back_inserter(items));
-    foreach (QModelIndex pi, pil)
-    {
-        int row = pi.row();
-
-        // If it was pointing to (none), it doesn't change
-        if (row == 0) continue;
-        --row;
-
-        ITEM oitem = old[row];
-        typename vector<ITEM>::const_iterator i = std::find(items.begin(), items.end(), oitem);
-        if (i == items.end())
-        {
-            changePersistentIndex(pi, QModelIndex());
-        } else {
-            int new_pos = i - items.begin() + 1;
-            changePersistentIndex(pi, index(new_pos));
-        }
-    }
-    emit layoutChanged();
-}
-
-template<typename ITEM>
 void FilterModelBase<ITEM>::set_next_filter(int index)
 {
     if (index <= 0)
