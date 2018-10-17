@@ -1,6 +1,5 @@
 #include "provami/filters.h"
 #include "provami/model.h"
-#include <dballe/core/var.h>
 
 using namespace dballe;
 using namespace wreport;

@@ -1,7 +1,6 @@
 #include "provami/model.h"
 #include <memory>
 #include <dballe/db/db.h>
-#include <dballe/core/values.h>
 #include <set>
 #include <algorithm>
 #include <QDebug>

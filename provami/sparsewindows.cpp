@@ -1,11 +1,8 @@
 #include "provami/sparsewindows.h"
-#include <dballe/core/query.h>
 #include <QVBoxLayout>
 #include <QSettings>
 #include <QDebug>
 
-using namespace dballe;
-using namespace wreport;
 using namespace std;
 
 namespace provami {

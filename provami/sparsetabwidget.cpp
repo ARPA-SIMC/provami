@@ -1,12 +1,9 @@
 #include "provami/sparsetabwidget.h"
 #include "provami/sparsewindows.h"
-#include <dballe/core/query.h>
 #include <QTabBar>
 #include <QMenu>
 #include <QDebug>
 
-using namespace dballe;
-using namespace wreport;
 using namespace std;
 
 namespace provami {
@@ -37,7 +34,7 @@ void SparseTabWidget::add_tab(QWidget *page)
     // Get the tab type
     unsigned tab = page->property("provami_tab_type").toUInt();
 
-    for (unsigned i = 0; i < count(); ++i)
+    for (int i = 0; i < count(); ++i)
     {
         if (widget(i)->property("provami_tab_type").toUInt() > tab)
         {
