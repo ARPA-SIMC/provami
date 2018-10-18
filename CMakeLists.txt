@@ -14,7 +14,7 @@ find_package(Qt5Concurrent REQUIRED)
 find_package(Qt5WebKitWidgets REQUIRED)
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(DBALLE REQUIRED libdballe>=7.0)
+pkg_check_modules(DBALLE REQUIRED libdballe>=8.0)
 
 include_directories(${CMAKE_SOURCE_DIR})
 
