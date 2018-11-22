@@ -2,20 +2,10 @@
 #define PROVAMI_TYPES_H
 
 #include <wreport/var.h>
+#include <dballe/fwd.h>
 #include <dballe/types.h>
 #include <set>
 #include <map>
-
-namespace dballe {
-struct Query;
-namespace db {
-class CursorStation;
-class CursorSummary;
-class CursorValue;
-class CursorStationData;
-class CursorData;
-}
-}
 
 namespace provami {
 
@@ -35,12 +25,13 @@ struct BaseValue
         return true;
     }
 protected:
-    BaseValue(const dballe::db::CursorValue& cur);
+    BaseValue(const dballe::CursorStationData& cur);
+    BaseValue(const dballe::CursorData& cur);
 };
 
 struct StationValue : public BaseValue
 {
-    StationValue(const dballe::db::CursorStationData& cur);
+    StationValue(const dballe::CursorStationData& cur);
 };
 
 struct Value : public BaseValue
@@ -59,7 +50,7 @@ struct Value : public BaseValue
     }
 
 protected:
-    Value(const dballe::db::CursorData& cur);
+    Value(const dballe::CursorData& cur);
 
     friend class Model;
 };

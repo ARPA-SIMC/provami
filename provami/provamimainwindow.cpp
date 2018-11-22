@@ -9,7 +9,6 @@
 #include <sstream>
 #include <dballe/types.h>
 #include <dballe/var.h>
-#include <dballe/record.h>
 #include <QFileDialog>
 #include <QProcess>
 #include <QMessageBox>

@@ -11,6 +11,9 @@ struct Item
 {
     std::string key;
     std::string val;
+
+    Item() = default;
+    Item(const std::string& key, const std::string& val) : key(key), val(val) {}
 };
 }
 
@@ -23,7 +26,7 @@ protected:
     std::vector<rawquery::Item> values;
 
     /// Build a query with the current contents
-    std::unique_ptr<dballe::Record> build_record() const;
+    std::unique_ptr<dballe::Query> build_query() const;
 
 public:
     enum ColumnType {

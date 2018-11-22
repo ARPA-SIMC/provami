@@ -117,7 +117,7 @@ FilterReportModel::FilterReportModel(Model &model, QObject *parent)
 }
 std::string FilterReportModel::from_record(const dballe::Query& query) const
 {
-    return core::Query::downcast(query).rep_memo;
+    return core::Query::downcast(query).report;
 }
 void FilterReportModel::filter_select(const string &val) { model.select_report(val); }
 void FilterReportModel::filter_unselect() { model.unselect_report(); }

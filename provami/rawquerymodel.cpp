@@ -35,11 +35,6 @@ int RawQueryModel::columnCount(const QModelIndex &parent) const
     return 2;
 }
 
-static wreport::Varinfo varinfo_by_name(const std::string& name)
-{
-    return Record::key_info(name);
-}
-
 QVariant RawQueryModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid()) return QVariant();
@@ -62,24 +57,7 @@ QVariant RawQueryModel::data(const QModelIndex &index, int role) const
     }
     case Qt::ToolTipRole:
     case Qt::StatusTipRole:
-    {
-        const rawquery::Item& item = values[index.row()];
-        switch (ctype)
-        {
-        case CT_KEY:
-        {
-            if (item.key.empty()) return QVariant();
-            try {
-                wreport::Varinfo info = varinfo_by_name(item.key);
-                return QString(info->desc);
-            } catch (std::exception& e) {
-                return QVariant(e.what());
-            }
-        }
-        default: return QVariant();
-        }
-        break;
-    }
+        return QVariant();
     }
     return QVariant();
 }
@@ -119,10 +97,10 @@ bool RawQueryModel::setData(const QModelIndex &index, const QVariant &value, int
     {
     case CT_KEY: values[index.row()].key = value.toString().toStdString(); break;
     case CT_VALUE: values[index.row()].val = value.toString().toStdString(); break;
+    default: break;
     }
 
-    auto query = Query::create();
-    query->set_from_record(*build_record());
+    auto query = build_query();
     model.set_filter(*query);
 
     return true;
@@ -136,22 +114,164 @@ const rawquery::Item* RawQueryModel::valueAt(const QModelIndex &index) const
     return &item;
 }
 
-static std::vector<rawquery::Item> record_to_items(const dballe::Record& rec)
+namespace {
+
+struct VarGen
 {
-    std::vector<rawquery::Item> new_items;
-    rec.foreach_key([&](const char* key, unique_ptr<Var>&& var) {
-        new_items.emplace_back(rawquery::Item{ key, var->format("") });
-    });
-    return new_items;
+    std::vector<rawquery::Item>& items;
+
+    VarGen(std::vector<rawquery::Item>& items) : items(items) {}
+
+    void gen(const char* key, int val)
+    {
+        items.emplace_back(key, std::to_string(val));
+    };
+
+    void gen(const char* key, const char* val)
+    {
+        items.emplace_back(key, val);
+    };
+
+    void gen(const char* key, const std::string& val)
+    {
+        items.emplace_back(key, val);
+    };
+
+    void gen(const char* key, const Ident& val)
+    {
+        items.emplace_back(key, val.get());
+    };
+
+    void gen_lat(const char* key, int val)
+    {
+        char buf[15];
+        snprintf(buf, 14, "%.5f", Coords::lat_from_int(val));
+        gen(key, buf);
+    }
+
+    void gen_lon(const char* key, int val)
+    {
+        char buf[15];
+        snprintf(buf, 14, "%.5f", Coords::lon_from_int(val));
+        gen(key, buf);
+    }
+};
+
 }
 
-static std::vector<rawquery::Item> record_to_items(const dballe::Query& q)
+static std::vector<rawquery::Item> record_to_items(const dballe::Query& query)
 {
-    std::vector<rawquery::Item> new_items;
-    q.foreach_key([&](const char* key, Var&& var) {
-        new_items.emplace_back(rawquery::Item{ key, var.format("") });
-    });
-    return new_items;
+    const auto& q = core::Query::downcast(query);
+    std::vector<rawquery::Item> res;
+    VarGen vargen(res);
+
+    if (q.ana_id != MISSING_INT) vargen.gen("ana_id", q.ana_id);
+    if (q.priomin != q.priomax)
+    {
+        if (q.priomin != MISSING_INT)
+            vargen.gen("priority", q.priomin);
+    } else {
+        if (q.priomin != MISSING_INT)
+            vargen.gen("priomin", q.priomin);
+        if (q.priomax != MISSING_INT)
+            vargen.gen("priomax", q.priomax);
+    }
+    if (!q.report.empty())
+        vargen.gen("rep_memo", q.report);
+    if (q.mobile != MISSING_INT)
+        vargen.gen("mobile", q.mobile);
+    if (!q.ident.is_missing())
+        vargen.gen("ident", q.ident);
+    if (!q.latrange.is_missing())
+    {
+        if (q.latrange.imin == q.latrange.imax)
+            vargen.gen_lat("lat", q.latrange.imin);
+        else
+        {
+            if (q.latrange.imin != LatRange::IMIN) vargen.gen_lat("latmin", q.latrange.imin);
+            if (q.latrange.imax != LatRange::IMAX) vargen.gen_lat("latmax", q.latrange.imax);
+        }
+    }
+    if (!q.lonrange.is_missing())
+    {
+        if (q.lonrange.imin == q.lonrange.imax)
+            vargen.gen_lon("lon", q.lonrange.imin);
+        else
+        {
+            vargen.gen_lon("lonmin", q.lonrange.imin);
+            vargen.gen_lon("lonmax", q.lonrange.imax);
+        }
+    }
+    if (q.dtrange.min == q.dtrange.max)
+    {
+        if (!q.dtrange.min.is_missing())
+        {
+            vargen.gen("year",  q.dtrange.min.year);
+            vargen.gen("month", q.dtrange.min.month);
+            vargen.gen("day",   q.dtrange.min.day);
+            vargen.gen("hour",  q.dtrange.min.hour);
+            vargen.gen("min",   q.dtrange.min.minute);
+            vargen.gen("sec",   q.dtrange.min.second);
+        }
+    } else {
+        if (!q.dtrange.min.is_missing())
+        {
+            vargen.gen("yearmin",  q.dtrange.min.year);
+            vargen.gen("monthmin", q.dtrange.min.month);
+            vargen.gen("daymin",   q.dtrange.min.day);
+            vargen.gen("hourmin",  q.dtrange.min.hour);
+            vargen.gen("minumin",  q.dtrange.min.minute);
+            vargen.gen("secmin",   q.dtrange.min.second);
+        }
+        if (!q.dtrange.max.is_missing())
+        {
+            vargen.gen("yearmax",  q.dtrange.max.year);
+            vargen.gen("monthmax", q.dtrange.max.month);
+            vargen.gen("daymax",   q.dtrange.max.day);
+            vargen.gen("hourmax",  q.dtrange.max.hour);
+            vargen.gen("minumax",  q.dtrange.max.minute);
+            vargen.gen("secmax",   q.dtrange.max.second);
+        }
+    }
+    if (q.level.ltype1 != MISSING_INT) vargen.gen("leveltype1", q.level.ltype1);
+    if (q.level.l1     != MISSING_INT) vargen.gen("l1",         q.level.l1);
+    if (q.level.ltype2 != MISSING_INT) vargen.gen("leveltype2", q.level.ltype2);
+    if (q.level.l2     != MISSING_INT) vargen.gen("l2",         q.level.l2);
+    if (q.trange.pind  != MISSING_INT) vargen.gen("pindicator", q.trange.pind);
+    if (q.trange.p1    != MISSING_INT) vargen.gen("p1",         q.trange.p1);
+    if (q.trange.p2    != MISSING_INT) vargen.gen("p2",         q.trange.p2);
+    switch (q.varcodes.size())
+    {
+         case 0:
+             break;
+         case 1:
+             vargen.gen("var", varcode_format(*q.varcodes.begin()));
+             break;
+         default: {
+             string codes;
+             for (const auto& code: q.varcodes)
+             {
+                 if (codes.empty())
+                     codes = varcode_format(code);
+                 else
+                 {
+                     codes += ",";
+                     codes += varcode_format(code);
+                 }
+             }
+             vargen.gen("varlist", codes);
+             break;
+         }
+    }
+    if (!q.query.empty()) vargen.gen("query", q.query);
+    if (!q.ana_filter.empty())  vargen.gen("ana_filter",  q.ana_filter);
+    if (!q.data_filter.empty()) vargen.gen("data_filter", q.data_filter);
+    if (!q.attr_filter.empty()) vargen.gen("attr_filter", q.attr_filter);
+    if (q.limit != MISSING_INT) vargen.gen("limit",       q.limit);
+    if (q.block != MISSING_INT)   vargen.gen("block",   q.block);
+    if (q.station != MISSING_INT) vargen.gen("station", q.station);
+
+    return res;
 }
 
 void RawQueryModel::next_filter_changed()
@@ -170,19 +290,20 @@ void RawQueryModel::next_filter_changed()
     endResetModel();
 }
 
-unique_ptr<Record> RawQueryModel::build_record() const
+unique_ptr<Query> RawQueryModel::build_query() const
 {
-    auto new_rec = Record::create();
+    core::Query* new_rec;
+    std::unique_ptr<core::Query> res(new_rec = new core::Query);
     for (const auto& item: values)
     {
         if (item.key.empty() || item.val.empty()) continue;
         try {
-            new_rec->sets(item.key.c_str(), item.val);
+            new_rec->set_from_string((item.key + "=" + item.val).c_str());
         } catch (std::exception&) {
             continue;
         }
     }
-    return move(new_rec);
+    return std::move(res);
 }
 
 static bool is_shell_safe(char c)
@@ -225,7 +346,7 @@ static std::string shell_escape(const std::string& s)
 QStringList RawQueryModel::as_shell_args(bool quoted) const
 {
     QStringList res;
-    std::vector<rawquery::Item> new_items = record_to_items(*build_record());
+    std::vector<rawquery::Item> new_items = record_to_items(*build_query());
     for (auto item: new_items)
     {
         std::string s(item.key.c_str());

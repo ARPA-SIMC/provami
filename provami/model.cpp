@@ -1,6 +1,7 @@
 #include "provami/model.h"
 #include <memory>
 #include <dballe/db/db.h>
+#include <dballe/core/data.h>
 #include <set>
 #include <algorithm>
 #include <QDebug>
@@ -66,32 +67,38 @@ std::vector<Value> &Model::values()
 
 void Model::update(Value &val, const wreport::Var &new_val)
 {
-    DataValues vals;
-    vals.info.id = val.ana_id;
-    vals.info.report = val.rep_memo;
-    vals.info.level = val.level;
-    vals.info.trange = val.trange;
-    vals.info.datetime = val.date;
-    vals.values.set(new_val);
-    db->insert_data(vals, true, false);
+    core::Data data;
+    data.station.id = val.ana_id;
+    data.station.report = val.rep_memo;
+    data.level = val.level;
+    data.trange = val.trange;
+    data.datetime = val.date;
+    data.values.set(new_val);
+    auto opts = DBInsertOptions::create();
+    opts->can_replace = true;
+    opts->can_add_stations = false;
+    db->insert_data(data, *opts);
     val.var = new_val;
 }
 
 void Model::update(StationValue &val, const wreport::Var &new_val)
 {
-    StationValues vals;
-    vals.info.id = val.ana_id;
-    vals.info.report = val.rep_memo;
-    vals.values.set(new_val);
-    db->insert_station_data(vals, true, false);
+    core::Data data;
+    data.station.id = val.ana_id;
+    data.station.report = val.rep_memo;
+    data.values.set(new_val);
+    auto opts = DBInsertOptions::create();
+    opts->can_replace = true;
+    opts->can_add_stations = false;
+    db->insert_station_data(data, *opts);
     val.var = new_val;
 }
 
 void Model::update(int var_id, wreport::Varcode var_related, const wreport::Var &new_val)
 {
-    Values values;
+    dballe::Values values;
     values.set(new_val);
-    db->attr_insert_data(var_id, values);
+    dynamic_pointer_cast<db::DB>(db)->attr_insert_data(var_id, values);
 }
 
 void Model::remove(const Value &val)
@@ -99,13 +106,13 @@ void Model::remove(const Value &val)
     emit begin_data_changed();
     auto change = Query::create();
     core::Query::downcast(*change).ana_id = val.ana_id;
-    core::Query::downcast(*change).rep_memo = val.rep_memo;
+    core::Query::downcast(*change).report = val.rep_memo;
     change->set_level(val.level);
     change->set_trange(val.trange);
     change->set_datetimerange(DatetimeRange(val.date, val.date));
     core::Query::downcast(*change).varcodes.clear();
     core::Query::downcast(*change).varcodes.insert(val.var.code());
-    db->remove(*change);
+    db->remove_data(*change);
     vector<Value>::iterator i = std::find(cache_values.begin(), cache_values.end(), val);
     if (i != cache_values.end())
     {
@@ -139,7 +146,7 @@ void Model::set_db(std::shared_ptr<DB> db, const std::string& url)
     //refresh();
 }
 
-std::shared_ptr<dballe::db::Transaction> Model::get_refresh_transaction()
+std::shared_ptr<dballe::Transaction> Model::get_refresh_transaction()
 {
     if (!refresh_transaction.expired())
         return refresh_transaction.lock();
@@ -156,7 +163,7 @@ void Model::refresh(bool accurate)
     tr->rollback();
 }
 
-void Model::refresh_data(dballe::db::Transaction& tr)
+void Model::refresh_data(dballe::Transaction& tr)
 {
     emit progress("data", "Loading data...");
     core::Query query(core::Query::downcast(explorer.get_filter()));
@@ -175,13 +182,16 @@ void Model::refresh_data(dballe::db::Transaction& tr)
     emit progress("data");
 }
 
-void Model::refresh_summary(dballe::db::Transaction& tr, bool accurate)
+void Model::refresh_summary(dballe::Transaction& tr, bool accurate)
 {
     using namespace dballe::db::summary;
 
     emit progress("summary", "Loading summary...");
 
-    explorer.revalidate(tr);
+    {
+        auto update = explorer.rebuild();
+        update.add_db(*dynamic_cast<db::Transaction*>(&tr));
+    }
     highlight.reset();
     explorer_to_fields();
 
@@ -221,7 +231,7 @@ void Model::explorer_to_fields()
 void Model::select_report(const string &val)
 {
     core::Query query(core::Query::downcast(explorer.get_filter()));
-    query.rep_memo = val;
+    query.report = val;
     show_filter(query);
 }
 
@@ -302,7 +312,7 @@ void Model::select_ident(const string &val)
 void Model::unselect_report()
 {
     core::Query query(core::Query::downcast(explorer.get_filter()));
-    query.rep_memo.clear();
+    query.report.clear();
     show_filter(query);
 }
 

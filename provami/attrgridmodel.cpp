@@ -157,7 +157,7 @@ void AttrGridModel::on_highlight_changed()
     if (owner_varcode)
     {
         auto tr = model.get_refresh_transaction();
-        tr->attr_query_data(owner_id, [this](std::unique_ptr<wreport::Var>&& v) {
+        std::dynamic_pointer_cast<db::Transaction>(tr)->attr_query_data(owner_id, [this](std::unique_ptr<wreport::Var>&& v) {
             values.emplace_back(*v);
         });
     }

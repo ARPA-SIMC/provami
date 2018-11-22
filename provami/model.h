@@ -7,7 +7,7 @@
 #include <QObject>
 #include <dballe/types.h>
 #include <dballe/query.h>
-#include <dballe/db/db.h>
+#include <dballe/db.h>
 #include <dballe/db/summary.h>
 #include <dballe/db/explorer.h>
 #include <string>
@@ -57,7 +57,7 @@ protected:
     std::shared_ptr<dballe::DB> db;
 
     /// Current transaction for refreshing values (if any)
-    std::weak_ptr<dballe::db::Transaction> refresh_transaction;
+    std::weak_ptr<dballe::Transaction> refresh_transaction;
 
     /// Currently selected stations
     /// Sample values for the currently active filter
@@ -69,22 +69,22 @@ protected:
     void refresh(bool accurate=false);
 
     /// Refresh the data selected by active_filter
-    void refresh_data(dballe::db::Transaction& tr);
+    void refresh_data(dballe::Transaction& tr);
 
     /// Refresh the summary information selected by active_filter
-    void refresh_summary(dballe::db::Transaction& tr, bool accurate=false);
+    void refresh_summary(dballe::Transaction& tr, bool accurate=false);
 
     /// Process the summary value regenerating the filtering elements lists
     //void process_summary();
 
-    void on_have_new_summary(std::unique_ptr<dballe::db::CursorSummary>, const dballe::Query& query);
+    void on_have_new_summary(std::unique_ptr<dballe::CursorSummary>, const dballe::Query& query);
 
     void show_filter(const dballe::Query& filter);
     void explorer_to_fields();
 
 public:
     // Explorer interface to the database
-    dballe::db::Explorer explorer;
+    dballe::db::DBExplorer explorer;
     // Current highlight
     Highlight highlight;
 
@@ -115,7 +115,7 @@ public:
 
     const std::string& dballe_url() const { return m_dballe_url; }
 
-    std::shared_ptr<dballe::db::Transaction> get_refresh_transaction();
+    std::shared_ptr<dballe::Transaction> get_refresh_transaction();
 
     /**
      * Update \a val in the database to have the value \a new_val
