@@ -8,7 +8,6 @@
 #include <dballe/types.h>
 #include <dballe/query.h>
 #include <dballe/db.h>
-#include <dballe/db/summary.h>
 #include <dballe/db/explorer.h>
 #include <string>
 #include <map>
