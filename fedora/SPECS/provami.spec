@@ -7,7 +7,9 @@ Group: Applications/Meteo
 Source0: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildRequires: cmake, libdballe-devel >= 7.30, qt5-qtbase-devel, qt5-qtwebkit-devel
-Requires: python-dballe, dballe, numpy, rpy
+Requires: python-dballe, dballe, numpy
+# Waiting for issue 120
+Recommends: rpy
 Obsoletes: provami-qt
 
 %description
