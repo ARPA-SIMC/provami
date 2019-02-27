@@ -17,6 +17,7 @@ class MapView : public QWebView
 
 protected:
     Model* model = 0;
+    bool _load_finished = false;
     /*
     // Implement wheel zooming
     virtual void wheelEvent(QWheelEvent* event);
@@ -38,6 +39,7 @@ public:
 signals:
     
 public slots:
+    void load_finished(bool ok);
     void update_stations();
     void station_selected(int id);
     void area_selected(double latmin, double latmax, double lonmin, double lonmax);

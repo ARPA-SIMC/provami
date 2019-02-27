@@ -166,7 +166,7 @@ MinDateEdit::MinDateEdit(QWidget *parent)
 
 void MinDateEdit::reset()
 {
-    DatetimeRange dtr = model->next_filter->get_datetimerange();
+    DatetimeRange dtr = model->explorer.get_filter().get_datetimerange();
     emit(activate(set_value(dtr.min)));
 }
 
@@ -177,7 +177,7 @@ MaxDateEdit::MaxDateEdit(QWidget *parent)
 
 void MaxDateEdit::reset()
 {
-    DatetimeRange dtr = model->next_filter->get_datetimerange();
+    DatetimeRange dtr = model->explorer.get_filter().get_datetimerange();
     emit(activate(set_value(dtr.max)));
 }
 

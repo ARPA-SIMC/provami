@@ -9,7 +9,6 @@
 #include <sstream>
 #include <dballe/types.h>
 #include <dballe/var.h>
-#include <dballe/record.h>
 #include <QFileDialog>
 #include <QProcess>
 #include <QMessageBox>
@@ -271,16 +270,17 @@ void ProvamiMainWindow::stats_changed()
 
 void ProvamiMainWindow::highlight_changed()
 {
-    const Station* station = model.station(model.highlight.station_id());
+    // const Station* station = model.station(model.highlight.station_id());
+    const DBStation* station = nullptr;
     if (station)
     {
-        ui->cur_st_lat->setText(QString("%1").arg(station->lat, 0, 'f', 5));
-        ui->cur_st_lon->setText(QString("%1").arg(station->lon, 0, 'f', 5));
+        ui->cur_st_lat->setText(QString("%1").arg(station->coords.dlat(), 0, 'f', 5));
+        ui->cur_st_lon->setText(QString("%1").arg(station->coords.dlon(), 0, 'f', 5));
         ui->cur_st_id->setText(QString("%1").arg(station->id));
-        if (station->ident.empty())
+        if (!station->ident)
             ui->cur_st_name->setText("(fixed station)");
         else
-            ui->cur_st_name->setText(station->ident.c_str());
+            ui->cur_st_name->setText((const char*)station->ident);
     } else {
         ui->cur_st_lat->setText("-");
         ui->cur_st_lon->setText("-");

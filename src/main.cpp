@@ -1,6 +1,5 @@
 #include "provami/provamimainwindow.h"
 #include "provami/model.h"
-#include <dballe/record.h>
 #include <dballe/query.h>
 #include <QMetaType>
 #include <QApplication>
@@ -45,7 +44,7 @@ See https://github.com/ARPA-SIMC/dballe/blob/master/doc/fapi_connect.md)");
 
     // Parse initial query from command line arguments, taking those arguments
     // that contain an =
-    auto initial_query = Record::create();
+    core::Query initial_query;
     auto args = parser.positionalArguments();
     vector<string> non_query_args;
     for (const auto& arg: args)
@@ -58,14 +57,8 @@ See https://github.com/ARPA-SIMC/dballe/blob/master/doc/fapi_connect.md)");
             continue;
         }
 
-        initial_query->setf(
-                (const char*)arg.left(split).toUtf8().constData(),
-                (const char*)arg.right(arg.size() - split - 1).toUtf8().constData());
+        initial_query.set_from_string(arg.toUtf8().constData());
     }
-
-    auto initial_filter = Query::create();
-    initial_filter->set_from_record(*initial_query);
-    model.set_initial_filter(*initial_filter);
 
     // Connect to the db
     if (non_query_args.empty())
@@ -85,7 +78,7 @@ See https://github.com/ARPA-SIMC/dballe/blob/master/doc/fapi_connect.md)");
         w.show();
         QApplication::processEvents();
 
-        model.activate_next_filter();
+        model.set_initial_filter(initial_query);
 
         return app.exec();
     } catch (std::exception& e) {

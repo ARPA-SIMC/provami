@@ -64,7 +64,35 @@ public:
     /// Try selecting this item, if it is available in the model
     void select(const ITEM& item);
     bool has_item(const ITEM& item);
-    void set_items(std::set<ITEM>& new_items);
+    template<typename CONTAINER>
+    void set_items(const CONTAINER& new_items)
+    {
+        emit layoutAboutToBeChanged();
+        QModelIndexList pil = persistentIndexList();
+        std::vector<ITEM> old = items;
+        items.clear();
+        std::copy(new_items.begin(), new_items.end(), std::back_inserter(items));
+        foreach (QModelIndex pi, pil)
+        {
+            int row = pi.row();
+
+            // If it was pointing to (none), it doesn't change
+            if (row == 0) continue;
+            --row;
+
+            ITEM oitem = old[row];
+            auto i = std::find(items.begin(), items.end(), oitem);
+            if (i == items.end())
+            {
+                changePersistentIndex(pi, QModelIndex());
+            } else {
+                int new_pos = i - items.begin() + 1;
+                changePersistentIndex(pi, index(new_pos));
+            }
+        }
+        emit layoutChanged();
+    }
+
     virtual void set_next_filter(int index);
     virtual int get_current_index_from_model();
 };

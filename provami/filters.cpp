@@ -1,6 +1,5 @@
 #include "provami/filters.h"
 #include "provami/model.h"
-#include <dballe/core/var.h>
 
 using namespace dballe;
 using namespace wreport;
@@ -22,13 +21,13 @@ FilterModelBase<ITEM>::FilterModelBase(Model& model, QObject *parent)
 template<typename ITEM>
 ITEM FilterModelBase<ITEM>::from_model() const
 {
-    return from_record(*model.next_filter);
+    return from_record(model.explorer.get_filter());
 }
 
 template<typename ITEM>
 ITEM FilterModelBase<ITEM>::active_from_model() const
 {
-    return from_record(*model.active_filter);
+    return from_record(model.explorer.get_filter());
 }
 
 template<typename ITEM>
@@ -82,35 +81,6 @@ bool FilterModelBase<ITEM>::has_item(const ITEM &item)
 }
 
 template<typename ITEM>
-void FilterModelBase<ITEM>::set_items(std::set<ITEM> &new_items)
-{
-    emit layoutAboutToBeChanged();
-    QModelIndexList pil = persistentIndexList();
-    vector<ITEM> old = items;
-    items.clear();
-    std::copy(new_items.begin(), new_items.end(), back_inserter(items));
-    foreach (QModelIndex pi, pil)
-    {
-        int row = pi.row();
-
-        // If it was pointing to (none), it doesn't change
-        if (row == 0) continue;
-        --row;
-
-        ITEM oitem = old[row];
-        typename vector<ITEM>::const_iterator i = std::find(items.begin(), items.end(), oitem);
-        if (i == items.end())
-        {
-            changePersistentIndex(pi, QModelIndex());
-        } else {
-            int new_pos = i - items.begin() + 1;
-            changePersistentIndex(pi, index(new_pos));
-        }
-    }
-    emit layoutChanged();
-}
-
-template<typename ITEM>
 void FilterModelBase<ITEM>::set_next_filter(int index)
 {
     if (index <= 0)
@@ -147,7 +117,7 @@ FilterReportModel::FilterReportModel(Model &model, QObject *parent)
 }
 std::string FilterReportModel::from_record(const dballe::Query& query) const
 {
-    return core::Query::downcast(query).rep_memo;
+    return core::Query::downcast(query).report;
 }
 void FilterReportModel::filter_select(const string &val) { model.select_report(val); }
 void FilterReportModel::filter_unselect() { model.unselect_report(); }
@@ -206,7 +176,7 @@ QVariant FilterVarcodeModel::item_to_table_cell(const wreport::Varcode& val) con
         wreport::Varinfo info = varinfo(val);
         desc += ": ";
         desc += info->desc;
-    } catch (wreport::error_notfound) {
+    } catch (wreport::error_notfound&) {
     }
     return QVariant(desc.c_str());
 }

@@ -41,6 +41,7 @@ MapView::MapView(QWidget *parent) :
     connect(&page->controller, SIGNAL(station_selected(int)), this, SLOT(station_selected(int)));
     connect(&page->controller, SIGNAL(area_selected(double,double,double,double)), this, SLOT(area_selected(double, double, double, double)));
     connect(&page->controller, SIGNAL(area_unselected()), this, SLOT(area_unselected()));
+    connect(page, SIGNAL(loadFinished(bool)), this, SLOT(load_finished(bool)));
 
     // Disable context menu (see #23)
     setContextMenuPolicy(Qt::NoContextMenu);
@@ -67,15 +68,19 @@ void MapView::set_model(Model &model)
     if (this->model)
         disconnect(this->model, 0, this, 0);
     this->model = &model;
-/*
-    MapScene::MapScene(Model& model, QObject *parent)
-        : QObject(parent),
-          model(model),
-          coastline_group(0)
-    {
-    */
+
     connect(&model, SIGNAL(next_filter_changed()), this, SLOT(update_stations()));
     connect(&model.highlight, SIGNAL(changed()), this, SLOT(update_highlight()));
+    if (_load_finished)
+        update_stations();
+}
+
+void MapView::load_finished(bool ok)
+{
+    _load_finished = true;
+    if (!this->model)
+        return;
+    update_stations();
 }
 
 QSize MapView::sizeHint() const
@@ -88,14 +93,16 @@ void MapView::update_stations()
 {
     qDebug() << "update stations";
     QString set_stations("set_stations([");
-    const std::map<int, Station>& new_stations = model->stations();
-    const std::set<int> selected_stations = model->selected_stations();
-    for (const auto& si : new_stations)
+    const auto& all_stations = model->explorer.global_summary().stations();
+    const auto& cur_stations = model->explorer.active_summary().stations();
+    for (const auto& si : all_stations)
     {
+        bool selected = cur_stations.has(si.station);
+        bool hidden = false; // FIXME: reimplement somehow?
         set_stations += QString("[%1,%2,%3,%4,%5],")
-                .arg(si.first).arg(si.second.lat).arg(si.second.lon)
-                .arg(selected_stations.find(si.first) != selected_stations.end() ? "true" : "false")
-                .arg(si.second.hidden ? "true" : "false");
+                .arg(si.station.id).arg(si.station.coords.dlat()).arg(si.station.coords.dlon())
+                .arg(selected ? "true" : "false")
+                .arg(hidden ? "true" : "false");
     }
     set_stations += "]);";
     run_javascript(set_stations);
@@ -117,13 +124,13 @@ void MapView::area_selected(double latmin, double latmax, double lonmin, double 
 
     unsigned count = 0;
     int selected_id = MISSING_INT;
-    const std::map<int, Station>& new_stations = model->stations();
-    for (const auto& si : new_stations)
+    const auto& all_stations = model->explorer.global_summary().stations();
+    for (const auto& si : all_stations)
     {
-        if (si.second.lat < latmin || si.second.lat > latmax) continue;
-        if (si.second.lon < lonmin || si.second.lon > lonmax) continue;
-        qDebug() << "Found" << si.first << si.second.lat << si.second.lon;
-        selected_id = si.first;
+        if (si.station.coords.dlat() < latmin || si.station.coords.dlat() > latmax) continue;
+        if (si.station.coords.dlon() < lonmin || si.station.coords.dlon() > lonmax) continue;
+        qDebug() << "Found" << si.station.id << si.station.coords.dlat() << si.station.coords.dlon();
+        selected_id = si.station.id;
         ++count;
     }
 
