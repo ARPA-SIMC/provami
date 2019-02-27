@@ -1,6 +1,6 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami
-Version: 1.5
+Version: 1.6
 Release: 1
 License: GPL
 Group: Applications/Meteo
@@ -52,6 +52,9 @@ ctest -V %{?_smp_mflags}
 %postun
 
 %changelog
+* Wed Feb 27 2019 Daniele Branchini <dbranchini@arpae.it> - 1.6-1
+- fixed DB::connect issue
+
 * Wed Feb 27 2019 Daniele Branchini <dbranchini@arpae.it> - 1.5-1
 - ported to new dballe 8 API
 

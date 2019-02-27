@@ -2,7 +2,7 @@ project(provami)
 
 cmake_minimum_required(VERSION 2.8.11)
 
-set(PACKAGE_VERSION "1.5")
+set(PACKAGE_VERSION "1.6")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
