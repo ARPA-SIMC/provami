@@ -1,17 +1,25 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami
 Version: 1.6
-Release: 1
+Release: 2
 License: GPL
 Group: Applications/Meteo
 Source0: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+
+%if 0%{?rhel} == 7
+%define python3_vers python34
+%else
+%define python3_vers python3
+%endif
+
 BuildRequires: gcc-c++
 BuildRequires: cmake
 BuildRequires: libdballe-devel >= 7.30
 BuildRequires: qt5-qtbase-devel
 BuildRequires: qt5-qtwebkit-devel
-Requires: python-dballe, dballe, numpy
+BuildRequires: %{python3_vers}-dballe
+BuildRequires: %{python3_vers}-numpy
 # Waiting for issue 120
 #Requires: rpy
 Obsoletes: provami-qt
@@ -56,6 +64,9 @@ ctest -V %{?_smp_mflags}
 %postun
 
 %changelog
+* Wed Feb 27 2019 Daniele Branchini <dbranchini@arpae.it> - 1.6-2
+- fixed dependencies
+
 * Wed Feb 27 2019 Daniele Branchini <dbranchini@arpae.it> - 1.6-1
 - fixed DB::connect issue
 
