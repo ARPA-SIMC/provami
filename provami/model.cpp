@@ -126,14 +126,15 @@ void Model::set_initial_filter(const Query& rec)
     show_filter(rec);
 }
 
-void Model::dballe_connect(const std::string &dballe_url)
+void Model::dballe_connect(const std::string& dballe_url)
 {
     if (db)
         db.reset();
 
     m_dballe_url = dballe_url;
 
-    db = DB::connect_from_url(dballe_url.c_str());
+    auto connect_options = DBConnectOptions::create(dballe_url);
+    db = DB::connect(*connect_options);
 
     refresh();
 }
