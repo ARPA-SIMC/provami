@@ -1,14 +1,16 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami
 Version: 1.6
-Release: 2
+Release: 3
 License: GPL
 Group: Applications/Meteo
 Source0: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %if 0%{?rhel} == 7
-%define python3_vers python34
+%define python3_vers python36
+# to have python 3.6 interpreter
+BuildRequires: python3-rpm-macros >= 3-23
 %else
 %define python3_vers python3
 %endif
@@ -64,6 +66,9 @@ ctest -V %{?_smp_mflags}
 %postun
 
 %changelog
+* Tue Apr 16 2019 Daniele Branchini <dbranchini@arpae.it> - 1.6-3
+- moving to python 3.6 on Centos7
+
 * Wed Feb 27 2019 Daniele Branchini <dbranchini@arpae.it> - 1.6-2
 - fixed dependencies
 
