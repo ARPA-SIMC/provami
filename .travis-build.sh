@@ -25,13 +25,16 @@ then
     dnf install -y 'dnf-command(builddep)'
     dnf install -y git
     dnf copr enable -y simc/stable
-    if [[ $image = "fedora:29" ]]
-    then
-        strip -R .note.ABI-tag /lib64/libQt5Core.so*
-    fi
 fi
 
 $builddep -y fedora/SPECS/provami.spec
+
+# Ugly hack for Fedora 29 build under Travis
+if [[ $image = "fedora:29" ]]
+then
+    find /usr/lib /usr/lib64 -name "libQt5Core*.so*" -print0 | xargs -0 strip --remove-section=.note.ABI-tag
+fi
+
 
 if [[ $image =~ ^fedora: || $image =~ ^centos: ]]
 then
