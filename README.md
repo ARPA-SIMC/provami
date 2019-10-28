@@ -1,4 +1,4 @@
-https://arpa-simc.github.io/dballe/PROVAMI
+PROVAMI
 ===============================================================
 
 [![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/provami?branch=master&env=DOCKER_IMAGE=centos:7&label=centos7)](https://travis-ci.org/ARPA-SIMC/provami)
