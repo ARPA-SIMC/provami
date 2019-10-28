@@ -1,7 +1,7 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami
 Version: 1.6
-Release: 3
+Release: 4
 License: GPL
 Group: Applications/Meteo
 Source0: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
@@ -66,6 +66,9 @@ ctest -V %{?_smp_mflags}
 %postun
 
 %changelog
+* Mon Oct 28 2019 Daniele Branchini <dbranchini@arpae.it> - 1.6-4
+- bogus release to compile against new dballe
+
 * Tue Apr 16 2019 Daniele Branchini <dbranchini@arpae.it> - 1.6-3
 - moving to python 3.6 on Centos7
 
