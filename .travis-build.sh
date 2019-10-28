@@ -3,33 +3,46 @@ set -ex
 
 image=$1
 
-if [[ $image =~ ^centos: ]]
+if [[ $image =~ ^centos:7 ]]
 then
     pkgcmd="yum"
     builddep="yum-builddep"
     sed -i '/^tsflags=/d' /etc/yum.conf
-    yum update -y
-    yum install -y epel-release
-    yum install -y @buildsys-build
-    yum install -y yum-utils
-    yum install -y yum-plugin-copr
-    yum install -y git
-    yum copr enable -y simc/stable
+    yum update -q -y
+    yum install -q -y epel-release
+    yum install -q -y @buildsys-build
+    yum install -q -y yum-utils
+    yum install -q -y yum-plugin-copr
+    yum install -q -y git
+    yum copr enable -q -y simc/stable
+elif [[ $image =~ ^centos:8 ]]
+then
+    pkgcmd="dnf"
+    builddep="dnf builddep"
+    sed -i '/^tsflags=/d' /etc/dnf/dnf.conf
+    dnf install -q -y epel-release
+    dnf install -q -y 'dnf-command(config-manager)'
+    dnf config-manager --set-enabled PowerTools
+    dnf groupinstall -q -y "Development Tools"
+    dnf install -q -y 'dnf-command(builddep)'
+    dnf install -q -y git
+    dnf install -q -y rpmdevtools
+    dnf copr enable -y simc/stable
 elif [[ $image =~ ^fedora: ]]
 then
     pkgcmd="dnf"
     builddep="dnf builddep"
     sed -i '/^tsflags=/d' /etc/dnf/dnf.conf
-    dnf update -y
-    dnf install -y --allowerasing @buildsys-build
-    dnf install -y 'dnf-command(builddep)'
-    dnf install -y git
-    dnf copr enable -y simc/stable
+    dnf update -q -y
+    dnf install -q -y --allowerasing @buildsys-build
+    dnf install -q -y 'dnf-command(builddep)'
+    dnf install -q -y git
+    dnf copr enable -q -y simc/stable
 fi
 
 $builddep -y fedora/SPECS/provami.spec
 
-# Ugly hack for Fedora 29 build under Travis
+# Workaround for https://github.com/ARPA-SIMC/Magics-rpm/issues/33
 if [[ $image = "fedora:29" ]]
 then
     find /usr/lib /usr/lib64 -name "libQt5Core*.so*" -print0 | xargs -0 strip --remove-section=.note.ABI-tag
