@@ -22,6 +22,28 @@ export data subsets.
 
 It's a qt version of the old "provami" included in DB-All.e sources.
 
+Usage
+-----
+
+Usage: `provami-qt [options] dballe_url [key=val...]`
+
+Example `dballe_url` values:
+ - `sqlite:file.sqlite` or `sqlite://file.sqlite`
+ - `postgresql://user@host/db`
+ - `mysql://[host][:port]/[database][?propertyName1][=propertyValue1]`…
+ 
+See https://github.com/ARPA-SIMC/dballe/blob/master/doc/fapi_connect.md
+
+Options:
+  `-h`, `--help   `  Displays this help.
+  `-v`, `--version`  Displays version information.
+
+Arguments:
+  `dballe_url`     DB-All.e URL to the database to open.
+  `key=val   `     initial filter constraints
+
+
+
 Contact and copyright information
 ---------------------------------
 
