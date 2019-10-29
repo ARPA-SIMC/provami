@@ -43,6 +43,11 @@ Arguments:
   `key=val   `     initial filter constraints
 
 
+*Note*: a internet connection is necessary to load underlying maps. If the connection is managed by a proxy server it's necessary to export the `http_proxy` environment variable before launching the application, e.g.:
+```
+$ export http_proxy=http://USERNAME:PASSWORD@proxy-server.something:3128/
+```
+
 
 Contact and copyright information
 ---------------------------------
