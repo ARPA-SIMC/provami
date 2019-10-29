@@ -14,6 +14,8 @@ PROVAMI
 Introduction
 ------------
 
+**PLEASE NOTE: "provami" is deprecated. The new GUI application to visualise and navigate DB-All.e databases is: https://github.com/ARPA-SIMC/dballe-web**
+
 "provami" is a GUI application to visualise and navigate DB-All.e databases.
 (see https://github.com/ARPA-SIMC/dballe)
 
@@ -32,7 +34,7 @@ Example `dballe_url` values:
  - `postgresql://user@host/db`
  - `mysql://[host][:port]/[database][?propertyName1][=propertyValue1]`…
  
-See https://github.com/ARPA-SIMC/dballe/blob/master/doc/fapi_connect.md
+See https://arpa-simc.github.io/dballe/parms.html
 
 Options:
   `-h`, `--help   `  Displays this help.
