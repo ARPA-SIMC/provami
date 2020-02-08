@@ -23,12 +23,12 @@ Model::~Model()
 
 static const dballe::Datetime missing_datetime;
 
-const Datetime &Model::summary_datetime_min() const
+Datetime Model::summary_datetime_min() const
 {
     return explorer.active_summary().datetime_min();
 }
 
-const Datetime &Model::summary_datetime_max() const
+Datetime Model::summary_datetime_max() const
 {
     return explorer.active_summary().datetime_max();
 }
@@ -214,18 +214,31 @@ void Model::show_filter(const dballe::Query& filter)
 void Model::explorer_to_fields()
 {
     const auto& s = explorer.active_summary();
-    const auto& stations = s.stations();
+
     std::set<std::string> new_idents;
-    for (const auto& se: stations)
-    {
-        if (se.station.ident)
-            new_idents.insert(se.station.ident);
-    }
+    s.stations([&](const dballe::DBStation& station) {
+        if (station.ident)
+            new_idents.insert(station.ident);
+        return true;
+    });
     idents.set_items(new_idents);
-    reports.set_items(s.reports());
-    levels.set_items(s.levels());
-    tranges.set_items(s.tranges());
-    varcodes.set_items(s.varcodes());
+
+    std::vector<std::string> new_reports;
+    s.reports([&](const std::string& report) { new_reports.push_back(report); return true; });
+    reports.set_items(new_reports);
+
+    std::vector<Level> new_levels;
+    s.levels([&](const Level& lev) { new_levels.push_back(lev); return true; });
+    levels.set_items(new_levels);
+
+    std::vector<Trange> new_tranges;
+    s.tranges([&](const Trange& tr) { new_tranges.push_back(tr); return true; });
+    tranges.set_items(new_tranges);
+
+    std::vector<wreport::Varcode> new_varcodes;
+    s.varcodes([&](const wreport::Varcode& c) { new_varcodes.push_back(c); return true; });
+    varcodes.set_items(new_varcodes);
+
     emit next_filter_changed();
 }
 

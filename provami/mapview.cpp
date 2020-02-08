@@ -93,14 +93,25 @@ void MapView::update_stations()
 {
     qDebug() << "update stations";
     QString set_stations("set_stations([");
-    const auto& all_stations = model->explorer.global_summary().stations();
-    const auto& cur_stations = model->explorer.active_summary().stations();
-    for (const auto& si : all_stations)
+
+    std::set<dballe::DBStation> all_stations;
+    model->explorer.global_summary().stations([&](const dballe::DBStation& st) {
+        all_stations.insert(st);
+        return true;
+    });
+
+    std::set<int> cur_stations;
+    model->explorer.active_summary().stations([&](const dballe::DBStation& st) {
+        cur_stations.insert(st.id);
+        return true;
+    });
+
+    for (const auto& station : all_stations)
     {
-        bool selected = cur_stations.has(si.station);
+        bool selected = cur_stations.find(station.id) != cur_stations.end();
         bool hidden = false; // FIXME: reimplement somehow?
         set_stations += QString("[%1,%2,%3,%4,%5],")
-                .arg(si.station.id).arg(si.station.coords.dlat()).arg(si.station.coords.dlon())
+                .arg(station.id).arg(station.coords.dlat()).arg(station.coords.dlon())
                 .arg(selected ? "true" : "false")
                 .arg(hidden ? "true" : "false");
     }
@@ -124,15 +135,14 @@ void MapView::area_selected(double latmin, double latmax, double lonmin, double 
 
     unsigned count = 0;
     int selected_id = MISSING_INT;
-    const auto& all_stations = model->explorer.global_summary().stations();
-    for (const auto& si : all_stations)
-    {
-        if (si.station.coords.dlat() < latmin || si.station.coords.dlat() > latmax) continue;
-        if (si.station.coords.dlon() < lonmin || si.station.coords.dlon() > lonmax) continue;
-        qDebug() << "Found" << si.station.id << si.station.coords.dlat() << si.station.coords.dlon();
-        selected_id = si.station.id;
+    model->explorer.global_summary().stations([&](const dballe::DBStation& station) {
+        if (station.coords.dlat() < latmin || station.coords.dlat() > latmax) return true;;
+        if (station.coords.dlon() < lonmin || station.coords.dlon() > lonmax) return true;;
+        qDebug() << "Found" << station.id << station.coords.dlat() << station.coords.dlon();
+        selected_id = station.id;
         ++count;
-    }
+        return true;
+    });
 
     switch (count)
     {

@@ -103,8 +103,8 @@ public:
     Model& operator=(const Model&) = delete;
     Model& operator=(const Model&&) = delete;
 
-    const dballe::Datetime& summary_datetime_min() const;
-    const dballe::Datetime& summary_datetime_max() const;
+    dballe::Datetime summary_datetime_min() const;
+    dballe::Datetime summary_datetime_max() const;
     unsigned summary_count() const;
 
     //const std::map<int, Station>& stations() const;
