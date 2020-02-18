@@ -42,13 +42,6 @@ fi
 
 $builddep -y fedora/SPECS/provami.spec
 
-# Workaround for https://github.com/ARPA-SIMC/Magics-rpm/issues/33
-if [[ $image = "fedora:29" ]]
-then
-    find /usr/lib /usr/lib64 -name "libQt5Core*.so*" -print0 | xargs -0 strip --remove-section=.note.ABI-tag
-fi
-
-
 if [[ $image =~ ^fedora: || $image =~ ^centos: ]]
 then
     pkgname=provami-$(git describe --abbrev=0 --tags --match='v*' | sed -e 's,^v,,g')
