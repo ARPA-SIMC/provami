@@ -1,7 +1,7 @@
 Summary: Graphical interface to DB-All.e databases
 Name: provami
 Version: 1.7
-Release: 1
+Release: 2
 License: GPL
 Group: Applications/Meteo
 Source0: https://github.com/arpa-simc/%{name}/archive/v%{version}-%{release}.tar.gz#/%{name}-%{version}-%{release}.tar.gz
@@ -40,12 +40,22 @@ Obsoletes: provami-qt
 
 %cmake .
 
-make %{?_smp_mflags}
+%if 0%{?fedora} >= 32
+# https://fedoraproject.org/wiki/Changes/CMake_to_do_out-of-source_builds
+%cmake_build
+%else
+%make_build
+%endif
 
 %install
 [ "%{buildroot}" != / ] && rm -rf "%{buildroot}"
 
-make install DESTDIR="%{buildroot}"
+%if 0%{?fedora} >= 32
+# https://fedoraproject.org/wiki/Changes/CMake_to_do_out-of-source_builds
+%cmake_install
+%else
+%make_install
+%endif
 
 %check
 ctest -V %{?_smp_mflags}
@@ -66,6 +76,9 @@ ctest -V %{?_smp_mflags}
 %postun
 
 %changelog
+* Wed May  5 2021 Daniele Branchini <dbranchini@arpae.it> - 1.7-2
+- fixed builds for F33/F34
+
 * Mon Feb 10 2020 Daniele Branchini <dbranchini@arpae.it> - 1.7-1
 - ported to new dballe
 
