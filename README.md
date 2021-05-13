@@ -1,9 +1,7 @@
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/provami?branch=master&env=DOCKER_IMAGE=centos:7&label=centos7)](https://travis-ci.org/ARPA-SIMC/provami)
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/provami?branch=master&env=DOCKER_IMAGE=centos:8&label=centos8)](https://travis-ci.org/ARPA-SIMC/provami)
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/provami?branch=master&env=DOCKER_IMAGE=fedora:32&label=fedora32)](https://travis-ci.org/ARPA-SIMC/provami)
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/provami?branch=master&env=DOCKER_IMAGE=fedora:33&label=fedora33)](https://travis-ci.org/ARPA-SIMC/provami)
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/provami?branch=master&env=DOCKER_IMAGE=fedora:34&label=fedora34)](https://travis-ci.org/ARPA-SIMC/provami)
-[![Build Status](https://badges.herokuapp.com/travis/ARPA-SIMC/provami?branch=master&env=DOCKER_IMAGE=fedora:rawhide&label=fedorarawhide)](https://travis-ci.org/ARPA-SIMC/provami)
+[![Build Status](https://simc.arpae.it/moncic-ci/provami/centos7.png)](https://simc.arpae.it/moncic-ci/provami/)
+[![Build Status](https://simc.arpae.it/moncic-ci/provami/centos8.png)](https://simc.arpae.it/moncic-ci/provami/)
+[![Build Status](https://simc.arpae.it/moncic-ci/provami/fedora32.png)](https://simc.arpae.it/moncic-ci/provami/)
+[![Build Status](https://simc.arpae.it/moncic-ci/provami/fedora34.png)](https://simc.arpae.it/moncic-ci/provami/)
 [![Build Status](https://copr.fedorainfracloud.org/coprs/simc/stable/package/provami/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/simc/stable/package/provami/)
 
 
@@ -55,6 +53,6 @@ Contact and copyright information
 
 The author of DB-ALLe is Enrico Zini <enrico@enricozini.com>
 
-Provami is Copyright (C) 2015-2020 ARPAE-SIMC <urpsim@arpae.it>
+Provami is Copyright (C) 2015-2021 ARPAE-SIMC <urpsim@arpae.it>
 
 Provami is licensed under the terms of the GNU General Public License version 2.0
