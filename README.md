@@ -1,7 +1,8 @@
 [![Build Status](https://simc.arpae.it/moncic-ci/provami/centos7.png)](https://simc.arpae.it/moncic-ci/provami/)
-[![Build Status](https://simc.arpae.it/moncic-ci/provami/centos8.png)](https://simc.arpae.it/moncic-ci/provami/)
-[![Build Status](https://simc.arpae.it/moncic-ci/provami/fedora32.png)](https://simc.arpae.it/moncic-ci/provami/)
-[![Build Status](https://simc.arpae.it/moncic-ci/provami/fedora34.png)](https://simc.arpae.it/moncic-ci/provami/)
+[![Build Status](https://simc.arpae.it/moncic-ci/provami/rocky8.png)](https://simc.arpae.it/moncic-ci/provami/)
+[![Build Status](https://simc.arpae.it/moncic-ci/provami/rocky9.png)](https://simc.arpae.it/moncic-ci/provami/)
+[![Build Status](https://simc.arpae.it/moncic-ci/provami/fedora36.png)](https://simc.arpae.it/moncic-ci/provami/)
+[![Build Status](https://simc.arpae.it/moncic-ci/provami/fedora38.png)](https://simc.arpae.it/moncic-ci/provami/)
 [![Build Status](https://copr.fedorainfracloud.org/coprs/simc/stable/package/provami/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/simc/stable/package/provami/)
 
 
